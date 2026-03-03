@@ -1,0 +1,324 @@
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Edit2, Plus, Search, Trash2 } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
+import AppLayout from '@/layouts/app-layout';
+
+export default function Index({
+    positions,
+    filters,
+}: {
+    positions: any;
+    filters: { search?: string };
+}) {
+    const [search, setSearch] = useState(filters.search ?? '');
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [editPosition, setEditPosition] = useState<any>(null);
+
+    const { data, setData, post, put, reset, errors, processing } = useForm({
+        name: '',
+        description: '',
+    });
+
+    // Debounced Inertia visit on search change
+    const doSearch = useCallback((value: string) => {
+        router.get(
+            '/positions',
+            { search: value },
+            { preserveState: true, replace: true },
+        );
+    }, []);
+
+    useEffect(() => {
+        const timer = setTimeout(() => doSearch(search), 350);
+        return () => clearTimeout(timer);
+    }, [search, doSearch]);
+
+    const handleCreate = (e: React.FormEvent) => {
+        e.preventDefault();
+        post('/positions', {
+            onSuccess: () => {
+                setIsCreateOpen(false);
+                reset();
+            },
+        });
+    };
+
+    const handleEdit = (position: any) => {
+        setEditPosition(position);
+        setData({
+            name: position.name,
+            description: position.description || '',
+        });
+    };
+
+    const handleUpdate = (e: React.FormEvent) => {
+        e.preventDefault();
+        put(`/positions/${editPosition.id}`, {
+            onSuccess: () => {
+                setEditPosition(null);
+                reset();
+            },
+        });
+    };
+
+    const handleCloseEdit = () => {
+        setEditPosition(null);
+        reset();
+    };
+
+    const handleCloseCreate = (isOpen: boolean) => {
+        setIsCreateOpen(isOpen);
+        if (!isOpen) reset();
+    };
+
+    return (
+        <AppLayout
+            breadcrumbs={[
+                { title: 'Dashboard', href: '/dashboard' },
+                { title: 'Positions', href: '/positions' },
+            ]}
+        >
+            <Head title="Positions" />
+            <div className="flex h-full flex-1 flex-col gap-4 p-4 lg:p-8">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="text-2xl font-bold tracking-tight">
+                            Positions
+                        </h2>
+                        <p className="text-muted-foreground">
+                            Manage your clinic's positions here.
+                        </p>
+                    </div>
+
+                    <Dialog
+                        open={isCreateOpen}
+                        onOpenChange={handleCloseCreate}
+                    >
+                        <DialogTrigger asChild>
+                            <Button>
+                                <Plus className="mr-2 h-4 w-4" /> Add Position
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Add Position</DialogTitle>
+                                <DialogDescription>
+                                    Create a new position in the system.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <form
+                                id="create-position-form"
+                                onSubmit={handleCreate}
+                            >
+                                <div className="grid gap-4 py-4">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="name">Name</Label>
+                                        <Input
+                                            id="name"
+                                            value={data.name}
+                                            onChange={(e) =>
+                                                setData('name', e.target.value)
+                                            }
+                                            required
+                                        />
+                                        {errors.name && (
+                                            <p className="text-sm text-destructive">
+                                                {errors.name}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="description">
+                                            Description
+                                        </Label>
+                                        <Input
+                                            id="description"
+                                            value={data.description}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'description',
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
+                                        {errors.description && (
+                                            <p className="text-sm text-destructive">
+                                                {errors.description}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                                <DialogFooter>
+                                    <Button type="submit" disabled={processing}>
+                                        Save
+                                    </Button>
+                                </DialogFooter>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+                </div>
+
+                {/* Search Bar */}
+                <div className="relative max-w-sm">
+                    <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                        placeholder="Search positions..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="pl-9"
+                    />
+                </div>
+
+                <div className="rounded-md border bg-card text-card-foreground shadow-sm">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Name</TableHead>
+                                <TableHead>Description</TableHead>
+                                <TableHead>Employees Count</TableHead>
+                                <TableHead className="text-right">
+                                    Actions
+                                </TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {positions.data.length === 0 && (
+                                <TableRow>
+                                    <TableCell
+                                        colSpan={4}
+                                        className="h-24 text-center"
+                                    >
+                                        No positions found.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                            {positions.data.map((position: any) => (
+                                <TableRow key={position.id}>
+                                    <TableCell className="font-medium">
+                                        {position.name}
+                                    </TableCell>
+                                    <TableCell>
+                                        {position.description || '-'}
+                                    </TableCell>
+                                    <TableCell>
+                                        {position.employees_count}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <div className="flex justify-end gap-2">
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                onClick={() =>
+                                                    handleEdit(position)
+                                                }
+                                            >
+                                                <Edit2 className="h-4 w-4" />
+                                            </Button>
+
+                                            <Link
+                                                href={`/positions/${position.id}`}
+                                                method="delete"
+                                                as="button"
+                                            >
+                                                <Button
+                                                    variant="destructive"
+                                                    size="icon"
+                                                    disabled={
+                                                        position.employees_count >
+                                                        0
+                                                    }
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </Link>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+
+                {/* Edit Dialog */}
+                <Dialog
+                    open={!!editPosition}
+                    onOpenChange={(open) => !open && handleCloseEdit()}
+                >
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Edit Position</DialogTitle>
+                            <DialogDescription>
+                                Update {editPosition?.name} information.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <form id="edit-position-form" onSubmit={handleUpdate}>
+                            <div className="grid gap-4 py-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="edit-name">Name</Label>
+                                    <Input
+                                        id="edit-name"
+                                        value={data.name}
+                                        onChange={(e) =>
+                                            setData('name', e.target.value)
+                                        }
+                                        required
+                                    />
+                                    {errors.name && (
+                                        <p className="text-sm text-destructive">
+                                            {errors.name}
+                                        </p>
+                                    )}
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="edit-description">
+                                        Description
+                                    </Label>
+                                    <Input
+                                        id="edit-description"
+                                        value={data.description}
+                                        onChange={(e) =>
+                                            setData(
+                                                'description',
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+                                    {errors.description && (
+                                        <p className="text-sm text-destructive">
+                                            {errors.description}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                            <DialogFooter>
+                                <Button type="submit" disabled={processing}>
+                                    Update
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+            </div>
+        </AppLayout>
+    );
+}
