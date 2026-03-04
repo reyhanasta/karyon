@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\EmployeeExport;
 use App\Http\Requests\StoreEmployeeRequest;
 use App\Http\Requests\UpdateEmployeeRequest;
+use App\Imports\EmployeeImport;
 use App\Models\Department;
 use App\Models\Employee;
 use App\Models\Position;
@@ -12,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Permission\Models\Role;
 
 class EmployeeController extends Controller
@@ -124,5 +127,41 @@ class EmployeeController extends Controller
         $employee->user->delete();
 
         return redirect()->route('employees.index')->with('success', 'Employee deleted successfully.');
+    }
+
+    public function export(Request $request)
+    {
+        $format = $request->get('format', 'xlsx');
+        $filename = 'employees_' . now()->format('Y-m-d');
+
+        if ($format === 'csv') {
+            return Excel::download(new EmployeeExport, $filename . '.csv', \Maatwebsite\Excel\Excel::CSV);
+        }
+
+        return Excel::download(new EmployeeExport, $filename . '.xlsx');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,csv,xls|max:5120',
+        ]);
+
+        $import = new EmployeeImport;
+        Excel::import($import, $request->file('file'));
+
+        $imported = $import->getImportedCount();
+        $errors = $import->getErrors();
+
+        if ($imported === 0 && count($errors) > 0) {
+            return back()->with('error', 'Import failed. ' . implode(' | ', array_slice($errors, 0, 5)));
+        }
+
+        $message = "{$imported} employee(s) imported successfully.";
+        if (count($errors) > 0) {
+            $message .= ' ' . count($errors) . ' row(s) skipped.';
+        }
+
+        return back()->with('success', $message);
     }
 }

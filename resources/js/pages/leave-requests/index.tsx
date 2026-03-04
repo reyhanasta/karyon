@@ -1,5 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Check, Plus, X } from 'lucide-react';
+import { Pagination } from '@/components/pagination';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -200,6 +201,8 @@ export default function Index({
                         </TableBody>
                     </Table>
                 </div>
+
+                <Pagination links={leaveRequests.links} />
             </div>
         </AppLayout>
     );

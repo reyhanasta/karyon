@@ -1,8 +1,31 @@
-import { Head, Link, router } from '@inertiajs/react';
-import { Edit2, Plus, Search, Trash2 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import {
+    Download,
+    Edit2,
+    FileSpreadsheet,
+    Plus,
+    Search,
+    Trash2,
+    Upload,
+} from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Pagination } from '@/components/pagination';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import {
     Table,
@@ -24,20 +47,38 @@ export default function Index({
 }) {
     const { can } = usePermissions();
     const [search, setSearch] = useState(filters.search ?? '');
+    const [importOpen, setImportOpen] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const importForm = useForm<{ file: File | null }>({ file: null });
 
-    // Debounced Inertia visit on search change
-    const doSearch = useCallback((value: string) => {
-        router.get(
-            '/employees',
-            { search: value },
-            { preserveState: true, replace: true },
-        );
-    }, []);
+    const handleSearchChange = (value: string) => {
+        setSearch(value);
+        if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+        searchTimerRef.current = setTimeout(() => {
+            router.get(
+                '/employees',
+                { search: value },
+                { preserveState: true, replace: true },
+            );
+        }, 350);
+    };
 
-    useEffect(() => {
-        const timer = setTimeout(() => doSearch(search), 350);
-        return () => clearTimeout(timer);
-    }, [search, doSearch]);
+    const handleImport = () => {
+        if (!importForm.data.file) return;
+
+        const formData = new FormData();
+        formData.append('file', importForm.data.file);
+
+        router.post('/employees/import', formData as any, {
+            forceFormData: true,
+            onSuccess: () => {
+                setImportOpen(false);
+                importForm.reset();
+                if (fileInputRef.current) fileInputRef.current.value = '';
+            },
+        });
+    };
 
     return (
         <AppLayout
@@ -57,13 +98,53 @@ export default function Index({
                             Manage your clinic's employee data here.
                         </p>
                     </div>
-                    {can('employee.create') && (
-                        <Link href="/employees/create">
-                            <Button>
-                                <Plus className="mr-2 h-4 w-4" /> Add Employee
+                    <div className="flex items-center gap-2">
+                        {/* Export dropdown */}
+                        {can('employee.view') && (
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline">
+                                        <Download className="mr-2 h-4 w-4" />{' '}
+                                        Export
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem asChild>
+                                        <a href="/employees/export?format=xlsx">
+                                            <FileSpreadsheet className="mr-2 h-4 w-4" />{' '}
+                                            Export as .xlsx
+                                        </a>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <a href="/employees/export?format=csv">
+                                            <FileSpreadsheet className="mr-2 h-4 w-4" />{' '}
+                                            Export as .csv
+                                        </a>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        )}
+
+                        {/* Import button */}
+                        {can('employee.create') && (
+                            <Button
+                                variant="outline"
+                                onClick={() => setImportOpen(true)}
+                            >
+                                <Upload className="mr-2 h-4 w-4" /> Import
                             </Button>
-                        </Link>
-                    )}
+                        )}
+
+                        {/* Create button */}
+                        {can('employee.create') && (
+                            <Link href="/employees/create">
+                                <Button>
+                                    <Plus className="mr-2 h-4 w-4" /> Add
+                                    Employee
+                                </Button>
+                            </Link>
+                        )}
+                    </div>
                 </div>
 
                 {/* Search Bar */}
@@ -72,7 +153,7 @@ export default function Index({
                     <Input
                         placeholder="Search by name, NIP, position..."
                         value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        onChange={(e) => handleSearchChange(e.target.value)}
                         className="pl-9"
                     />
                 </div>
@@ -173,7 +254,58 @@ export default function Index({
                         </TableBody>
                     </Table>
                 </div>
+
+                <Pagination links={employees.links} />
             </div>
+
+            {/* Import Dialog */}
+            <Dialog open={importOpen} onOpenChange={setImportOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Import Employees</DialogTitle>
+                        <DialogDescription>
+                            Upload an .xlsx or .csv file with employee data.
+                            Required columns: <strong>Full Name</strong>,{' '}
+                            <strong>Email</strong>. Optional: NIP, Position,
+                            Department, Role, Join Date, Leave Quota.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <Input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".xlsx,.csv,.xls"
+                            onChange={(e) =>
+                                importForm.setData(
+                                    'file',
+                                    e.target.files?.[0] ?? null,
+                                )
+                            }
+                        />
+                        {importForm.errors.file && (
+                            <p className="text-sm font-medium text-destructive">
+                                {importForm.errors.file}
+                            </p>
+                        )}
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setImportOpen(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleImport}
+                            disabled={
+                                !importForm.data.file || importForm.processing
+                            }
+                        >
+                            <Upload className="mr-2 h-4 w-4" /> Import
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AppLayout>
     );
 }

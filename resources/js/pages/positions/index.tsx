@@ -1,6 +1,7 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { Edit2, Plus, Search, Trash2 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useRef, useState } from 'react';
+import { Pagination } from '@/components/pagination';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -33,25 +34,24 @@ export default function Index({
     const [search, setSearch] = useState(filters.search ?? '');
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [editPosition, setEditPosition] = useState<any>(null);
+    const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const { data, setData, post, put, reset, errors, processing } = useForm({
         name: '',
         description: '',
     });
 
-    // Debounced Inertia visit on search change
-    const doSearch = useCallback((value: string) => {
-        router.get(
-            '/positions',
-            { search: value },
-            { preserveState: true, replace: true },
-        );
-    }, []);
-
-    useEffect(() => {
-        const timer = setTimeout(() => doSearch(search), 350);
-        return () => clearTimeout(timer);
-    }, [search, doSearch]);
+    const handleSearchChange = (value: string) => {
+        setSearch(value);
+        if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+        searchTimerRef.current = setTimeout(() => {
+            router.get(
+                '/positions',
+                { search: value },
+                { preserveState: true, replace: true },
+            );
+        }, 350);
+    };
 
     const handleCreate = (e: React.FormEvent) => {
         e.preventDefault();
@@ -184,7 +184,7 @@ export default function Index({
                     <Input
                         placeholder="Search positions..."
                         value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        onChange={(e) => handleSearchChange(e.target.value)}
                         className="pl-9"
                     />
                 </div>
@@ -258,6 +258,8 @@ export default function Index({
                         </TableBody>
                     </Table>
                 </div>
+
+                <Pagination links={positions.links} />
 
                 {/* Edit Dialog */}
                 <Dialog

@@ -11,6 +11,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
     // Employee management
+    Route::get('employees/export', [App\Http\Controllers\EmployeeController::class, 'export'])
+        ->name('employees.export')
+        ->middleware('permission:employee.view');
+    Route::post('employees/import', [App\Http\Controllers\EmployeeController::class, 'import'])
+        ->name('employees.import')
+        ->middleware('permission:employee.create');
     Route::resource('employees', App\Http\Controllers\EmployeeController::class)
         ->middleware('permission:employee.view');
 
