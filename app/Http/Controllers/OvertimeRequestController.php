@@ -28,7 +28,6 @@ class OvertimeRequestController extends Controller
         
         return Inertia::render('overtime-requests/index', [
             'overtimeRequests' => $overtimeRequests,
-            'isManagerOrAdmin' => $user->hasRole(['super-admin', 'hr-admin', 'manager']),
             'filters' => ['status' => $status],
         ]);
     }

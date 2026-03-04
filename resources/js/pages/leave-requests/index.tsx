@@ -1,5 +1,4 @@
-import { router } from '@inertiajs/react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Check, Plus, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,19 +17,22 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
 
 type Status = 'pending' | 'approved' | 'rejected';
 
 export default function Index({
     leaveRequests,
-    isManagerOrAdmin,
     filters,
 }: {
     leaveRequests: any;
-    isManagerOrAdmin: boolean;
     filters: { status?: string };
 }) {
+    const { can } = usePermissions();
+    const canApprove = can('leave.approve');
+    const canCreate = can('leave.create');
+
     const handleStatusUpdate = (id: number, status: Status) => {
         if (confirm(`Are you sure you want to ${status} this request?`)) {
             router.post(`/leave-requests/${id}/status`, { status });
@@ -63,12 +65,12 @@ export default function Index({
                             Leave Requests
                         </h2>
                         <p className="text-muted-foreground">
-                            {isManagerOrAdmin
+                            {canApprove
                                 ? 'Manage employee leave requests here.'
                                 : 'View and submit your leave requests.'}
                         </p>
                     </div>
-                    {!isManagerOrAdmin && (
+                    {canCreate && (
                         <Link href="/leave-requests/create">
                             <Button>
                                 <Plus className="mr-2 h-4 w-4" /> Request Leave
@@ -102,14 +104,12 @@ export default function Index({
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                {isManagerOrAdmin && (
-                                    <TableHead>Employee</TableHead>
-                                )}
+                                {canApprove && <TableHead>Employee</TableHead>}
                                 <TableHead>Start Date</TableHead>
                                 <TableHead>End Date</TableHead>
                                 <TableHead>Reason</TableHead>
                                 <TableHead>Status</TableHead>
-                                {isManagerOrAdmin && (
+                                {canApprove && (
                                     <TableHead className="text-right">
                                         Actions
                                     </TableHead>
@@ -120,7 +120,7 @@ export default function Index({
                             {leaveRequests.data.length === 0 && (
                                 <TableRow>
                                     <TableCell
-                                        colSpan={isManagerOrAdmin ? 6 : 4}
+                                        colSpan={canApprove ? 6 : 4}
                                         className="h-24 text-center"
                                     >
                                         No leave requests found.
@@ -129,7 +129,7 @@ export default function Index({
                             )}
                             {leaveRequests.data.map((request: any) => (
                                 <TableRow key={request.id}>
-                                    {isManagerOrAdmin && (
+                                    {canApprove && (
                                         <TableCell className="font-medium">
                                             {request.employee?.full_name}
                                         </TableCell>
@@ -159,7 +159,7 @@ export default function Index({
                                                 request.status.slice(1)}
                                         </Badge>
                                     </TableCell>
-                                    {isManagerOrAdmin && (
+                                    {canApprove && (
                                         <TableCell className="text-right">
                                             {request.status === 'pending' && (
                                                 <div className="flex justify-end gap-2">

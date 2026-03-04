@@ -25,7 +25,6 @@ export default function Create({
         nip: '',
         full_name: '',
         email: '',
-        password: '',
         position_id: '',
         department_id: '',
         join_date: '',
@@ -35,9 +34,7 @@ export default function Create({
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post('/employees', {
-            onSuccess: () => reset('password'),
-        });
+        post('/employees');
     };
 
     return (
@@ -72,7 +69,6 @@ export default function Create({
                                         setData('nip', e.target.value)
                                     }
                                     className="w-full"
-                                    required
                                 />
                                 {errors.nip && (
                                     <p className="text-sm font-medium text-destructive">
@@ -101,7 +97,7 @@ export default function Create({
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
+                            <div className="col-span-2 space-y-2">
                                 <Label htmlFor="email">Email</Label>
                                 <Input
                                     id="email"
@@ -116,26 +112,6 @@ export default function Create({
                                 {errors.email && (
                                     <p className="text-sm font-medium text-destructive">
                                         {errors.email}
-                                    </p>
-                                )}
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="password">
-                                    Password (Temporary)
-                                </Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    value={data.password}
-                                    onChange={(e) =>
-                                        setData('password', e.target.value)
-                                    }
-                                    className="w-full"
-                                    required
-                                />
-                                {errors.password && (
-                                    <p className="text-sm font-medium text-destructive">
-                                        {errors.password}
                                     </p>
                                 )}
                             </div>

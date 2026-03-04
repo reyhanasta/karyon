@@ -12,6 +12,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
 
 export default function Index({
@@ -21,6 +22,7 @@ export default function Index({
     employees: any;
     filters: { search?: string };
 }) {
+    const { can } = usePermissions();
     const [search, setSearch] = useState(filters.search ?? '');
 
     // Debounced Inertia visit on search change
@@ -55,11 +57,13 @@ export default function Index({
                             Manage your clinic's employee data here.
                         </p>
                     </div>
-                    <Link href="/employees/create">
-                        <Button>
-                            <Plus className="mr-2 h-4 w-4" /> Add Employee
-                        </Button>
-                    </Link>
+                    {can('employee.create') && (
+                        <Link href="/employees/create">
+                            <Button>
+                                <Plus className="mr-2 h-4 w-4" /> Add Employee
+                            </Button>
+                        </Link>
+                    )}
                 </div>
 
                 {/* Search Bar */}
@@ -83,9 +87,12 @@ export default function Index({
                                 <TableHead>Department</TableHead>
                                 <TableHead>Role</TableHead>
                                 <TableHead>Leave Quota</TableHead>
-                                <TableHead className="text-right">
-                                    Actions
-                                </TableHead>
+                                {(can('employee.edit') ||
+                                    can('employee.delete')) && (
+                                    <TableHead className="text-right">
+                                        Actions
+                                    </TableHead>
+                                )}
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -128,32 +135,39 @@ export default function Index({
                                     <TableCell>
                                         {employee.leave_quota} days
                                     </TableCell>
-                                    <TableCell className="text-right">
-                                        <div className="flex justify-end gap-2">
-                                            <Link
-                                                href={`/employees/${employee.id}/edit`}
-                                            >
-                                                <Button
-                                                    variant="outline"
-                                                    size="icon"
-                                                >
-                                                    <Edit2 className="h-4 w-4" />
-                                                </Button>
-                                            </Link>
-                                            <Link
-                                                href={`/employees/${employee.id}`}
-                                                method="delete"
-                                                as="button"
-                                            >
-                                                <Button
-                                                    variant="destructive"
-                                                    size="icon"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </Link>
-                                        </div>
-                                    </TableCell>
+                                    {(can('employee.edit') ||
+                                        can('employee.delete')) && (
+                                        <TableCell className="text-right">
+                                            <div className="flex justify-end gap-2">
+                                                {can('employee.edit') && (
+                                                    <Link
+                                                        href={`/employees/${employee.id}/edit`}
+                                                    >
+                                                        <Button
+                                                            variant="outline"
+                                                            size="icon"
+                                                        >
+                                                            <Edit2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </Link>
+                                                )}
+                                                {can('employee.delete') && (
+                                                    <Link
+                                                        href={`/employees/${employee.id}`}
+                                                        method="delete"
+                                                        as="button"
+                                                    >
+                                                        <Button
+                                                            variant="destructive"
+                                                            size="icon"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </Link>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                    )}
                                 </TableRow>
                             ))}
                         </TableBody>

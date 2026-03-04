@@ -12,17 +12,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Organization
-        \App\Models\Department::create(['name' => 'General Support']);
-        \App\Models\Department::create(['name' => 'Medical']);
-        \App\Models\Department::create(['name' => 'IT & Engineering']);
-
-        \App\Models\Position::create(['name' => 'Doctor']);
-        \App\Models\Position::create(['name' => 'Nurse']);
-        \App\Models\Position::create(['name' => 'Staff']);
-
         $this->call([
             RoleAndPermissionSeeder::class,
+             DepartmentSeeder::class,
+            PositionSeeder::class,
         ]);
     }
 }

@@ -2,6 +2,15 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import { Edit2, Plus, Search, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -12,15 +21,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
 import AppLayout from '@/layouts/app-layout';
 
 export default function Index({
@@ -73,7 +73,7 @@ export default function Index({
 
     const handleUpdate = (e: React.FormEvent) => {
         e.preventDefault();
-        put(`/positions/${editPosition.id}`, {
+        put(`/positions/${editPosition?.id}`, {
             onSuccess: () => {
                 setEditPosition(null);
                 reset();
@@ -213,7 +213,7 @@ export default function Index({
                                 </TableRow>
                             )}
                             {positions.data.map((position: any) => (
-                                <TableRow key={position.id}>
+                                <TableRow key={position?.id}>
                                     <TableCell className="font-medium">
                                         {position.name}
                                     </TableCell>
@@ -236,7 +236,7 @@ export default function Index({
                                             </Button>
 
                                             <Link
-                                                href={`/positions/${position.id}`}
+                                                href={`/positions/${position?.id}`}
                                                 method="delete"
                                                 as="button"
                                             >

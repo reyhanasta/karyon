@@ -1,5 +1,4 @@
-import { router } from '@inertiajs/react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Check, Plus, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,19 +17,22 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
 
 type Status = 'pending' | 'approved' | 'rejected';
 
 export default function Index({
     overtimeRequests,
-    isManagerOrAdmin,
     filters,
 }: {
     overtimeRequests: any;
-    isManagerOrAdmin: boolean;
     filters: { status?: string };
 }) {
+    const { can } = usePermissions();
+    const canApprove = can('overtime.approve');
+    const canCreate = can('overtime.create');
+
     const handleStatusUpdate = (id: number, status: Status) => {
         if (confirm(`Are you sure you want to ${status} this request?`)) {
             router.post(`/overtime-requests/${id}/status`, { status });
@@ -70,12 +72,12 @@ export default function Index({
                             Overtime Requests
                         </h2>
                         <p className="text-muted-foreground">
-                            {isManagerOrAdmin
+                            {canApprove
                                 ? 'Manage employee overtime requests here.'
                                 : 'View and submit your overtime requests.'}
                         </p>
                     </div>
-                    {!isManagerOrAdmin && (
+                    {canCreate && (
                         <Link href="/overtime-requests/create">
                             <Button>
                                 <Plus className="mr-2 h-4 w-4" /> Request
@@ -110,16 +112,14 @@ export default function Index({
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                {isManagerOrAdmin && (
-                                    <TableHead>Employee</TableHead>
-                                )}
+                                {canApprove && <TableHead>Employee</TableHead>}
                                 <TableHead>Date</TableHead>
                                 <TableHead>Start Time</TableHead>
                                 <TableHead>End Time</TableHead>
                                 <TableHead>Duration</TableHead>
                                 <TableHead>Description</TableHead>
                                 <TableHead>Status</TableHead>
-                                {isManagerOrAdmin && (
+                                {canApprove && (
                                     <TableHead className="text-right">
                                         Actions
                                     </TableHead>
@@ -130,7 +130,7 @@ export default function Index({
                             {overtimeRequests.data.length === 0 && (
                                 <TableRow>
                                     <TableCell
-                                        colSpan={isManagerOrAdmin ? 8 : 6}
+                                        colSpan={canApprove ? 8 : 6}
                                         className="h-24 text-center"
                                     >
                                         No overtime requests found.
@@ -139,7 +139,7 @@ export default function Index({
                             )}
                             {overtimeRequests.data.map((request: any) => (
                                 <TableRow key={request.id}>
-                                    {isManagerOrAdmin && (
+                                    {canApprove && (
                                         <TableCell className="font-medium">
                                             {request.employee?.full_name}
                                         </TableCell>
@@ -177,7 +177,7 @@ export default function Index({
                                                 request.status.slice(1)}
                                         </Badge>
                                     </TableCell>
-                                    {isManagerOrAdmin && (
+                                    {canApprove && (
                                         <TableCell className="text-right">
                                             {request.status === 'pending' && (
                                                 <div className="flex justify-end gap-2">

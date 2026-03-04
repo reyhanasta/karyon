@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreLeaveRequest;
+use App\Models\Employee;
 use App\Models\LeaveRequest;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -28,7 +29,6 @@ class LeaveRequestController extends Controller
         
         return Inertia::render('leave-requests/index', [
             'leaveRequests' => $leaveRequests,
-            'isManagerOrAdmin' => $user->hasRole(['super-admin', 'hr-admin', 'manager']),
             'filters' => ['status' => $status],
         ]);
     }
@@ -40,8 +40,16 @@ class LeaveRequestController extends Controller
             return redirect()->back()->with('error', 'You must be registered as an employee to request leave.');
         }
 
+        $currentYear = now()->year;
+        $currentMonth = now()->format('Y-m');
+        $monthlyUsage = $employee->getMonthlyLeaveUsage($currentYear);
+
         return Inertia::render('leave-requests/create', [
-            'leaveQuota' => $employee->leave_quota
+            'leaveQuota'     => $employee->leave_quota,
+            'monthlyLimit'   => Employee::MONTHLY_LEAVE_LIMIT,
+            'monthlyUsage'   => $monthlyUsage,
+            'currentMonth'   => $currentMonth,
+            'monthlyRemaining' => Employee::MONTHLY_LEAVE_LIMIT - ($monthlyUsage[$currentMonth] ?? 0),
         ]);
     }
 
@@ -61,10 +69,28 @@ class LeaveRequestController extends Controller
         // Calculate weekdays or just simple diff in days + 1 for now (inclusive)
         $requestedDays = $start->diffInDays($end) + 1;
 
+        // 1) Annual quota check
         if ($employee->leave_quota < $requestedDays) {
             return back()->withErrors([
                 'end_date' => "Insufficient leave quota. You requested {$requestedDays} days, but only have {$employee->leave_quota} left."
             ]);
+        }
+
+        // 2) Monthly cap check (max 5 days per calendar month)
+        $requestByMonth = Employee::splitDaysByMonth($validated['start_date'], $validated['end_date']);
+        $year = $start->year;
+        $monthlyUsage = $employee->getMonthlyLeaveUsage($year);
+
+        foreach ($requestByMonth as $month => $days) {
+            $alreadyUsed = $monthlyUsage[$month] ?? 0;
+            $remaining = Employee::MONTHLY_LEAVE_LIMIT - $alreadyUsed;
+            
+            if ($days > $remaining) {
+                $monthLabel = Carbon::parse($month . '-01')->translatedFormat('F Y');
+                return back()->withErrors([
+                    'end_date' => "Monthly limit exceeded for {$monthLabel}. You already have {$alreadyUsed} days used/pending and requested {$days} more (max " . Employee::MONTHLY_LEAVE_LIMIT . " per month)."
+                ]);
+            }
         }
 
         LeaveRequest::create([

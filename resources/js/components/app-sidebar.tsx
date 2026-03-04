@@ -1,13 +1,13 @@
 import { Link } from '@inertiajs/react';
 import {
     BookOpen,
+    Building2,
+    Calendar,
+    Clock,
     FolderGit2,
     LayoutGrid,
     Users,
     UsersRound,
-    Calendar,
-    Clock,
-    Building2,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
@@ -22,6 +22,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { usePermissions } from '@/hooks/use-permissions';
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 
@@ -35,43 +36,43 @@ const mainNavItems: NavItem[] = [
         title: 'Employees',
         href: '/employees',
         icon: Users,
+        permission: 'employee.view',
     },
     {
         title: 'Departments',
         href: '/departments',
         icon: Building2,
+        permission: 'employee.view',
     },
     {
         title: 'Positions',
         href: '/positions',
         icon: UsersRound,
+        permission: 'employee.view',
     },
     {
         title: 'Leave Requests',
         href: '/leave-requests',
         icon: Calendar,
+        permission: 'leave.view',
     },
     {
         title: 'Overtime Requests',
         href: '/overtime-requests',
         icon: Clock,
+        permission: 'overtime.view',
     },
 ];
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: FolderGit2,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
-];
+const footerNavItems: NavItem[] = [];
 
 export function AppSidebar() {
+    const { can } = usePermissions();
+
+    const visibleNavItems = mainNavItems.filter(
+        (item) => !item.permission || can(item.permission),
+    );
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -87,7 +88,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={visibleNavItems} />
             </SidebarContent>
 
             <SidebarFooter>

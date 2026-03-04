@@ -54,9 +54,9 @@ class EmployeeController extends Controller
         $validated = $request->validated();
 
         $user = User::create([
-            'nip' => $validated['nip'],
+            'nip' => $validated['nip'] ?? null,
             'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
+            'password' => Hash::make($validated['password'] ?? '12345678'),
         ]);
 
         $user->assignRole($validated['role']);

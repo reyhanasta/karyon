@@ -111,7 +111,7 @@ export default function Create() {
                                 onChange={(e) =>
                                     setData('description', e.target.value)
                                 }
-                                className="min-h-[100px] w-full"
+                                className="min-h-25 w-full"
                                 placeholder="Describe the work done during overtime."
                                 required
                             />
