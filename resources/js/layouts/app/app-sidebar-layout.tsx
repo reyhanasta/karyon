@@ -14,9 +14,19 @@ export default function AppSidebarLayout({
     const { flash } = usePage().props as any;
 
     useEffect(() => {
-        if (flash?.success) toast.success(flash.success);
-        if (flash?.error) toast.error(flash.error);
-    }, [flash]);
+        if (flash?.success) {
+            toast.success(flash.success, {
+                id: 'flash-success',
+                duration: 4000,
+            });
+        }
+        if (flash?.error) {
+            toast.error(flash.error, {
+                id: 'flash-error',
+                duration: 5000,
+            });
+        }
+    }, [flash?.success, flash?.error]);
 
     return (
         <AppShell variant="sidebar">

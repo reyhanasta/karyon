@@ -8,16 +8,22 @@ class StoreLeaveRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('leave.create');
+        return $this->user()->can('leave.create') || $this->user()->can('leave.create.any');
     }
 
     public function rules(): array
     {
-        return [
+        $rules = [
             'start_date' => 'required|date|after_or_equal:today',
             'end_date'   => 'required|date|after_or_equal:start_date',
             'reason'     => 'required|string|max:500',
         ];
+
+        if ($this->user()->can('leave.create.any')) {
+            $rules['employee_id'] = 'required|exists:employees,id';
+        }
+
+        return $rules;
     }
 
     public function messages(): array

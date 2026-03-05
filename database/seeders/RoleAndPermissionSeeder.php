@@ -25,10 +25,14 @@ class RoleAndPermissionSeeder extends Seeder
             // Leave request management
             'leave.view',
             'leave.create',
+            'leave.create.any',
+            'leave.edit',
             'leave.approve',
             // Overtime request management
             'overtime.view',
             'overtime.create',
+            'overtime.create.any',
+            'overtime.edit',
             'overtime.approve',
         ];
 
@@ -43,8 +47,8 @@ class RoleAndPermissionSeeder extends Seeder
         $hrAdmin = Role::firstOrCreate(['name' => 'hr-admin']);
         $hrAdmin->syncPermissions([
             'employee.view', 'employee.create', 'employee.edit', 'employee.delete',
-            'leave.view', 'leave.approve',
-            'overtime.view', 'overtime.approve','overtime.create'
+            'leave.view', 'leave.create.any', 'leave.edit', 'leave.approve',
+            'overtime.view', 'overtime.create.any', 'overtime.edit', 'overtime.approve',
         ]);
 
         $manager = Role::firstOrCreate(['name' => 'manager']);

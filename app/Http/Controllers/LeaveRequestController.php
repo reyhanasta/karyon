@@ -35,7 +35,21 @@ class LeaveRequestController extends Controller
 
     public function create()
     {
-        $employee = Auth::user()->employee;
+        $user = Auth::user();
+        $canCreateAny = $user->can('leave.create.any');
+
+        // Admin/HRD creating on behalf of others
+        if ($canCreateAny) {
+            $employees = Employee::select('id', 'full_name')->orderBy('full_name')->get();
+
+            return Inertia::render('leave-requests/create', [
+                'employees' => $employees,
+                'canCreateAny' => true,
+            ]);
+        }
+
+        // Regular employee creating for self
+        $employee = $user->employee;
         if (!$employee) {
             return redirect()->back()->with('error', 'You must be registered as an employee to request leave.');
         }
@@ -50,18 +64,24 @@ class LeaveRequestController extends Controller
             'monthlyUsage'   => $monthlyUsage,
             'currentMonth'   => $currentMonth,
             'monthlyRemaining' => Employee::MONTHLY_LEAVE_LIMIT - ($monthlyUsage[$currentMonth] ?? 0),
+            'canCreateAny' => false,
         ]);
     }
 
     public function store(StoreLeaveRequest $request)
     {
-        $employee = Auth::user()->employee;
-
-        if (!$employee) {
-            return redirect()->back()->with('error', 'You must be registered as an employee to request leave.');
-        }
-
+        $user = Auth::user();
         $validated = $request->validated();
+
+        // Determine which employee this request is for
+        if ($user->can('leave.create.any') && !empty($validated['employee_id'])) {
+            $employee = Employee::findOrFail($validated['employee_id']);
+        } else {
+            $employee = $user->employee;
+            if (!$employee) {
+                return redirect()->back()->with('error', 'You must be registered as an employee to request leave.');
+            }
+        }
 
         $start = Carbon::parse($validated['start_date']);
         $end = Carbon::parse($validated['end_date']);
@@ -72,7 +92,7 @@ class LeaveRequestController extends Controller
         // 1) Annual quota check
         if ($employee->leave_quota < $requestedDays) {
             return back()->withErrors([
-                'end_date' => "Insufficient leave quota. You requested {$requestedDays} days, but only have {$employee->leave_quota} left."
+                'end_date' => "Insufficient leave quota. Requested {$requestedDays} days, but only {$employee->leave_quota} left."
             ]);
         }
 
@@ -88,7 +108,7 @@ class LeaveRequestController extends Controller
             if ($days > $remaining) {
                 $monthLabel = Carbon::parse($month . '-01')->translatedFormat('F Y');
                 return back()->withErrors([
-                    'end_date' => "Monthly limit exceeded for {$monthLabel}. You already have {$alreadyUsed} days used/pending and requested {$days} more (max " . Employee::MONTHLY_LEAVE_LIMIT . " per month)."
+                    'end_date' => "Monthly limit exceeded for {$monthLabel}. Already {$alreadyUsed} days used/pending and requested {$days} more (max " . Employee::MONTHLY_LEAVE_LIMIT . " per month)."
                 ]);
             }
         }
@@ -102,6 +122,72 @@ class LeaveRequestController extends Controller
         ]);
 
         return redirect()->route('leave-requests.index')->with('success', 'Leave request submitted successfully.');
+    }
+
+    public function edit(LeaveRequest $leaveRequest)
+    {
+        $user = Auth::user();
+
+        if (!$user->can('leave.edit')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $leaveRequest->load('employee');
+
+        $employees = Employee::select('id', 'full_name')->orderBy('full_name')->get();
+
+        return Inertia::render('leave-requests/edit', [
+            'leaveRequest' => $leaveRequest,
+            'employees' => $employees,
+        ]);
+    }
+
+    public function update(Request $request, LeaveRequest $leaveRequest)
+    {
+        $user = Auth::user();
+
+        if (!$user->can('leave.edit')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if ($leaveRequest->status !== 'pending') {
+            return back()->with('error', 'Only pending requests can be edited.');
+        }
+
+        $validated = $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+            'start_date'  => 'required|date|after_or_equal:today',
+            'end_date'    => 'required|date|after_or_equal:start_date',
+            'reason'      => 'required|string|max:500',
+        ]);
+
+        $employee = Employee::findOrFail($validated['employee_id']);
+
+        $start = Carbon::parse($validated['start_date']);
+        $end = Carbon::parse($validated['end_date']);
+        $requestedDays = $start->diffInDays($end) + 1;
+
+        // Quota check (exclude current request from usage if employee changed or dates changed)
+        $currentQuota = $employee->leave_quota;
+        // If editing the same employee's request, add back the original days
+        if ($leaveRequest->employee_id === $employee->id && $leaveRequest->status === 'pending') {
+            // Pending requests haven't deducted quota yet, so no adjustment needed
+        }
+
+        if ($currentQuota < $requestedDays) {
+            return back()->withErrors([
+                'end_date' => "Insufficient leave quota. Requested {$requestedDays} days, but only {$currentQuota} left."
+            ]);
+        }
+
+        $leaveRequest->update([
+            'employee_id' => $validated['employee_id'],
+            'start_date'  => $validated['start_date'],
+            'end_date'    => $validated['end_date'],
+            'reason'      => $validated['reason'],
+        ]);
+
+        return redirect()->route('leave-requests.index')->with('success', 'Leave request updated successfully.');
     }
 
     public function updateStatus(Request $request, LeaveRequest $leaveRequest)

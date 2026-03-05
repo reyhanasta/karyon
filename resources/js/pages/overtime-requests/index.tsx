@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Check, Plus, X } from 'lucide-react';
+import { Check, Pencil, Plus, X } from 'lucide-react';
 import { Pagination } from '@/components/pagination';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -32,7 +32,8 @@ export default function Index({
 }) {
     const { can } = usePermissions();
     const canApprove = can('overtime.approve');
-    const canCreate = can('overtime.create');
+    const canCreate = can('overtime.create') || can('overtime.create.any');
+    const canEdit = can('overtime.edit');
 
     const handleStatusUpdate = (id: number, status: Status) => {
         if (confirm(`Are you sure you want to ${status} this request?`)) {
@@ -57,6 +58,8 @@ export default function Index({
         const [h2, m2] = end.split(':').map(Number);
         return (h2 - h1 + (m2 - m1) / 60).toFixed(1);
     };
+
+    const showActions = canApprove || canEdit;
 
     return (
         <AppLayout
@@ -120,7 +123,7 @@ export default function Index({
                                 <TableHead>Duration</TableHead>
                                 <TableHead>Description</TableHead>
                                 <TableHead>Status</TableHead>
-                                {canApprove && (
+                                {showActions && (
                                     <TableHead className="text-right">
                                         Actions
                                     </TableHead>
@@ -131,7 +134,10 @@ export default function Index({
                             {overtimeRequests.data.length === 0 && (
                                 <TableRow>
                                     <TableCell
-                                        colSpan={canApprove ? 8 : 6}
+                                        colSpan={
+                                            (canApprove ? 7 : 6) +
+                                            (showActions ? 1 : 0)
+                                        }
                                         className="h-24 text-center"
                                     >
                                         No overtime requests found.
@@ -178,40 +184,59 @@ export default function Index({
                                                 request.status.slice(1)}
                                         </Badge>
                                     </TableCell>
-                                    {canApprove && (
+                                    {showActions && (
                                         <TableCell className="text-right">
-                                            {request.status === 'pending' && (
-                                                <div className="flex justify-end gap-2">
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() =>
-                                                            handleStatusUpdate(
-                                                                request.id,
-                                                                'approved',
-                                                            )
-                                                        }
-                                                        className="text-green-600 hover:text-green-700"
-                                                    >
-                                                        <Check className="mr-1 h-3 w-3" />{' '}
-                                                        Approve
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() =>
-                                                            handleStatusUpdate(
-                                                                request.id,
-                                                                'rejected',
-                                                            )
-                                                        }
-                                                        className="text-destructive hover:text-destructive"
-                                                    >
-                                                        <X className="mr-1 h-3 w-3" />{' '}
-                                                        Reject
-                                                    </Button>
-                                                </div>
-                                            )}
+                                            <div className="flex justify-end gap-2">
+                                                {canEdit &&
+                                                    request.status ===
+                                                        'pending' && (
+                                                        <Link
+                                                            href={`/overtime-requests/${request.id}/edit`}
+                                                        >
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                            >
+                                                                <Pencil className="mr-1 h-3 w-3" />{' '}
+                                                                Edit
+                                                            </Button>
+                                                        </Link>
+                                                    )}
+                                                {canApprove &&
+                                                    request.status ===
+                                                        'pending' && (
+                                                        <>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() =>
+                                                                    handleStatusUpdate(
+                                                                        request.id,
+                                                                        'approved',
+                                                                    )
+                                                                }
+                                                                className="text-green-600 hover:text-green-700"
+                                                            >
+                                                                <Check className="mr-1 h-3 w-3" />{' '}
+                                                                Approve
+                                                            </Button>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() =>
+                                                                    handleStatusUpdate(
+                                                                        request.id,
+                                                                        'rejected',
+                                                                    )
+                                                                }
+                                                                className="text-destructive hover:text-destructive"
+                                                            >
+                                                                <X className="mr-1 h-3 w-3" />{' '}
+                                                                Reject
+                                                            </Button>
+                                                        </>
+                                                    )}
+                                            </div>
                                         </TableCell>
                                     )}
                                 </TableRow>

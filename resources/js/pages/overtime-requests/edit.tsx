@@ -15,30 +15,35 @@ import AppLayout from '@/layouts/app-layout';
 
 type Employee = { id: number; full_name: string };
 
-export default function Create({
+type OvertimeRequestData = {
+    id: number;
+    employee_id: number;
+    date: string;
+    start_time: string;
+    end_time: string;
+    description: string;
+    status: string;
+    employee?: Employee;
+};
+
+export default function Edit({
+    overtimeRequest,
     employees,
-    canCreateAny,
 }: {
-    employees?: Employee[];
-    canCreateAny: boolean;
+    overtimeRequest: OvertimeRequestData;
+    employees: Employee[];
 }) {
-    const { data, setData, post, processing, errors } = useInertiaForm<{
-        employee_id: string;
-        date: string;
-        start_time: string;
-        end_time: string;
-        description: string;
-    }>({
-        employee_id: '',
-        date: '',
-        start_time: '',
-        end_time: '',
-        description: '',
+    const { data, setData, put, processing, errors } = useInertiaForm({
+        employee_id: String(overtimeRequest.employee_id),
+        date: overtimeRequest.date,
+        start_time: overtimeRequest.start_time,
+        end_time: overtimeRequest.end_time,
+        description: overtimeRequest.description,
     });
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post('/overtime-requests');
+        put(`/overtime-requests/${overtimeRequest.id}`);
     };
 
     return (
@@ -47,57 +52,52 @@ export default function Create({
                 { title: 'Dashboard', href: '/dashboard' },
                 { title: 'Overtime Requests', href: '/overtime-requests' },
                 {
-                    title: 'Request Overtime',
-                    href: '/overtime-requests/create',
+                    title: 'Edit Request',
+                    href: `/overtime-requests/${overtimeRequest.id}/edit`,
                 },
             ]}
         >
-            <Head title="Request Overtime" />
+            <Head title="Edit Overtime Request" />
             <div className="mx-auto flex h-full w-full max-w-2xl flex-1 flex-col gap-4 p-4 lg:p-8">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight">
-                        Request Overtime
+                        Edit Overtime Request
                     </h2>
                     <p className="text-muted-foreground">
-                        {canCreateAny
-                            ? 'Submit an overtime request on behalf of an employee.'
-                            : 'Submit a new overtime request.'}
+                        Modify the overtime request details below.
                     </p>
                 </div>
 
                 <div className="rounded-md border bg-card p-6 text-card-foreground shadow-sm">
                     <form onSubmit={submit} className="space-y-6">
-                        {/* Employee selector for admin/HRD */}
-                        {canCreateAny && employees && (
-                            <div className="space-y-2">
-                                <Label htmlFor="employee_id">Employee</Label>
-                                <Select
-                                    value={data.employee_id}
-                                    onValueChange={(val) =>
-                                        setData('employee_id', val)
-                                    }
-                                >
-                                    <SelectTrigger id="employee_id">
-                                        <SelectValue placeholder="Select an employee" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {employees.map((emp) => (
-                                            <SelectItem
-                                                key={emp.id}
-                                                value={String(emp.id)}
-                                            >
-                                                {emp.full_name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                {errors.employee_id && (
-                                    <p className="text-sm font-medium text-destructive">
-                                        {errors.employee_id}
-                                    </p>
-                                )}
-                            </div>
-                        )}
+                        <div className="space-y-2">
+                            <Label htmlFor="employee_id">Employee</Label>
+                            <Select
+                                value={data.employee_id}
+                                onValueChange={(val) =>
+                                    setData('employee_id', val)
+                                }
+                            >
+                                <SelectTrigger id="employee_id">
+                                    <SelectValue placeholder="Select an employee" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {employees.map((emp) => (
+                                        <SelectItem
+                                            key={emp.id}
+                                            value={String(emp.id)}
+                                        >
+                                            {emp.full_name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {errors.employee_id && (
+                                <p className="text-sm font-medium text-destructive">
+                                    {errors.employee_id}
+                                </p>
+                            )}
+                        </div>
 
                         <div className="space-y-2">
                             <Label htmlFor="date">Overtime Date</Label>
@@ -185,7 +185,7 @@ export default function Create({
                                 </Button>
                             </Link>
                             <Button type="submit" disabled={processing}>
-                                Submit Request
+                                Save Changes
                             </Button>
                         </div>
                     </form>
