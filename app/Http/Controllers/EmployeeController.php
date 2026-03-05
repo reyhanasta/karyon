@@ -76,6 +76,33 @@ class EmployeeController extends Controller
         return redirect()->route('employees.index')->with('success', 'Employee created successfully.');
     }
 
+    public function show(Employee $employee)
+    {
+        $employee->load(['user.roles', 'position', 'department']);
+        
+        $currentYear = now()->year;
+        $monthlyUsage = $employee->getMonthlyLeaveUsage($currentYear);
+        $usedThisMonth = $monthlyUsage[now()->format('Y-m')] ?? 0;
+        
+        // In this system, $employee->leave_quota represents the current REMAINING quota
+        $remainingQuota = $employee->leave_quota ?? 0;
+        $totalQuota = 12; // Default system total quota
+        
+        // Calculate total days used this year based on all the monthly usages
+        $totalUsedThisYear = array_sum($monthlyUsage);
+
+        return Inertia::render('employees/show', [
+            'employee' => $employee,
+            'leaveStats' => [
+                'totalQuota' => $totalQuota,
+                'usedThisYear' => $totalUsedThisYear,
+                'remainingQuota' => $remainingQuota,
+                'usedThisMonth' => $usedThisMonth,
+                'monthlyLimit' => Employee::MONTHLY_LEAVE_LIMIT,
+            ]
+        ]);
+    }
+
     public function edit(Employee $employee)
     {
         $employee->load('user.roles');

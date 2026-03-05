@@ -47,29 +47,29 @@ export default function Edit({
     return (
         <AppLayout
             breadcrumbs={[
-                { title: 'Dashboard', href: '/dashboard' },
-                { title: 'Leave Requests', href: '/leave-requests' },
+                { title: 'Dasbor', href: '/dashboard' },
+                { title: 'Pengajuan Cuti', href: '/leave-requests' },
                 {
-                    title: 'Edit Request',
+                    title: 'Edit Pengajuan',
                     href: `/leave-requests/${leaveRequest.id}/edit`,
                 },
             ]}
         >
-            <Head title="Edit Leave Request" />
+            <Head title="Edit Pengajuan Cuti" />
             <div className="mx-auto flex h-full w-full max-w-2xl flex-1 flex-col gap-4 p-4 lg:p-8">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight">
-                        Edit Leave Request
+                        Edit Pengajuan Cuti
                     </h2>
                     <p className="text-muted-foreground">
-                        Modify the leave request details below.
+                        Ubah detail pengajuan cuti di bawah ini.
                     </p>
                 </div>
 
                 <div className="rounded-md border bg-card p-6 text-card-foreground shadow-sm">
                     <form onSubmit={submit} className="space-y-6">
                         <div className="space-y-2">
-                            <Label htmlFor="employee_id">Employee</Label>
+                            <Label htmlFor="employee_id">Karyawan</Label>
                             <Select
                                 value={data.employee_id}
                                 onValueChange={(val) =>
@@ -77,7 +77,7 @@ export default function Edit({
                                 }
                             >
                                 <SelectTrigger id="employee_id">
-                                    <SelectValue placeholder="Select an employee" />
+                                    <SelectValue placeholder="Pilih karyawan" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {employees.map((emp) => (
@@ -99,7 +99,9 @@ export default function Edit({
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="start_date">Start Date</Label>
+                                <Label htmlFor="start_date">
+                                    Tanggal Mulai
+                                </Label>
                                 <Input
                                     id="start_date"
                                     type="date"
@@ -117,7 +119,9 @@ export default function Edit({
                                 )}
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="end_date">End Date</Label>
+                                <Label htmlFor="end_date">
+                                    Tanggal Selesai
+                                </Label>
                                 <Input
                                     id="end_date"
                                     type="date"
@@ -137,7 +141,7 @@ export default function Edit({
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="reason">Reason for Leave</Label>
+                            <Label htmlFor="reason">Alasan Cuti</Label>
                             <Textarea
                                 id="reason"
                                 value={data.reason}
@@ -145,7 +149,7 @@ export default function Edit({
                                     setData('reason', e.target.value)
                                 }
                                 className="min-h-25 w-full"
-                                placeholder="Please provide a valid reason."
+                                placeholder="Harap berikan alasan yang valid."
                                 required
                             />
                             {errors.reason && (
@@ -158,11 +162,11 @@ export default function Edit({
                         <div className="flex justify-end gap-2 pt-4">
                             <Link href="/leave-requests">
                                 <Button variant="outline" type="button">
-                                    Cancel
+                                    Batal
                                 </Button>
                             </Link>
                             <Button type="submit" disabled={processing}>
-                                Save Changes
+                                Simpan Perubahan
                             </Button>
                         </div>
                     </form>

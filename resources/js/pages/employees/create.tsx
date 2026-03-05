@@ -21,7 +21,7 @@ export default function Create({
     positions: any[];
     departments: any[];
 }) {
-    const { data, setData, post, processing, errors, reset } = useInertiaForm({
+    const { data, setData, post, processing, errors } = useInertiaForm({
         nip: '',
         full_name: '',
         email: '',
@@ -40,19 +40,19 @@ export default function Create({
     return (
         <AppLayout
             breadcrumbs={[
-                { title: 'Dashboard', href: '/dashboard' },
-                { title: 'Employees', href: '/employees' },
-                { title: 'Add Employee', href: '/employees/create' },
+                { title: 'Dasbor', href: '/dashboard' },
+                { title: 'Karyawan', href: '/employees' },
+                { title: 'Tambah Karyawan', href: '/employees/create' },
             ]}
         >
-            <Head title="Add Employee" />
+            <Head title="Tambah Karyawan" />
             <div className="mx-auto flex h-full w-full max-w-2xl flex-1 flex-col gap-4 p-4 lg:p-8">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight">
-                        Add Employee
+                        Tambah Karyawan
                     </h2>
                     <p className="text-muted-foreground">
-                        Register a new employee to the clinic.
+                        Daftarkan karyawan baru ke klinik.
                     </p>
                 </div>
 
@@ -60,7 +60,9 @@ export default function Create({
                     <form onSubmit={submit} className="space-y-6">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="nip">NIP (Employee ID)</Label>
+                                <Label htmlFor="nip">
+                                    NIP (Nomor Induk Pegawai)
+                                </Label>
                                 <Input
                                     id="nip"
                                     type="text"
@@ -77,7 +79,7 @@ export default function Create({
                                 )}
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="full_name">Full Name</Label>
+                                <Label htmlFor="full_name">Nama Lengkap</Label>
                                 <Input
                                     id="full_name"
                                     type="text"
@@ -119,7 +121,7 @@ export default function Create({
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="position_id">Position</Label>
+                                <Label htmlFor="position_id">Jabatan</Label>
                                 <Select
                                     value={data.position_id}
                                     onValueChange={(value) =>
@@ -131,7 +133,7 @@ export default function Create({
                                         id="position_id"
                                         className="w-full"
                                     >
-                                        <SelectValue placeholder="Select a position" />
+                                        <SelectValue placeholder="Pilih jabatan" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {positions.map((pos) => (
@@ -152,7 +154,7 @@ export default function Create({
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="department_id">
-                                    Department
+                                    Departemen
                                 </Label>
                                 <Select
                                     value={data.department_id}
@@ -165,7 +167,7 @@ export default function Create({
                                         id="department_id"
                                         className="w-full"
                                     >
-                                        <SelectValue placeholder="Select a department" />
+                                        <SelectValue placeholder="Pilih departemen" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {departments.map((dept) => (
@@ -188,7 +190,9 @@ export default function Create({
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="join_date">Join Date</Label>
+                                <Label htmlFor="join_date">
+                                    Tanggal Bergabung
+                                </Label>
                                 <Input
                                     id="join_date"
                                     type="date"
@@ -206,14 +210,14 @@ export default function Create({
                                 )}
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="role">System Role</Label>
+                                <Label htmlFor="role">Peran Sistem</Label>
                                 <Select
                                     onValueChange={(value) =>
                                         setData('role', value)
                                     }
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select a role" />
+                                        <SelectValue placeholder="Pilih peran" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {roles.map((role: any) => (
@@ -237,11 +241,11 @@ export default function Create({
                         <div className="flex justify-end gap-2 pt-4">
                             <Link href="/employees">
                                 <Button variant="outline" type="button">
-                                    Cancel
+                                    Batal
                                 </Button>
                             </Link>
                             <Button type="submit" disabled={processing}>
-                                Save Employee
+                                Simpan Karyawan
                             </Button>
                         </div>
                     </form>

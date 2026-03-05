@@ -55,21 +55,21 @@ export default function Create({
     return (
         <AppLayout
             breadcrumbs={[
-                { title: 'Dashboard', href: '/dashboard' },
-                { title: 'Leave Requests', href: '/leave-requests' },
-                { title: 'Request Leave', href: '/leave-requests/create' },
+                { title: 'Dasbor', href: '/dashboard' },
+                { title: 'Pengajuan Cuti', href: '/leave-requests' },
+                { title: 'Ajukan Cuti', href: '/leave-requests/create' },
             ]}
         >
-            <Head title="Request Leave" />
+            <Head title="Ajukan Cuti" />
             <div className="mx-auto flex h-full w-full max-w-2xl flex-1 flex-col gap-4 p-4 lg:p-8">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight">
-                        Request Leave
+                        Ajukan Cuti
                     </h2>
                     <p className="text-muted-foreground">
                         {canCreateAny
-                            ? 'Submit a leave request on behalf of an employee.'
-                            : 'Submit a new leave request.'}
+                            ? 'Ajukan cuti atas nama karyawan.'
+                            : 'Buat pengajuan cuti baru.'}
                     </p>
                 </div>
 
@@ -81,23 +81,23 @@ export default function Create({
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="rounded-md border bg-card p-4 text-card-foreground shadow-sm">
                                     <p className="text-sm text-muted-foreground">
-                                        Annual Remaining
+                                        Sisa Tahunan
                                     </p>
                                     <p className="text-2xl font-bold">
                                         {leaveQuota}{' '}
                                         <span className="text-sm font-normal text-muted-foreground">
-                                            days
+                                            hari
                                         </span>
                                     </p>
                                 </div>
                                 <div className="rounded-md border bg-card p-4 text-card-foreground shadow-sm">
                                     <p className="text-sm text-muted-foreground">
-                                        This Month Remaining
+                                        Sisa Bulan Ini
                                     </p>
                                     <p className="text-2xl font-bold">
                                         {monthlyRemaining}{' '}
                                         <span className="text-sm font-normal text-muted-foreground">
-                                            / {monthlyLimit} days
+                                            / {monthlyLimit} hari
                                         </span>
                                     </p>
                                 </div>
@@ -106,8 +106,8 @@ export default function Create({
                             <Alert>
                                 <AlertCircle className="h-4 w-4" />
                                 <AlertDescription>
-                                    Maximum {monthlyLimit} days of leave per
-                                    calendar month. Annual total: 12 days.
+                                    Maksimal {monthlyLimit} hari cuti per bulan
+                                    kalender. Total tahunan: 12 hari.
                                 </AlertDescription>
                             </Alert>
                         </>
@@ -118,7 +118,7 @@ export default function Create({
                         {/* Employee selector for admin/HRD */}
                         {canCreateAny && employees && (
                             <div className="space-y-2">
-                                <Label htmlFor="employee_id">Employee</Label>
+                                <Label htmlFor="employee_id">Karyawan</Label>
                                 <Select
                                     value={data.employee_id}
                                     onValueChange={(val) =>
@@ -126,7 +126,7 @@ export default function Create({
                                     }
                                 >
                                     <SelectTrigger id="employee_id">
-                                        <SelectValue placeholder="Select an employee" />
+                                        <SelectValue placeholder="Pilih karyawan" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {employees.map((emp) => (
@@ -149,7 +149,9 @@ export default function Create({
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="start_date">Start Date</Label>
+                                <Label htmlFor="start_date">
+                                    Tanggal Mulai
+                                </Label>
                                 <Input
                                     id="start_date"
                                     type="date"
@@ -172,7 +174,9 @@ export default function Create({
                                 )}
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="end_date">End Date</Label>
+                                <Label htmlFor="end_date">
+                                    Tanggal Selesai
+                                </Label>
                                 <Input
                                     id="end_date"
                                     type="date"
@@ -197,7 +201,7 @@ export default function Create({
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="reason">Reason for Leave</Label>
+                            <Label htmlFor="reason">Alasan Cuti</Label>
                             <Textarea
                                 id="reason"
                                 value={data.reason}
@@ -205,7 +209,7 @@ export default function Create({
                                     setData('reason', e.target.value)
                                 }
                                 className="min-h-25 w-full"
-                                placeholder="Please provide a valid reason."
+                                placeholder="Harap berikan alasan yang valid."
                                 required
                             />
                             {errors.reason && (
@@ -218,7 +222,7 @@ export default function Create({
                         <div className="flex justify-end gap-2 pt-4">
                             <Link href="/leave-requests">
                                 <Button variant="outline" type="button">
-                                    Cancel
+                                    Batal
                                 </Button>
                             </Link>
                             <Button
@@ -230,7 +234,7 @@ export default function Create({
                                             (monthlyRemaining ?? 0) <= 0))
                                 }
                             >
-                                Submit Request
+                                Kirim Pengajuan
                             </Button>
                         </div>
                     </form>

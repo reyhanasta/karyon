@@ -3,9 +3,7 @@ import { Users, CalendarOff, Clock, CheckCircle2 } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-];
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'Dasbor', href: '/dashboard' }];
 
 interface AdminStats {
     totalEmployees: number;
@@ -78,51 +76,51 @@ export default function Dashboard({
         const s = stats as AdminStats;
         return (
             <AppLayout breadcrumbs={breadcrumbs}>
-                <Head title="Dashboard" />
+                <Head title="Dasbor" />
                 <div className="flex flex-1 flex-col gap-6 p-4 lg:p-8">
                     <div>
                         <h2 className="text-2xl font-bold tracking-tight">
-                            Dashboard
+                            Dasbor
                         </h2>
                         <p className="text-muted-foreground">
-                            HR Management overview for {monthYear}.
+                            Ringkasan Manajemen SDM untuk {monthYear}.
                         </p>
                     </div>
 
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         <StatCard
-                            title="Total Employees"
+                            title="Total Karyawan"
                             value={s.totalEmployees}
-                            description="Registered in the system"
+                            description="Terdaftar dalam sistem"
                             icon={Users}
                             color="bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
                             href="/employees"
                         />
                         <StatCard
-                            title="Pending Leave Requests"
+                            title="Pengajuan Cuti Menunggu"
                             value={s.pendingLeaves}
-                            description="Awaiting approval"
+                            description="Menunggu persetujuan"
                             icon={CalendarOff}
                             color="bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400"
                             href="/leave-requests"
                         />
                         <StatCard
-                            title="Pending Overtime Requests"
+                            title="Pengajuan Lembur Menunggu"
                             value={s.pendingOvertime}
-                            description="Awaiting approval"
+                            description="Menunggu persetujuan"
                             icon={Clock}
                             color="bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
                             href="/overtime-requests"
                         />
                         <StatCard
-                            title="Leaves Approved This Month"
+                            title="Cuti Disetujui Bulan Ini"
                             value={s.approvedLeavesThisMonth}
                             description={monthYear}
                             icon={CheckCircle2}
                             color="bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
                         />
                         <StatCard
-                            title="Overtime Approved This Month"
+                            title="Lembur Disetujui Bulan Ini"
                             value={s.approvedOvertimeThisMonth}
                             description={monthYear}
                             icon={CheckCircle2}
@@ -137,50 +135,50 @@ export default function Dashboard({
     const s = stats as EmployeeStats;
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Dashboard" />
+            <Head title="Dasbor" />
             <div className="flex flex-1 flex-col gap-6 p-4 lg:p-8">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight">
-                        My Dashboard
+                        Dasbor Saya
                     </h2>
                     <p className="text-muted-foreground">
-                        Your personal HR summary for {monthYear}.
+                        Ringkasan SDM pribadi Anda untuk {monthYear}.
                     </p>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     <StatCard
-                        title="Leave Quota Remaining"
+                        title="Sisa Kuota Cuti"
                         value={s.leaveQuota}
-                        description="Days available this year"
+                        description="Hari yang tersedia tahun ini"
                         icon={CalendarOff}
                         color="bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
                     />
                     <StatCard
-                        title="Pending Leave Requests"
+                        title="Pengajuan Cuti Menunggu"
                         value={s.pendingLeaves}
-                        description="Awaiting manager approval"
+                        description="Menunggu persetujuan manajer"
                         icon={CalendarOff}
                         color="bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400"
                         href="/leave-requests"
                     />
                     <StatCard
-                        title="Approved Leaves"
+                        title="Cuti Disetujui"
                         value={s.approvedLeaves}
-                        description="Total approved leave days taken"
+                        description="Total hari cuti yang disetujui"
                         icon={CheckCircle2}
                         color="bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
                     />
                     <StatCard
-                        title="Pending Overtime"
+                        title="Lembur Menunggu"
                         value={s.pendingOvertime}
-                        description="Awaiting manager approval"
+                        description="Menunggu persetujuan manajer"
                         icon={Clock}
                         color="bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
                         href="/overtime-requests"
                     />
                     <StatCard
-                        title="Overtime Approved This Month"
+                        title="Lembur Disetujui Bulan Ini"
                         value={s.approvedOvertimeThisMonth}
                         description={monthYear}
                         icon={CheckCircle2}

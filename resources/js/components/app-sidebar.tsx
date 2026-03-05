@@ -1,10 +1,8 @@
 import { Link } from '@inertiajs/react';
 import {
-    BookOpen,
     Building2,
     Calendar,
     Clock,
-    FolderGit2,
     LayoutGrid,
     Users,
     UsersRound,
@@ -28,36 +26,36 @@ import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
     {
-        title: 'Dashboard',
+        title: 'Dasbor',
         href: dashboard(),
         icon: LayoutGrid,
     },
     {
-        title: 'Employees',
+        title: 'Karyawan',
         href: '/employees',
         icon: Users,
         permission: 'employee.view',
     },
     {
-        title: 'Departments',
+        title: 'Departemen',
         href: '/departments',
         icon: Building2,
         permission: 'employee.view',
     },
     {
-        title: 'Positions',
+        title: 'Jabatan',
         href: '/positions',
         icon: UsersRound,
         permission: 'employee.view',
     },
     {
-        title: 'Leave Requests',
+        title: 'Pengajuan Cuti',
         href: '/leave-requests',
         icon: Calendar,
         permission: 'leave.view',
     },
     {
-        title: 'Overtime Requests',
+        title: 'Pengajuan Lembur',
         href: '/overtime-requests',
         icon: Clock,
         permission: 'overtime.view',

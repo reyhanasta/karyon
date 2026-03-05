@@ -49,29 +49,29 @@ export default function Edit({
     return (
         <AppLayout
             breadcrumbs={[
-                { title: 'Dashboard', href: '/dashboard' },
-                { title: 'Overtime Requests', href: '/overtime-requests' },
+                { title: 'Dasbor', href: '/dashboard' },
+                { title: 'Pengajuan Lembur', href: '/overtime-requests' },
                 {
-                    title: 'Edit Request',
+                    title: 'Edit Pengajuan',
                     href: `/overtime-requests/${overtimeRequest.id}/edit`,
                 },
             ]}
         >
-            <Head title="Edit Overtime Request" />
+            <Head title="Edit Pengajuan Lembur" />
             <div className="mx-auto flex h-full w-full max-w-2xl flex-1 flex-col gap-4 p-4 lg:p-8">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight">
-                        Edit Overtime Request
+                        Edit Pengajuan Lembur
                     </h2>
                     <p className="text-muted-foreground">
-                        Modify the overtime request details below.
+                        Ubah detail pengajuan lembur di bawah ini.
                     </p>
                 </div>
 
                 <div className="rounded-md border bg-card p-6 text-card-foreground shadow-sm">
                     <form onSubmit={submit} className="space-y-6">
                         <div className="space-y-2">
-                            <Label htmlFor="employee_id">Employee</Label>
+                            <Label htmlFor="employee_id">Karyawan</Label>
                             <Select
                                 value={data.employee_id}
                                 onValueChange={(val) =>
@@ -79,7 +79,7 @@ export default function Edit({
                                 }
                             >
                                 <SelectTrigger id="employee_id">
-                                    <SelectValue placeholder="Select an employee" />
+                                    <SelectValue placeholder="Pilih karyawan" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {employees.map((emp) => (
@@ -100,7 +100,7 @@ export default function Edit({
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="date">Overtime Date</Label>
+                            <Label htmlFor="date">Tanggal Lembur</Label>
                             <Input
                                 id="date"
                                 type="date"
@@ -120,7 +120,7 @@ export default function Edit({
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="start_time">Start Time</Label>
+                                <Label htmlFor="start_time">Waktu Mulai</Label>
                                 <Input
                                     id="start_time"
                                     type="time"
@@ -138,7 +138,7 @@ export default function Edit({
                                 )}
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="end_time">End Time</Label>
+                                <Label htmlFor="end_time">Waktu Selesai</Label>
                                 <Input
                                     id="end_time"
                                     type="time"
@@ -159,7 +159,7 @@ export default function Edit({
 
                         <div className="space-y-2">
                             <Label htmlFor="description">
-                                Description / Tasks Completed
+                                Deskripsi / Tugas Selesai
                             </Label>
                             <Textarea
                                 id="description"
@@ -168,7 +168,7 @@ export default function Edit({
                                     setData('description', e.target.value)
                                 }
                                 className="min-h-25 w-full"
-                                placeholder="Describe the work done during overtime."
+                                placeholder="Jelaskan pekerjaan yang dilakukan selama lembur."
                                 required
                             />
                             {errors.description && (
@@ -181,11 +181,11 @@ export default function Edit({
                         <div className="flex justify-end gap-2 pt-4">
                             <Link href="/overtime-requests">
                                 <Button variant="outline" type="button">
-                                    Cancel
+                                    Batal
                                 </Button>
                             </Link>
                             <Button type="submit" disabled={processing}>
-                                Save Changes
+                                Simpan Perubahan
                             </Button>
                         </div>
                     </form>

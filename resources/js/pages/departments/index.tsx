@@ -94,19 +94,19 @@ export default function Index({
     return (
         <AppLayout
             breadcrumbs={[
-                { title: 'Dashboard', href: '/dashboard' },
-                { title: 'Departments', href: '/departments' },
+                { title: 'Dasbor', href: '/dashboard' },
+                { title: 'Departemen', href: '/departments' },
             ]}
         >
-            <Head title="Departments" />
+            <Head title="Departemen" />
             <div className="flex h-full flex-1 flex-col gap-4 p-4 lg:p-8">
                 <div className="flex items-center justify-between">
                     <div>
                         <h2 className="text-2xl font-bold tracking-tight">
-                            Departments
+                            Departemen
                         </h2>
                         <p className="text-muted-foreground">
-                            Manage your clinic's departments here.
+                            Kelola departemen klinik Anda di sini.
                         </p>
                     </div>
 
@@ -116,14 +116,15 @@ export default function Index({
                     >
                         <DialogTrigger asChild>
                             <Button>
-                                <Plus className="mr-2 h-4 w-4" /> Add Department
+                                <Plus className="mr-2 h-4 w-4" /> Tambah
+                                Departemen
                             </Button>
                         </DialogTrigger>
                         <DialogContent>
                             <DialogHeader>
-                                <DialogTitle>Add Department</DialogTitle>
+                                <DialogTitle>Tambah Departemen</DialogTitle>
                                 <DialogDescription>
-                                    Create a new department in the system.
+                                    Buat departemen baru di sistem.
                                 </DialogDescription>
                             </DialogHeader>
                             <form
@@ -132,7 +133,7 @@ export default function Index({
                             >
                                 <div className="grid gap-4 py-4">
                                     <div className="grid gap-2">
-                                        <Label htmlFor="name">Name</Label>
+                                        <Label htmlFor="name">Nama</Label>
                                         <Input
                                             id="name"
                                             value={data.name}
@@ -149,7 +150,7 @@ export default function Index({
                                     </div>
                                     <div className="grid gap-2">
                                         <Label htmlFor="description">
-                                            Description
+                                            Deskripsi
                                         </Label>
                                         <Input
                                             id="description"
@@ -170,7 +171,7 @@ export default function Index({
                                 </div>
                                 <DialogFooter>
                                     <Button type="submit" disabled={processing}>
-                                        Save
+                                        Simpan
                                     </Button>
                                 </DialogFooter>
                             </form>
@@ -182,7 +183,7 @@ export default function Index({
                 <div className="relative max-w-sm">
                     <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
-                        placeholder="Search departments..."
+                        placeholder="Cari departemen..."
                         value={search}
                         onChange={(e) => handleSearchChange(e.target.value)}
                         className="pl-9"
@@ -193,11 +194,11 @@ export default function Index({
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Description</TableHead>
-                                <TableHead>Employees Count</TableHead>
+                                <TableHead>Nama</TableHead>
+                                <TableHead>Deskripsi</TableHead>
+                                <TableHead>Jumlah Karyawan</TableHead>
                                 <TableHead className="text-right">
-                                    Actions
+                                    Aksi
                                 </TableHead>
                             </TableRow>
                         </TableHeader>
@@ -208,7 +209,7 @@ export default function Index({
                                         colSpan={4}
                                         className="h-24 text-center"
                                     >
-                                        No departments found.
+                                        Tidak ada departemen yang ditemukan.
                                     </TableCell>
                                 </TableRow>
                             )}
@@ -268,15 +269,15 @@ export default function Index({
                 >
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>Edit Department</DialogTitle>
+                            <DialogTitle>Edit Departemen</DialogTitle>
                             <DialogDescription>
-                                Update {editDepartment?.name} information.
+                                Perbarui informasi {editDepartment?.name}.
                             </DialogDescription>
                         </DialogHeader>
                         <form id="edit-department-form" onSubmit={handleUpdate}>
                             <div className="grid gap-4 py-4">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="edit-name">Name</Label>
+                                    <Label htmlFor="edit-name">Nama</Label>
                                     <Input
                                         id="edit-name"
                                         value={data.name}
@@ -293,7 +294,7 @@ export default function Index({
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="edit-description">
-                                        Description
+                                        Deskripsi
                                     </Label>
                                     <Input
                                         id="edit-description"
@@ -314,7 +315,7 @@ export default function Index({
                             </div>
                             <DialogFooter>
                                 <Button type="submit" disabled={processing}>
-                                    Update
+                                    Perbarui
                                 </Button>
                             </DialogFooter>
                         </form>

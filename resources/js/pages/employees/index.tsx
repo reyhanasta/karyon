@@ -2,6 +2,7 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
     Download,
     Edit2,
+    Eye,
     FileSpreadsheet,
     Plus,
     Search,
@@ -83,8 +84,8 @@ export default function Index({
     return (
         <AppLayout
             breadcrumbs={[
-                { title: 'Dashboard', href: '/dashboard' },
-                { title: 'Employees', href: '/employees' },
+                { title: 'Dasbor', href: '/dashboard' },
+                { title: 'Karyawan', href: '/employees' },
             ]}
         >
             <Head title="Employees" />
@@ -92,10 +93,10 @@ export default function Index({
                 <div className="flex items-center justify-between">
                     <div>
                         <h2 className="text-2xl font-bold tracking-tight">
-                            Employees
+                            Karyawan
                         </h2>
                         <p className="text-muted-foreground">
-                            Manage your clinic's employee data here.
+                            Kelola data karyawan klinik Anda di sini.
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -105,20 +106,20 @@ export default function Index({
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="outline">
                                         <Download className="mr-2 h-4 w-4" />{' '}
-                                        Export
+                                        Ekspor
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                     <DropdownMenuItem asChild>
                                         <a href="/employees/export?format=xlsx">
                                             <FileSpreadsheet className="mr-2 h-4 w-4" />{' '}
-                                            Export as .xlsx
+                                            Ekspor sebagai .xlsx
                                         </a>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem asChild>
                                         <a href="/employees/export?format=csv">
                                             <FileSpreadsheet className="mr-2 h-4 w-4" />{' '}
-                                            Export as .csv
+                                            Ekspor sebagai .csv
                                         </a>
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
@@ -131,7 +132,7 @@ export default function Index({
                                 variant="outline"
                                 onClick={() => setImportOpen(true)}
                             >
-                                <Upload className="mr-2 h-4 w-4" /> Import
+                                <Upload className="mr-2 h-4 w-4" /> Impor
                             </Button>
                         )}
 
@@ -139,8 +140,8 @@ export default function Index({
                         {can('employee.create') && (
                             <Link href="/employees/create">
                                 <Button>
-                                    <Plus className="mr-2 h-4 w-4" /> Add
-                                    Employee
+                                    <Plus className="mr-2 h-4 w-4" /> Tambah
+                                    Karyawan
                                 </Button>
                             </Link>
                         )}
@@ -151,7 +152,7 @@ export default function Index({
                 <div className="relative max-w-sm">
                     <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
-                        placeholder="Search by name, NIP, position..."
+                        placeholder="Cari berdasarkan nama, NIP, jabatan..."
                         value={search}
                         onChange={(e) => handleSearchChange(e.target.value)}
                         className="pl-9"
@@ -163,15 +164,15 @@ export default function Index({
                         <TableHeader>
                             <TableRow>
                                 <TableHead>NIP</TableHead>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Position</TableHead>
-                                <TableHead>Department</TableHead>
-                                <TableHead>Role</TableHead>
-                                <TableHead>Leave Quota</TableHead>
+                                <TableHead>Nama</TableHead>
+                                <TableHead>Jabatan</TableHead>
+                                <TableHead>Departemen</TableHead>
+                                <TableHead>Peran</TableHead>
+                                <TableHead>Kuota Cuti</TableHead>
                                 {(can('employee.edit') ||
                                     can('employee.delete')) && (
                                     <TableHead className="text-right">
-                                        Actions
+                                        Aksi
                                     </TableHead>
                                 )}
                             </TableRow>
@@ -183,7 +184,7 @@ export default function Index({
                                         colSpan={7}
                                         className="h-24 text-center"
                                     >
-                                        No employees found.
+                                        Karyawan tidak ditemukan.
                                     </TableCell>
                                 </TableRow>
                             )}
@@ -214,12 +215,22 @@ export default function Index({
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        {employee.leave_quota} days
+                                        {employee.leave_quota} hari
                                     </TableCell>
                                     {(can('employee.edit') ||
                                         can('employee.delete')) && (
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-2">
+                                                <Link
+                                                    href={`/employees/${employee.id}`}
+                                                >
+                                                    <Button
+                                                        variant="outline"
+                                                        size="icon"
+                                                    >
+                                                        <Eye className="h-4 w-4" />
+                                                    </Button>
+                                                </Link>
                                                 {can('employee.edit') && (
                                                     <Link
                                                         href={`/employees/${employee.id}/edit`}
@@ -262,11 +273,11 @@ export default function Index({
             <Dialog open={importOpen} onOpenChange={setImportOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Import Employees</DialogTitle>
+                        <DialogTitle>Impor Karyawan</DialogTitle>
                         <DialogDescription>
-                            Upload an .xlsx or .csv file with employee data.
-                            Required columns: <strong>Full Name</strong>,{' '}
-                            <strong>Email</strong>. Optional: NIP, Position,
+                            Unggah file .xlsx atau .csv yang berisi data
+                            karyawan. Kolom wajib: <strong>Full Name</strong>,{' '}
+                            <strong>Email</strong>. Opsional: NIP, Position,
                             Department, Role, Join Date, Leave Quota.
                         </DialogDescription>
                     </DialogHeader>
@@ -293,7 +304,7 @@ export default function Index({
                             variant="outline"
                             onClick={() => setImportOpen(false)}
                         >
-                            Cancel
+                            Batal
                         </Button>
                         <Button
                             onClick={handleImport}
@@ -301,7 +312,7 @@ export default function Index({
                                 !importForm.data.file || importForm.processing
                             }
                         >
-                            <Upload className="mr-2 h-4 w-4" /> Import
+                            <Upload className="mr-2 h-4 w-4" /> Impor
                         </Button>
                     </DialogFooter>
                 </DialogContent>

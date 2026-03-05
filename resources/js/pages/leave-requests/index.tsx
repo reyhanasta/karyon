@@ -36,7 +36,11 @@ export default function Index({
     const canEdit = can('leave.edit');
 
     const handleStatusUpdate = (id: number, status: Status) => {
-        if (confirm(`Are you sure you want to ${status} this request?`)) {
+        if (
+            confirm(
+                `Apakah Anda yakin ingin melakukan aksi ${status} untuk pengajuan ini?`,
+            )
+        ) {
             router.post(`/leave-requests/${id}/status`, { status });
         }
     };
@@ -57,27 +61,27 @@ export default function Index({
     return (
         <AppLayout
             breadcrumbs={[
-                { title: 'Dashboard', href: '/dashboard' },
-                { title: 'Leave Requests', href: '/leave-requests' },
+                { title: 'Dasbor', href: '/dashboard' },
+                { title: 'Pengajuan Cuti', href: '/leave-requests' },
             ]}
         >
-            <Head title="Leave Requests" />
+            <Head title="Pengajuan Cuti" />
             <div className="flex h-full flex-1 flex-col gap-4 p-4 lg:p-8">
                 <div className="flex items-center justify-between">
                     <div>
                         <h2 className="text-2xl font-bold tracking-tight">
-                            Leave Requests
+                            Pengajuan Cuti
                         </h2>
                         <p className="text-muted-foreground">
                             {canApprove
-                                ? 'Manage employee leave requests here.'
-                                : 'View and submit your leave requests.'}
+                                ? 'Kelola pengajuan cuti karyawan di sini.'
+                                : 'Lihat dan buat pengajuan cuti Anda.'}
                         </p>
                     </div>
                     {canCreate && (
                         <Link href="/leave-requests/create">
                             <Button>
-                                <Plus className="mr-2 h-4 w-4" /> Request Leave
+                                <Plus className="mr-2 h-4 w-4" /> Ajukan Cuti
                             </Button>
                         </Link>
                     )}
@@ -86,20 +90,20 @@ export default function Index({
                 {/* Status filter */}
                 <div className="flex items-center gap-3">
                     <span className="text-sm text-muted-foreground">
-                        Filter by status:
+                        Saring berdasarkan status:
                     </span>
                     <Select
                         defaultValue={filters.status ?? 'all'}
                         onValueChange={handleFilterChange}
                     >
                         <SelectTrigger className="w-40">
-                            <SelectValue placeholder="All" />
+                            <SelectValue placeholder="Semua" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">All</SelectItem>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="approved">Approved</SelectItem>
-                            <SelectItem value="rejected">Rejected</SelectItem>
+                            <SelectItem value="all">Semua</SelectItem>
+                            <SelectItem value="pending">Menunggu</SelectItem>
+                            <SelectItem value="approved">Disetujui</SelectItem>
+                            <SelectItem value="rejected">Ditolak</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -108,14 +112,14 @@ export default function Index({
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                {canApprove && <TableHead>Employee</TableHead>}
-                                <TableHead>Start Date</TableHead>
-                                <TableHead>End Date</TableHead>
-                                <TableHead>Reason</TableHead>
+                                {canApprove && <TableHead>Karyawan</TableHead>}
+                                <TableHead>Tanggal Mulai</TableHead>
+                                <TableHead>Tanggal Selesai</TableHead>
+                                <TableHead>Alasan</TableHead>
                                 <TableHead>Status</TableHead>
                                 {showActions && (
                                     <TableHead className="text-right">
-                                        Actions
+                                        Aksi
                                     </TableHead>
                                 )}
                             </TableRow>
@@ -130,7 +134,7 @@ export default function Index({
                                         }
                                         className="h-24 text-center"
                                     >
-                                        No leave requests found.
+                                        Tidak ada pengajuan cuti yang ditemukan.
                                     </TableCell>
                                 </TableRow>
                             )}
@@ -160,10 +164,11 @@ export default function Index({
                                                       : 'secondary'
                                             }
                                         >
-                                            {request.status
-                                                .charAt(0)
-                                                .toUpperCase() +
-                                                request.status.slice(1)}
+                                            {request.status === 'pending'
+                                                ? 'Menunggu'
+                                                : request.status === 'approved'
+                                                  ? 'Disetujui'
+                                                  : 'Ditolak'}
                                         </Badge>
                                     </TableCell>
                                     {showActions && (
@@ -200,7 +205,7 @@ export default function Index({
                                                                 className="text-green-600 hover:text-green-700"
                                                             >
                                                                 <Check className="mr-1 h-3 w-3" />{' '}
-                                                                Approve
+                                                                Setujui
                                                             </Button>
                                                             <Button
                                                                 variant="outline"
@@ -214,7 +219,7 @@ export default function Index({
                                                                 className="text-destructive hover:text-destructive"
                                                             >
                                                                 <X className="mr-1 h-3 w-3" />{' '}
-                                                                Reject
+                                                                Tolak
                                                             </Button>
                                                         </>
                                                     )}
