@@ -3,7 +3,9 @@ import { Users, CalendarOff, Clock, CheckCircle2 } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Dasbor', href: '/dashboard' }];
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: '/dashboard' },
+];
 
 interface AdminStats {
     totalEmployees: number;
@@ -76,11 +78,11 @@ export default function Dashboard({
         const s = stats as AdminStats;
         return (
             <AppLayout breadcrumbs={breadcrumbs}>
-                <Head title="Dasbor" />
+                <Head title="Dashboard" />
                 <div className="flex flex-1 flex-col gap-6 p-4 lg:p-8">
                     <div>
                         <h2 className="text-2xl font-bold tracking-tight">
-                            Dasbor
+                            Dashboard
                         </h2>
                         <p className="text-muted-foreground">
                             Ringkasan Manajemen SDM untuk {monthYear}.
@@ -135,11 +137,11 @@ export default function Dashboard({
     const s = stats as EmployeeStats;
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Dasbor" />
+            <Head title="Dashboard" />
             <div className="flex flex-1 flex-col gap-6 p-4 lg:p-8">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight">
-                        Dasbor Saya
+                        Dashboard Saya
                     </h2>
                     <p className="text-muted-foreground">
                         Ringkasan SDM pribadi Anda untuk {monthYear}.
