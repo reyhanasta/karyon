@@ -13,13 +13,15 @@ class StoreLeaveRequest extends FormRequest
 
     public function rules(): array
     {
+        $canCreateAny = $this->user()->can('leave.create.any');
+
         $rules = [
-            'start_date' => 'required|date|after_or_equal:today',
+            'start_date' => $canCreateAny ? 'required|date' : 'required|date|after_or_equal:today',
             'end_date'   => 'required|date|after_or_equal:start_date',
             'reason'     => 'required|string|max:500',
         ];
 
-        if ($this->user()->can('leave.create.any')) {
+        if ($canCreateAny) {
             $rules['employee_id'] = 'required|exists:employees,id';
         }
 

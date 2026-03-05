@@ -49,6 +49,9 @@ export default function Create({
         post('/leave-requests');
     };
 
+    const today = new Date();
+    const todayFormatted = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
     return (
         <AppLayout
             breadcrumbs={[
@@ -151,6 +154,11 @@ export default function Create({
                                     id="start_date"
                                     type="date"
                                     value={data.start_date}
+                                    min={
+                                        !canCreateAny
+                                            ? todayFormatted
+                                            : undefined
+                                    }
                                     onChange={(e) =>
                                         setData('start_date', e.target.value)
                                     }
@@ -169,6 +177,11 @@ export default function Create({
                                     id="end_date"
                                     type="date"
                                     value={data.end_date}
+                                    min={
+                                        !canCreateAny
+                                            ? data.start_date || todayFormatted
+                                            : data.start_date
+                                    }
                                     onChange={(e) =>
                                         setData('end_date', e.target.value)
                                     }
