@@ -48,6 +48,9 @@ const mainNavItems: NavItem[] = [
         icon: UsersRound,
         permission: 'employee.view',
     },
+];
+
+const Request: NavItem[] = [
     {
         title: 'Pengajuan Cuti',
         href: '/leave-requests',
@@ -86,7 +89,8 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={visibleNavItems} />
+                <NavMain title="Platform" items={visibleNavItems} />
+                <NavMain title="Pengajuan" items={Request} />
             </SidebarContent>
 
             <SidebarFooter>

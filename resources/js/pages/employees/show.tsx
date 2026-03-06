@@ -58,6 +58,15 @@ export default function Show({
     const remainingPercentage =
         defaultTotal > 0 ? (leaveStats.remainingQuota / defaultTotal) * 100 : 0;
 
+    const getUsedThisMonthColorClass = (used: number) => {
+        if (used === 0) return 'text-green-600 dark:text-green-500';
+        if (used === 1 || used === 2) return 'text-foreground';
+        if (used === 3 || used === 4)
+            return 'text-yellow-600 dark:text-yellow-500';
+        if (used >= 5) return 'text-red-600 dark:text-red-500';
+        return 'text-foreground';
+    };
+
     return (
         <AppLayout
             breadcrumbs={[
@@ -194,7 +203,9 @@ export default function Show({
                                         Penggunaan Bulan Ini
                                     </h4>
                                     <div className="flex items-baseline gap-2">
-                                        <span className="text-2xl font-bold">
+                                        <span
+                                            className={`text-2xl font-bold ${getUsedThisMonthColorClass(leaveStats.usedThisMonth)}`}
+                                        >
                                             {leaveStats.usedThisMonth}
                                         </span>
                                         <span className="text-sm text-muted-foreground">

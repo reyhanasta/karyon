@@ -183,6 +183,11 @@ export default function Index({
                                                       ? 'destructive'
                                                       : 'secondary'
                                             }
+                                            className={
+                                                request.status === 'approved'
+                                                    ? 'border-green-600 bg-green-600 text-white hover:bg-green-700'
+                                                    : ''
+                                            }
                                         >
                                             {request.status === 'pending'
                                                 ? 'Menunggu'

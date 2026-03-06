@@ -201,6 +201,11 @@ export default function Index({
                                                       ? 'destructive'
                                                       : 'secondary'
                                             }
+                                            className={
+                                                request.status === 'approved'
+                                                    ? 'border-green-600 bg-green-600 text-white hover:bg-green-700'
+                                                    : ''
+                                            }
                                         >
                                             {request.status === 'pending'
                                                 ? 'Menunggu'
@@ -221,6 +226,7 @@ export default function Index({
                                                             <Button
                                                                 variant="outline"
                                                                 size="sm"
+                                                                className="border-mauve-700"
                                                             >
                                                                 <Pencil className="mr-1 h-3 w-3" />{' '}
                                                                 Edit
@@ -240,13 +246,13 @@ export default function Index({
                                                                         'approved',
                                                                     )
                                                                 }
-                                                                className="text-green-600 hover:text-green-700"
+                                                                className="border-green-600 text-green-600 hover:border-green-700 hover:text-green-700"
                                                             >
                                                                 <Check className="mr-1 h-3 w-3" />{' '}
                                                                 Setujui
                                                             </Button>
                                                             <Button
-                                                                variant="outline"
+                                                                variant="destructive"
                                                                 size="sm"
                                                                 onClick={() =>
                                                                     handleStatusUpdate(
@@ -254,7 +260,6 @@ export default function Index({
                                                                         'rejected',
                                                                     )
                                                                 }
-                                                                className="text-destructive hover:text-destructive"
                                                             >
                                                                 <X className="mr-1 h-3 w-3" />{' '}
                                                                 Tolak

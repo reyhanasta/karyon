@@ -29,6 +29,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
     Table,
     TableBody,
     TableCell,
@@ -42,9 +49,20 @@ import AppLayout from '@/layouts/app-layout';
 export default function Index({
     employees,
     filters,
+    departments,
+    positions,
+    roles,
 }: {
     employees: any;
-    filters: { search?: string };
+    filters: {
+        search?: string;
+        department_id?: string;
+        position_id?: string;
+        role?: string;
+    };
+    departments: { id: number; name: string }[];
+    positions: { id: number; name: string }[];
+    roles: { id: number; name: string }[];
 }) {
     const { can } = usePermissions();
     const [search, setSearch] = useState(filters.search ?? '');
@@ -62,10 +80,18 @@ export default function Index({
         searchTimerRef.current = setTimeout(() => {
             router.get(
                 '/employees',
-                { search: value },
+                { ...filters, search: value },
                 { preserveState: true, replace: true },
             );
         }, 350);
+    };
+
+    const handleFilterChange = (key: string, value: string) => {
+        router.get(
+            '/employees',
+            { ...filters, search, [key]: value === 'all' ? undefined : value },
+            { preserveState: true, replace: true },
+        );
     };
 
     const handleDelete = () => {
@@ -159,15 +185,85 @@ export default function Index({
                     </div>
                 </div>
 
-                {/* Search Bar */}
-                <div className="relative max-w-sm">
-                    <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                        placeholder="Cari berdasarkan nama, NIP, jabatan..."
-                        value={search}
-                        onChange={(e) => handleSearchChange(e.target.value)}
-                        className="pl-9"
-                    />
+                {/* Filters */}
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                    <div className="relative max-w-sm flex-1">
+                        <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                            placeholder="Cari berdasarkan nama, NIP, jabatan..."
+                            value={search}
+                            onChange={(e) => handleSearchChange(e.target.value)}
+                            className="pl-9"
+                        />
+                    </div>
+                    <div className="flex flex-1 flex-wrap justify-end gap-2">
+                        <Select
+                            value={filters.department_id || 'all'}
+                            onValueChange={(val) =>
+                                handleFilterChange('department_id', val)
+                            }
+                        >
+                            <SelectTrigger className="w-45">
+                                <SelectValue placeholder="Departemen" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">
+                                    Semua Departemen
+                                </SelectItem>
+                                {departments.map((dept) => (
+                                    <SelectItem
+                                        key={dept.id}
+                                        value={dept.id.toString()}
+                                    >
+                                        {dept.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        <Select
+                            value={filters.position_id || 'all'}
+                            onValueChange={(val) =>
+                                handleFilterChange('position_id', val)
+                            }
+                        >
+                            <SelectTrigger className="w-45">
+                                <SelectValue placeholder="Posisi" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">
+                                    Semua Posisi
+                                </SelectItem>
+                                {positions.map((pos) => (
+                                    <SelectItem
+                                        key={pos.id}
+                                        value={pos.id.toString()}
+                                    >
+                                        {pos.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        <Select
+                            value={filters.role || 'all'}
+                            onValueChange={(val) =>
+                                handleFilterChange('role', val)
+                            }
+                        >
+                            <SelectTrigger className="w-45">
+                                <SelectValue placeholder="Peran" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Semua Peran</SelectItem>
+                                {roles.map((role) => (
+                                    <SelectItem key={role.id} value={role.name}>
+                                        {role.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
 
                 <div className="rounded-md border bg-card text-card-foreground shadow-sm">

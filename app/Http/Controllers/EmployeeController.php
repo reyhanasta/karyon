@@ -23,13 +23,27 @@ class EmployeeController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
+        $departmentId = $request->input('department_id');
+        $positionId = $request->input('position_id');
+        $roleName = $request->input('role');
 
         $employees = Employee::with(['user.roles', 'position', 'department'])
             ->when($search, function ($q) use ($search) {
-                $q->where('full_name', 'like', "%{$search}%")
-                  ->orWhereHas('position', fn ($q2) => $q2->where('name', 'like', "%{$search}%"))
-                  ->orWhereHas('department', fn ($q2) => $q2->where('name', 'like', "%{$search}%"))
-                  ->orWhereHas('user', fn ($q2) => $q2->where('nip', 'like', "%{$search}%"));
+                $q->where(function($q3) use ($search) {
+                    $q3->where('full_name', 'like', "%{$search}%")
+                      ->orWhereHas('user', fn ($q2) => $q2->where('nip', 'like', "%{$search}%"));
+                });
+            })
+            ->when($departmentId, function ($q) use ($departmentId) {
+                $q->where('department_id', $departmentId);
+            })
+            ->when($positionId, function ($q) use ($positionId) {
+                $q->where('position_id', $positionId);
+            })
+            ->when($roleName, function ($q) use ($roleName) {
+                $q->whereHas('user.roles', function ($q2) use ($roleName) {
+                    $q2->where('name', $roleName);
+                });
             })
             ->latest()
             ->paginate(10)
@@ -37,7 +51,15 @@ class EmployeeController extends Controller
 
         return Inertia::render('employees/index', [
             'employees' => $employees,
-            'filters' => ['search' => $search],
+            'filters' => [
+                'search' => $search,
+                'department_id' => $departmentId,
+                'position_id' => $positionId,
+                'role' => $roleName,
+            ],
+            'departments' => Department::all(['id', 'name']),
+            'positions' => Position::all(['id', 'name']),
+            'roles' => Role::all(['id', 'name']),
         ]);
     }
 
