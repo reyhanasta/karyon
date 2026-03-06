@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Position;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class PositionController extends Controller
 {
     public function index(Request $request)
     {
-        $search = $request->get('search');
+        $search = $request->input('search');
 
         $positions = Position::withCount('employees')
             ->when($search, function ($q) use ($search) {
@@ -33,7 +34,9 @@ class PositionController extends Controller
             'description' => 'nullable|string|max:500',
         ]);
 
-        Position::create($validated);
+        DB::transaction(function () use ($validated) {
+            Position::create($validated);
+        });
 
         return redirect()->back()->with('success', 'Position created successfully.');
     }
@@ -45,7 +48,9 @@ class PositionController extends Controller
             'description' => 'nullable|string|max:500',
         ]);
 
-        $position->update($validated);
+        DB::transaction(function () use ($position, $validated) {
+            $position->update($validated);
+        });
 
         return redirect()->back()->with('success', 'Position updated successfully.');
     }
@@ -56,7 +61,9 @@ class PositionController extends Controller
             return redirect()->back()->with('error', 'Cannot delete position with active employees.');
         }
 
-        $position->delete();
+        DB::transaction(function () use ($position) {
+            $position->delete();
+        });
 
         return redirect()->back()->with('success', 'Position deleted successfully.');
     }

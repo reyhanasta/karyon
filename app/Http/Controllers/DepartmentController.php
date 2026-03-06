@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Department;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class DepartmentController extends Controller
 {
     public function index(Request $request)
     {
-        $search = $request->get('search');
+        $search = $request->input('search');
 
         $departments = Department::withCount('employees')
             ->when($search, function ($q) use ($search) {
@@ -33,7 +34,9 @@ class DepartmentController extends Controller
             'description' => 'nullable|string|max:500',
         ]);
 
-        Department::create($validated);
+        DB::transaction(function () use ($validated) {
+            Department::create($validated);
+        });
 
         return redirect()->back()->with('success', 'Department created successfully.');
     }
@@ -45,7 +48,9 @@ class DepartmentController extends Controller
             'description' => 'nullable|string|max:500',
         ]);
 
-        $department->update($validated);
+        DB::transaction(function () use ($department, $validated) {
+            $department->update($validated);
+        });
 
         return redirect()->back()->with('success', 'Department updated successfully.');
     }
@@ -56,7 +61,9 @@ class DepartmentController extends Controller
             return redirect()->back()->with('error', 'Cannot delete department with active employees.');
         }
 
-        $department->delete();
+        DB::transaction(function () use ($department) {
+            $department->delete();
+        });
 
         return redirect()->back()->with('success', 'Department deleted successfully.');
     }

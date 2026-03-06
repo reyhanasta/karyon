@@ -12,6 +12,7 @@ use App\Models\Position;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
@@ -21,7 +22,7 @@ class EmployeeController extends Controller
 {
     public function index(Request $request)
     {
-        $search = $request->get('search');
+        $search = $request->input('search');
 
         $employees = Employee::with(['user.roles', 'position', 'department'])
             ->when($search, function ($q) use ($search) {
@@ -56,22 +57,24 @@ class EmployeeController extends Controller
     {
         $validated = $request->validated();
 
-        $user = User::create([
-            'nip' => $validated['nip'] ?? null,
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password'] ?? '12345678'),
-        ]);
+        DB::transaction(function () use ($validated) {
+            $user = User::create([
+                'nip' => $validated['nip'] ?? null,
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password'] ?? '12345678'),
+            ]);
 
-        $user->assignRole($validated['role']);
+            $user->assignRole($validated['role']);
 
-        Employee::create([
-            'user_id' => $user->id,
-            'full_name' => $validated['full_name'],
-            'position_id' => $validated['position_id'],
-            'department_id' => $validated['department_id'],
-            'join_date' => $validated['join_date'],
-            'leave_quota' => $validated['leave_quota'],
-        ]);
+            Employee::create([
+                'user_id' => $user->id,
+                'full_name' => $validated['full_name'],
+                'position_id' => $validated['position_id'],
+                'department_id' => $validated['department_id'],
+                'join_date' => $validated['join_date'],
+                'leave_quota' => $validated['leave_quota'],
+            ]);
+        });
 
         return redirect()->route('employees.index')->with('success', 'Employee created successfully.');
     }
@@ -123,24 +126,26 @@ class EmployeeController extends Controller
         $user = $employee->user;
         $validated = $request->validated();
 
-        if (!empty($validated['password'])) {
-            $user->update(['password' => Hash::make($validated['password'])]);
-        }
-        
-        $user->update([
-            'nip' => $validated['nip'],
-            'email' => $validated['email'],
-        ]);
+        DB::transaction(function () use ($user, $employee, $validated) {
+            if (!empty($validated['password'])) {
+                $user->update(['password' => Hash::make($validated['password'])]);
+            }
+            
+            $user->update([
+                'nip' => $validated['nip'],
+                'email' => $validated['email'],
+            ]);
 
-        $user->syncRoles([$validated['role']]);
+            $user->syncRoles([$validated['role']]);
 
-        $employee->update([
-            'full_name' => $validated['full_name'],
-            'position_id' => $validated['position_id'],
-            'department_id' => $validated['department_id'],
-            'join_date' => $validated['join_date'],
-            'leave_quota' => $validated['leave_quota'],
-        ]);
+            $employee->update([
+                'full_name' => $validated['full_name'],
+                'position_id' => $validated['position_id'],
+                'department_id' => $validated['department_id'],
+                'join_date' => $validated['join_date'],
+                'leave_quota' => $validated['leave_quota'],
+            ]);
+        });
 
         return redirect()->route('employees.index')->with('success', 'Employee updated successfully.');
     }
@@ -151,14 +156,16 @@ class EmployeeController extends Controller
             abort(403, 'Unauthorized action.');
         }
         // Deleting the user will cascade to delete the employee relation
-        $employee->user->delete();
+        DB::transaction(function () use ($employee) {
+            $employee->user->delete();
+        });
 
         return redirect()->route('employees.index')->with('success', 'Employee deleted successfully.');
     }
 
     public function export(Request $request)
     {
-        $format = $request->get('format', 'xlsx');
+        $format = $request->input('format', 'xlsx');
         $filename = 'employees_' . now()->format('Y-m-d');
 
         if ($format === 'csv') {
@@ -175,7 +182,9 @@ class EmployeeController extends Controller
         ]);
 
         $import = new EmployeeImport;
-        Excel::import($import, $request->file('file'));
+        DB::transaction(function () use ($import, $request) {
+            Excel::import($import, $request->file('file'));
+        });
 
         $imported = $import->getImportedCount();
         $errors = $import->getErrors();

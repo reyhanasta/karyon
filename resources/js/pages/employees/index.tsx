@@ -49,6 +49,9 @@ export default function Index({
     const { can } = usePermissions();
     const [search, setSearch] = useState(filters.search ?? '');
     const [importOpen, setImportOpen] = useState(false);
+    const [employeeToDelete, setEmployeeToDelete] = useState<number | null>(
+        null,
+    );
     const fileInputRef = useRef<HTMLInputElement>(null);
     const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const importForm = useForm<{ file: File | null }>({ file: null });
@@ -63,6 +66,14 @@ export default function Index({
                 { preserveState: true, replace: true },
             );
         }, 350);
+    };
+
+    const handleDelete = () => {
+        if (!employeeToDelete) return;
+        router.delete(`/employees/${employeeToDelete}`, {
+            preserveScroll: true,
+            onSuccess: () => setEmployeeToDelete(null),
+        });
     };
 
     const handleImport = () => {
@@ -244,18 +255,17 @@ export default function Index({
                                                     </Link>
                                                 )}
                                                 {can('employee.delete') && (
-                                                    <Link
-                                                        href={`/employees/${employee.id}`}
-                                                        method="delete"
-                                                        as="button"
+                                                    <Button
+                                                        variant="destructive"
+                                                        size="icon"
+                                                        onClick={() =>
+                                                            setEmployeeToDelete(
+                                                                employee.id,
+                                                            )
+                                                        }
                                                     >
-                                                        <Button
-                                                            variant="destructive"
-                                                            size="icon"
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </Link>
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
                                                 )}
                                             </div>
                                         </TableCell>
@@ -313,6 +323,33 @@ export default function Index({
                             }
                         >
                             <Upload className="mr-2 h-4 w-4" /> Impor
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog
+                open={!!employeeToDelete}
+                onOpenChange={(open) => !open && setEmployeeToDelete(null)}
+            >
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Hapus Karyawan?</DialogTitle>
+                        <DialogDescription>
+                            Tindakan ini tidak dapat dibatalkan. Ini akan
+                            menghapus data karyawan secara permanen.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setEmployeeToDelete(null)}
+                        >
+                            Batal
+                        </Button>
+                        <Button variant="destructive" onClick={handleDelete}>
+                            <Trash2 className="mr-2 h-4 w-4" /> Hapus
                         </Button>
                     </DialogFooter>
                 </DialogContent>

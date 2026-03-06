@@ -1,8 +1,17 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Check, Pencil, Plus, X } from 'lucide-react';
+import { useState } from 'react';
 import { Pagination } from '@/components/pagination';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import {
     Select,
     SelectContent,
@@ -35,14 +44,25 @@ export default function Index({
     const canCreate = can('leave.create') || can('leave.create.any');
     const canEdit = can('leave.edit');
 
+    const [confirmAction, setConfirmAction] = useState<{
+        id: number;
+        status: Status;
+    } | null>(null);
+
     const handleStatusUpdate = (id: number, status: Status) => {
-        if (
-            confirm(
-                `Apakah Anda yakin ingin melakukan aksi ${status} untuk pengajuan ini?`,
-            )
-        ) {
-            router.post(`/leave-requests/${id}/status`, { status });
-        }
+        setConfirmAction({ id, status });
+    };
+
+    const executeStatusUpdate = () => {
+        if (!confirmAction) return;
+        router.post(
+            `/leave-requests/${confirmAction.id}/status`,
+            { status: confirmAction.status },
+            {
+                preserveScroll: true,
+                onSuccess: () => setConfirmAction(null),
+            },
+        );
     };
 
     const handleFilterChange = (value: string) => {
@@ -233,6 +253,43 @@ export default function Index({
                 </div>
 
                 <Pagination links={leaveRequests.links} />
+
+                {/* Status Update Confirmation Dialog */}
+                <Dialog
+                    open={!!confirmAction}
+                    onOpenChange={(open) => !open && setConfirmAction(null)}
+                >
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Konfirmasi Persetujuan</DialogTitle>
+                            <DialogDescription>
+                                Apakah Anda yakin ingin melakukan aksi{' '}
+                                {confirmAction?.status === 'approved'
+                                    ? 'Setujui'
+                                    : 'Tolak'}{' '}
+                                untuk pengajuan ini?
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <Button
+                                variant="outline"
+                                onClick={() => setConfirmAction(null)}
+                            >
+                                Batal
+                            </Button>
+                            <Button
+                                variant={
+                                    confirmAction?.status === 'rejected'
+                                        ? 'destructive'
+                                        : 'default'
+                                }
+                                onClick={executeStatusUpdate}
+                            >
+                                Ya, Lanjutkan
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
         </AppLayout>
     );

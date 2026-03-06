@@ -8,6 +8,7 @@ use App\Models\LeaveRequest;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class LeaveRequestController extends Controller
@@ -15,7 +16,7 @@ class LeaveRequestController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $status = $request->get('status');
+        $status = $request->input('status');
 
         $query = LeaveRequest::with('employee');
 
@@ -113,13 +114,15 @@ class LeaveRequestController extends Controller
             }
         }
 
-        LeaveRequest::create([
-            'employee_id' => $employee->id,
-            'start_date' => $validated['start_date'],
-            'end_date' => $validated['end_date'],
-            'reason' => $validated['reason'],
-            'status' => 'pending',
-        ]);
+        DB::transaction(function () use ($employee, $validated) {
+            LeaveRequest::create([
+                'employee_id' => $employee->id,
+                'start_date' => $validated['start_date'],
+                'end_date' => $validated['end_date'],
+                'reason' => $validated['reason'],
+                'status' => 'pending',
+            ]);
+        });
 
         return redirect()->route('leave-requests.index')->with('success', 'Leave request submitted successfully.');
     }
@@ -180,12 +183,14 @@ class LeaveRequestController extends Controller
             ]);
         }
 
-        $leaveRequest->update([
-            'employee_id' => $validated['employee_id'],
-            'start_date'  => $validated['start_date'],
-            'end_date'    => $validated['end_date'],
-            'reason'      => $validated['reason'],
-        ]);
+        DB::transaction(function () use ($leaveRequest, $validated) {
+            $leaveRequest->update([
+                'employee_id' => $validated['employee_id'],
+                'start_date'  => $validated['start_date'],
+                'end_date'    => $validated['end_date'],
+                'reason'      => $validated['reason'],
+            ]);
+        });
 
         return redirect()->route('leave-requests.index')->with('success', 'Leave request updated successfully.');
     }
@@ -204,19 +209,21 @@ class LeaveRequestController extends Controller
             return back()->with('error', 'This request has already been processed.');
         }
 
-        $leaveRequest->update(['status' => $validated['status']]);
+        DB::transaction(function () use ($leaveRequest, $validated) {
+            $leaveRequest->update(['status' => $validated['status']]);
 
-        // If approved, deduct quota
-        if ($validated['status'] === 'approved') {
-            $start = Carbon::parse($leaveRequest->start_date);
-            $end = Carbon::parse($leaveRequest->end_date);
-            $requestedDays = $start->diffInDays($end) + 1;
-            
-            $employee = $leaveRequest->employee;
-            if ($employee->leave_quota >= $requestedDays) {
-                $employee->decrement('leave_quota', $requestedDays);
+            // If approved, deduct quota
+            if ($validated['status'] === 'approved') {
+                $start = Carbon::parse($leaveRequest->start_date);
+                $end = Carbon::parse($leaveRequest->end_date);
+                $requestedDays = $start->diffInDays($end) + 1;
+                
+                $employee = $leaveRequest->employee;
+                if ($employee->leave_quota >= $requestedDays) {
+                    $employee->decrement('leave_quota', $requestedDays);
+                }
             }
-        }
+        });
 
         return redirect()->back()->with('success', 'Leave request status updated.');
     }

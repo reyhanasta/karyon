@@ -7,6 +7,7 @@ use App\Models\Employee;
 use App\Models\OvertimeRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class OvertimeRequestController extends Controller
@@ -83,14 +84,16 @@ class OvertimeRequestController extends Controller
             ]);
         }
 
-        OvertimeRequest::create([
-            'employee_id' => $employee->id,
-            'date' => $validated['date'],
-            'start_time' => $validated['start_time'],
-            'end_time' => $validated['end_time'],
-            'description' => $validated['description'],
-            'status' => 'pending',
-        ]);
+        DB::transaction(function () use ($employee, $validated) {
+            OvertimeRequest::create([
+                'employee_id' => $employee->id,
+                'date' => $validated['date'],
+                'start_time' => $validated['start_time'],
+                'end_time' => $validated['end_time'],
+                'description' => $validated['description'],
+                'status' => 'pending',
+            ]);
+        });
 
         return redirect()->route('overtime-requests.index')->with('success', 'Overtime request submitted successfully.');
     }
@@ -147,13 +150,15 @@ class OvertimeRequestController extends Controller
             ]);
         }
 
-        $overtimeRequest->update([
-            'employee_id' => $validated['employee_id'],
-            'date'        => $validated['date'],
-            'start_time'  => $validated['start_time'],
-            'end_time'    => $validated['end_time'],
-            'description' => $validated['description'],
-        ]);
+        DB::transaction(function () use ($overtimeRequest, $validated) {
+            $overtimeRequest->update([
+                'employee_id' => $validated['employee_id'],
+                'date'        => $validated['date'],
+                'start_time'  => $validated['start_time'],
+                'end_time'    => $validated['end_time'],
+                'description' => $validated['description'],
+            ]);
+        });
 
         return redirect()->route('overtime-requests.index')->with('success', 'Overtime request updated successfully.');
     }
@@ -172,7 +177,9 @@ class OvertimeRequestController extends Controller
             return back()->with('error', 'This request has already been processed.');
         }
 
-        $overtimeRequest->update(['status' => $validated['status']]);
+        DB::transaction(function () use ($overtimeRequest, $validated) {
+            $overtimeRequest->update(['status' => $validated['status']]);
+        });
 
         return redirect()->back()->with('success', 'Overtime request status updated.');
     }

@@ -1,4 +1,4 @@
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { Edit2, Plus, Search, Trash2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { Pagination } from '@/components/pagination';
@@ -34,6 +34,9 @@ export default function Index({
     const [search, setSearch] = useState(filters.search ?? '');
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [editPosition, setEditPosition] = useState<any>(null);
+    const [positionToDelete, setPositionToDelete] = useState<number | null>(
+        null,
+    );
     const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const { data, setData, post, put, reset, errors, processing } = useForm({
@@ -84,6 +87,14 @@ export default function Index({
     const handleCloseEdit = () => {
         setEditPosition(null);
         reset();
+    };
+
+    const handleDelete = () => {
+        if (!positionToDelete) return;
+        router.delete(`/positions/${positionToDelete}`, {
+            preserveScroll: true,
+            onSuccess: () => setPositionToDelete(null),
+        });
     };
 
     const handleCloseCreate = (isOpen: boolean) => {
@@ -235,22 +246,20 @@ export default function Index({
                                                 <Edit2 className="h-4 w-4" />
                                             </Button>
 
-                                            <Link
-                                                href={`/positions/${position?.id}`}
-                                                method="delete"
-                                                as="button"
+                                            <Button
+                                                variant="destructive"
+                                                size="icon"
+                                                disabled={
+                                                    position.employees_count > 0
+                                                }
+                                                onClick={() =>
+                                                    setPositionToDelete(
+                                                        position.id,
+                                                    )
+                                                }
                                             >
-                                                <Button
-                                                    variant="destructive"
-                                                    size="icon"
-                                                    disabled={
-                                                        position.employees_count >
-                                                        0
-                                                    }
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </Link>
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
                                         </div>
                                     </TableCell>
                                 </TableRow>
@@ -318,6 +327,36 @@ export default function Index({
                                 </Button>
                             </DialogFooter>
                         </form>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Delete Confirmation Dialog */}
+                <Dialog
+                    open={!!positionToDelete}
+                    onOpenChange={(open) => !open && setPositionToDelete(null)}
+                >
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Hapus Jabatan?</DialogTitle>
+                            <DialogDescription>
+                                Tindakan ini tidak dapat dibatalkan. Ini akan
+                                menghapus jabatan secara permanen.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <Button
+                                variant="outline"
+                                onClick={() => setPositionToDelete(null)}
+                            >
+                                Batal
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                onClick={handleDelete}
+                            >
+                                <Trash2 className="mr-2 h-4 w-4" /> Hapus
+                            </Button>
+                        </DialogFooter>
                     </DialogContent>
                 </Dialog>
             </div>
