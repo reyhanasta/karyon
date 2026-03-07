@@ -6,6 +6,7 @@ use App\Http\Requests\StoreLeaveRequest;
 use App\Http\Requests\UpdateLeaveRequest;
 use App\Models\Employee;
 use App\Models\LeaveRequest;
+use App\Models\LeaveType;
 use App\Models\User;
 use App\Notifications\LeaveRequestNotification;
 use Carbon\Carbon;
@@ -13,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class LeaveRequestController extends Controller
@@ -24,14 +26,16 @@ class LeaveRequestController extends Controller
         $search = $request->input('search');
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
+        $leaveTypeId = $request->input('leave_type_id');
 
-        $query = LeaveRequest::with('employee');
+        $query = LeaveRequest::with(['employee', 'leaveType']);
 
         if ($user->hasRole('employee')) {
             $query->where('employee_id', $user->employee->id ?? 0);
         }
 
         $query->when($status, fn ($q) => $q->where('status', $status));
+        $query->when($leaveTypeId, fn ($q) => $q->where('leave_type_id', $leaveTypeId));
 
         $query->when($search, function ($q) use ($search) {
             $q->whereHas('employee', fn ($q2) => $q2->where('full_name', 'like', "%{$search}%"));
@@ -41,14 +45,16 @@ class LeaveRequestController extends Controller
         $query->when($dateTo, fn ($q) => $q->where('end_date', '<=', $dateTo));
 
         $leaveRequests = $query->latest()->paginate(10)->withQueryString();
-        
+
         return Inertia::render('leave-requests/index', [
             'leaveRequests' => $leaveRequests,
+            'leaveTypes' => LeaveType::orderBy('name')->get(['id', 'name']),
             'filters' => [
                 'status' => $status,
                 'search' => $search,
                 'date_from' => $dateFrom,
                 'date_to' => $dateTo,
+                'leave_type_id' => $leaveTypeId,
             ],
         ]);
     }
@@ -57,6 +63,7 @@ class LeaveRequestController extends Controller
     {
         $user = Auth::user();
         $canCreateAny = $user->can('leave.create.any');
+        $leaveTypes = LeaveType::active()->orderBy('name')->get();
 
         // Admin/HRD creating on behalf of others
         if ($canCreateAny) {
@@ -64,6 +71,7 @@ class LeaveRequestController extends Controller
 
             return Inertia::render('leave-requests/create', [
                 'employees' => $employees,
+                'leaveTypes' => $leaveTypes,
                 'canCreateAny' => true,
             ]);
         }
@@ -78,13 +86,18 @@ class LeaveRequestController extends Controller
         $currentMonth = now()->format('Y-m');
         $monthlyUsage = $employee->getMonthlyLeaveUsage($currentYear);
 
+        // Calculate per-type usage for the current year
+        $typeUsage = $this->getLeaveTypeUsage($employee, $currentYear);
+
         return Inertia::render('leave-requests/create', [
-            'leaveQuota'     => $employee->leave_quota,
-            'monthlyLimit'   => Employee::MONTHLY_LEAVE_LIMIT,
-            'monthlyUsage'   => $monthlyUsage,
-            'currentMonth'   => $currentMonth,
+            'leaveQuota'       => $employee->leave_quota,
+            'monthlyLimit'     => Employee::MONTHLY_LEAVE_LIMIT,
+            'monthlyUsage'     => $monthlyUsage,
+            'currentMonth'     => $currentMonth,
             'monthlyRemaining' => Employee::MONTHLY_LEAVE_LIMIT - ($monthlyUsage[$currentMonth] ?? 0),
-            'canCreateAny' => false,
+            'leaveTypes'       => $leaveTypes,
+            'typeUsage'        => $typeUsage,
+            'canCreateAny'     => false,
         ]);
     }
 
@@ -103,44 +116,63 @@ class LeaveRequestController extends Controller
             }
         }
 
+        $leaveType = LeaveType::findOrFail($validated['leave_type_id']);
         $start = Carbon::parse($validated['start_date']);
         $end = Carbon::parse($validated['end_date']);
-        
-        // Calculate weekdays or just simple diff in days + 1 for now (inclusive)
         $requestedDays = $start->diffInDays($end) + 1;
 
-        // 1) Annual quota check
-        if ($employee->leave_quota < $requestedDays) {
+        // Per-type annual quota check
+        $usedDaysForType = $this->getUsedDaysForType($employee, $leaveType->id, $start->year);
+        $remainingForType = $leaveType->max_days_per_year - $usedDaysForType;
+
+        if ($requestedDays > $remainingForType) {
             return back()->withErrors([
-                'end_date' => "Insufficient leave quota. Requested {$requestedDays} days, but only {$employee->leave_quota} left."
+                'end_date' => "Kuota {$leaveType->name} tidak cukup. Diajukan {$requestedDays} hari, sisa {$remainingForType} hari."
             ]);
         }
 
-        // 2) Monthly cap check (max 5 days per calendar month)
-        $requestByMonth = Employee::splitDaysByMonth($validated['start_date'], $validated['end_date']);
-        $year = $start->year;
-        $monthlyUsage = $employee->getMonthlyLeaveUsage($year);
-
-        foreach ($requestByMonth as $month => $days) {
-            $alreadyUsed = $monthlyUsage[$month] ?? 0;
-            $remaining = Employee::MONTHLY_LEAVE_LIMIT - $alreadyUsed;
-            
-            if ($days > $remaining) {
-                $monthLabel = Carbon::parse($month . '-01')->translatedFormat('F Y');
+        // Monthly cap check — only for "Cuti Tahunan" (ID check by name)
+        if ($leaveType->name === 'Cuti Tahunan') {
+            // Also check global leave_quota on employee
+            if ($employee->leave_quota < $requestedDays) {
                 return back()->withErrors([
-                    'end_date' => "Monthly limit exceeded for {$monthLabel}. Already {$alreadyUsed} days used/pending and requested {$days} more (max " . Employee::MONTHLY_LEAVE_LIMIT . " per month)."
+                    'end_date' => "Kuota cuti tahunan tidak cukup. Diajukan {$requestedDays} hari, sisa {$employee->leave_quota} hari."
                 ]);
+            }
+
+            $requestByMonth = Employee::splitDaysByMonth($validated['start_date'], $validated['end_date']);
+            $year = $start->year;
+            $monthlyUsage = $employee->getMonthlyLeaveUsage($year);
+
+            foreach ($requestByMonth as $month => $days) {
+                $alreadyUsed = $monthlyUsage[$month] ?? 0;
+                $remaining = Employee::MONTHLY_LEAVE_LIMIT - $alreadyUsed;
+
+                if ($days > $remaining) {
+                    $monthLabel = Carbon::parse($month . '-01')->translatedFormat('F Y');
+                    return back()->withErrors([
+                        'end_date' => "Batas bulanan terlampaui untuk {$monthLabel}. Sudah {$alreadyUsed} hari digunakan/pending dan mengajukan {$days} hari lagi (maks " . Employee::MONTHLY_LEAVE_LIMIT . " per bulan)."
+                    ]);
+                }
             }
         }
 
+        // Handle file upload
+        $attachmentPath = null;
+        if ($request->hasFile('attachment')) {
+            $attachmentPath = $request->file('attachment')->store('leave-attachments', 'public');
+        }
+
         $leaveRequest = null;
-        DB::transaction(function () use ($employee, $validated, &$leaveRequest) {
+        DB::transaction(function () use ($employee, $validated, $leaveType, $attachmentPath, &$leaveRequest) {
             $leaveRequest = LeaveRequest::create([
-                'employee_id' => $employee->id,
-                'start_date' => $validated['start_date'],
-                'end_date' => $validated['end_date'],
-                'reason' => $validated['reason'],
-                'status' => 'pending',
+                'employee_id'   => $employee->id,
+                'leave_type_id' => $leaveType->id,
+                'start_date'    => $validated['start_date'],
+                'end_date'      => $validated['end_date'],
+                'reason'        => $validated['reason'],
+                'attachment_path' => $attachmentPath,
+                'status'        => 'pending',
             ]);
         });
 
@@ -148,20 +180,22 @@ class LeaveRequestController extends Controller
         $approvers = User::role(['super-admin', 'hr-admin', 'manager'])->get();
         Notification::send($approvers, new LeaveRequestNotification($leaveRequest, $employee, 'submitted'));
 
-        return redirect()->route('leave-requests.index')->with('success', 'Leave request submitted successfully.');
+        return redirect()->route('leave-requests.index')->with('success', 'Pengajuan cuti berhasil dikirim.');
     }
 
     public function edit(LeaveRequest $leaveRequest)
     {
         $this->authorize('update', $leaveRequest);
 
-        $leaveRequest->load('employee');
+        $leaveRequest->load(['employee', 'leaveType']);
 
         $employees = Employee::select('id', 'full_name')->orderBy('full_name')->get();
+        $leaveTypes = LeaveType::active()->orderBy('name')->get();
 
         return Inertia::render('leave-requests/edit', [
             'leaveRequest' => $leaveRequest,
             'employees' => $employees,
+            'leaveTypes' => $leaveTypes,
         ]);
     }
 
@@ -174,34 +208,54 @@ class LeaveRequestController extends Controller
         $validated = $request->validated();
 
         $employee = Employee::findOrFail($validated['employee_id']);
+        $leaveType = LeaveType::findOrFail($validated['leave_type_id']);
 
         $start = Carbon::parse($validated['start_date']);
         $end = Carbon::parse($validated['end_date']);
         $requestedDays = $start->diffInDays($end) + 1;
 
-        // Quota check (exclude current request from usage if employee changed or dates changed)
-        $currentQuota = $employee->leave_quota;
-        // If editing the same employee's request, add back the original days
-        if ($leaveRequest->employee_id === $employee->id && $leaveRequest->status === 'pending') {
-            // Pending requests haven't deducted quota yet, so no adjustment needed
-        }
+        // Per-type quota check (exclude current request from used count)
+        $usedDaysForType = $this->getUsedDaysForType($employee, $leaveType->id, $start->year, $leaveRequest->id);
+        $remainingForType = $leaveType->max_days_per_year - $usedDaysForType;
 
-        if ($currentQuota < $requestedDays) {
+        if ($requestedDays > $remainingForType) {
             return back()->withErrors([
-                'end_date' => "Insufficient leave quota. Requested {$requestedDays} days, but only {$currentQuota} left."
+                'end_date' => "Kuota {$leaveType->name} tidak cukup. Diajukan {$requestedDays} hari, sisa {$remainingForType} hari."
             ]);
         }
 
-        DB::transaction(function () use ($leaveRequest, $validated) {
+        // Monthly cap check for Cuti Tahunan
+        if ($leaveType->name === 'Cuti Tahunan') {
+            $currentQuota = $employee->leave_quota;
+            if ($currentQuota < $requestedDays) {
+                return back()->withErrors([
+                    'end_date' => "Kuota cuti tahunan tidak cukup. Diajukan {$requestedDays} hari, sisa {$currentQuota} hari."
+                ]);
+            }
+        }
+
+        // Handle file upload
+        $attachmentPath = $leaveRequest->attachment_path;
+        if ($request->hasFile('attachment')) {
+            // Delete old attachment if exists
+            if ($attachmentPath) {
+                Storage::disk('public')->delete($attachmentPath);
+            }
+            $attachmentPath = $request->file('attachment')->store('leave-attachments', 'public');
+        }
+
+        DB::transaction(function () use ($leaveRequest, $validated, $leaveType, $attachmentPath) {
             $leaveRequest->update([
-                'employee_id' => $validated['employee_id'],
-                'start_date'  => $validated['start_date'],
-                'end_date'    => $validated['end_date'],
-                'reason'      => $validated['reason'],
+                'employee_id'   => $validated['employee_id'],
+                'leave_type_id' => $leaveType->id,
+                'start_date'    => $validated['start_date'],
+                'end_date'      => $validated['end_date'],
+                'reason'        => $validated['reason'],
+                'attachment_path' => $attachmentPath,
             ]);
         });
 
-        return redirect()->route('leave-requests.index')->with('success', 'Leave request updated successfully.');
+        return redirect()->route('leave-requests.index')->with('success', 'Pengajuan cuti berhasil diperbarui.');
     }
 
     public function updateStatus(Request $request, LeaveRequest $leaveRequest)
@@ -219,15 +273,18 @@ class LeaveRequestController extends Controller
         DB::transaction(function () use ($leaveRequest, $validated) {
             $leaveRequest->update(['status' => $validated['status']]);
 
-            // If approved, deduct quota
+            // If approved and it's Cuti Tahunan, deduct quota
             if ($validated['status'] === 'approved') {
-                $start = Carbon::parse($leaveRequest->start_date);
-                $end = Carbon::parse($leaveRequest->end_date);
-                $requestedDays = $start->diffInDays($end) + 1;
-                
-                $employee = $leaveRequest->employee;
-                if ($employee->leave_quota >= $requestedDays) {
-                    $employee->decrement('leave_quota', $requestedDays);
+                $leaveRequest->load('leaveType');
+                if ($leaveRequest->leaveType && $leaveRequest->leaveType->name === 'Cuti Tahunan') {
+                    $start = Carbon::parse($leaveRequest->start_date);
+                    $end = Carbon::parse($leaveRequest->end_date);
+                    $requestedDays = $start->diffInDays($end) + 1;
+
+                    $employee = $leaveRequest->employee;
+                    if ($employee->leave_quota >= $requestedDays) {
+                        $employee->decrement('leave_quota', $requestedDays);
+                    }
                 }
             }
         });
@@ -243,6 +300,53 @@ class LeaveRequestController extends Controller
             ));
         }
 
-        return redirect()->back()->with('success', 'Leave request status updated.');
+        return redirect()->back()->with('success', 'Status pengajuan cuti berhasil diperbarui.');
+    }
+
+    /**
+     * Calculate total used days for a specific leave type in a given year.
+     * Excludes a specific request ID if provided (for edit scenarios).
+     */
+    private function getUsedDaysForType(Employee $employee, int $leaveTypeId, int $year, ?int $excludeId = null): int
+    {
+        $query = $employee->leaveRequests()
+            ->where('leave_type_id', $leaveTypeId)
+            ->whereIn('status', ['approved', 'pending'])
+            ->where(function ($q) use ($year) {
+                $q->whereYear('start_date', $year)
+                  ->orWhereYear('end_date', $year);
+            });
+
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        $totalDays = 0;
+        foreach ($query->get(['start_date', 'end_date']) as $req) {
+            $totalDays += Carbon::parse($req->start_date)->diffInDays(Carbon::parse($req->end_date)) + 1;
+        }
+
+        return $totalDays;
+    }
+
+    /**
+     * Get per-type usage summary for an employee in a given year.
+     * Returns array: [leave_type_id => ['used' => X, 'max' => Y, 'remaining' => Z]]
+     */
+    private function getLeaveTypeUsage(Employee $employee, int $year): array
+    {
+        $leaveTypes = LeaveType::active()->get();
+        $usage = [];
+
+        foreach ($leaveTypes as $type) {
+            $used = $this->getUsedDaysForType($employee, $type->id, $year);
+            $usage[$type->id] = [
+                'used' => $used,
+                'max' => $type->max_days_per_year,
+                'remaining' => $type->max_days_per_year - $used,
+            ];
+        }
+
+        return $usage;
     }
 }

@@ -32,17 +32,21 @@ import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
 
 type Status = 'pending' | 'approved' | 'rejected';
+type LeaveTypeOption = { id: number; name: string };
 
 export default function Index({
     leaveRequests,
+    leaveTypes,
     filters,
 }: {
     leaveRequests: any;
+    leaveTypes: LeaveTypeOption[];
     filters: {
         status?: string;
         search?: string;
         date_from?: string;
         date_to?: string;
+        leave_type_id?: string;
     };
 }) {
     const { can } = usePermissions();
@@ -149,6 +153,27 @@ export default function Index({
                     )}
                     <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
                         <Select
+                            value={filters.leave_type_id ?? 'all'}
+                            onValueChange={(val) =>
+                                handleFilterChange('leave_type_id', val)
+                            }
+                        >
+                            <SelectTrigger className="w-44">
+                                <SelectValue placeholder="Semua Jenis" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Semua Jenis</SelectItem>
+                                {leaveTypes.map((type) => (
+                                    <SelectItem
+                                        key={type.id}
+                                        value={String(type.id)}
+                                    >
+                                        {type.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Select
                             value={filters.status ?? 'all'}
                             onValueChange={(val) =>
                                 handleFilterChange('status', val)
@@ -198,6 +223,7 @@ export default function Index({
                         <TableHeader>
                             <TableRow>
                                 {canApprove && <TableHead>Karyawan</TableHead>}
+                                <TableHead>Jenis Cuti</TableHead>
                                 <TableHead>Tanggal Mulai</TableHead>
                                 <TableHead>Tanggal Selesai</TableHead>
                                 <TableHead>Alasan</TableHead>
@@ -214,7 +240,7 @@ export default function Index({
                                 <TableRow>
                                     <TableCell
                                         colSpan={
-                                            (canApprove ? 5 : 4) +
+                                            (canApprove ? 6 : 5) +
                                             (showActions ? 1 : 0)
                                         }
                                         className="h-24 text-center"
@@ -230,6 +256,11 @@ export default function Index({
                                             {request.employee?.full_name}
                                         </TableCell>
                                     )}
+                                    <TableCell>
+                                        <Badge variant="outline">
+                                            {request.leave_type?.name ?? '-'}
+                                        </Badge>
+                                    </TableCell>
                                     <TableCell>{request.start_date}</TableCell>
                                     <TableCell>{request.end_date}</TableCell>
                                     <TableCell

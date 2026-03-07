@@ -26,10 +26,12 @@ class LeaveRequestNotification extends Notification implements ShouldQueue
 
     public function toArray(object $notifiable): array
     {
+        $typeName = $this->leaveRequest->leaveType?->name ?? 'Cuti';
+
         $messages = [
-            'submitted' => "{$this->employee->full_name} mengajukan cuti ({$this->leaveRequest->start_date} s/d {$this->leaveRequest->end_date})",
-            'approved'  => "Pengajuan cuti Anda ({$this->leaveRequest->start_date} s/d {$this->leaveRequest->end_date}) telah disetujui",
-            'rejected'  => "Pengajuan cuti Anda ({$this->leaveRequest->start_date} s/d {$this->leaveRequest->end_date}) telah ditolak",
+            'submitted' => "{$this->employee->full_name} mengajukan {$typeName} ({$this->leaveRequest->start_date} s/d {$this->leaveRequest->end_date})",
+            'approved'  => "Pengajuan {$typeName} Anda ({$this->leaveRequest->start_date} s/d {$this->leaveRequest->end_date}) telah disetujui",
+            'rejected'  => "Pengajuan {$typeName} Anda ({$this->leaveRequest->start_date} s/d {$this->leaveRequest->end_date}) telah ditolak",
         ];
 
         return [
@@ -38,6 +40,7 @@ class LeaveRequestNotification extends Notification implements ShouldQueue
             'leave_request_id' => $this->leaveRequest->id,
             'employee_id' => $this->employee->id,
             'employee_name' => $this->employee->full_name,
+            'leave_type' => $typeName,
             'message' => $messages[$this->action] ?? '',
             'url' => '/leave-requests',
         ];

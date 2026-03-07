@@ -46,6 +46,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
     Route::post('notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+
+    // Leave type management
+    Route::resource('leave-types', App\Http\Controllers\LeaveTypeController::class)
+        ->except(['create', 'show', 'edit'])
+        ->middleware('permission:employee.view');
 });
 
 require __DIR__.'/settings.php';

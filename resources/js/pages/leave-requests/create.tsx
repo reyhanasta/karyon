@@ -1,5 +1,5 @@
 import { Head, Link, useForm as useInertiaForm } from '@inertiajs/react';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Paperclip } from 'lucide-react';
 import type { FormEventHandler } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -16,12 +16,25 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 
 type Employee = { id: number; full_name: string };
+type LeaveType = {
+    id: number;
+    name: string;
+    max_days_per_year: number;
+    requires_attachment: boolean;
+    description: string | null;
+};
+type TypeUsage = Record<
+    number,
+    { used: number; max: number; remaining: number }
+>;
 
 export default function Create({
     leaveQuota,
     monthlyLimit,
     monthlyRemaining,
     employees,
+    leaveTypes,
+    typeUsage,
     canCreateAny,
 }: {
     leaveQuota?: number;
@@ -30,27 +43,44 @@ export default function Create({
     currentMonth?: string;
     monthlyRemaining?: number;
     employees?: Employee[];
+    leaveTypes: LeaveType[];
+    typeUsage?: TypeUsage;
     canCreateAny: boolean;
 }) {
     const { data, setData, post, processing, errors } = useInertiaForm<{
         employee_id: string;
+        leave_type_id: string;
         start_date: string;
         end_date: string;
         reason: string;
+        attachment: File | null;
     }>({
         employee_id: '',
+        leave_type_id: '',
         start_date: '',
         end_date: '',
         reason: '',
+        attachment: null,
     });
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post('/leave-requests');
+        post('/leave-requests', {
+            forceFormData: true,
+        });
     };
 
     const today = new Date();
     const todayFormatted = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+    const selectedType = leaveTypes.find(
+        (t) => String(t.id) === data.leave_type_id,
+    );
+    const selectedTypeUsage =
+        selectedType && typeUsage ? typeUsage[selectedType.id] : null;
+
+    // Check if selected type is "Cuti Tahunan" to show monthly info
+    const isCutiTahunan = selectedType?.name === 'Cuti Tahunan';
 
     return (
         <AppLayout
@@ -73,45 +103,62 @@ export default function Create({
                     </p>
                 </div>
 
-                {/* Quota Summary - only for regular employees */}
-                {!canCreateAny &&
-                    leaveQuota !== undefined &&
-                    monthlyRemaining !== undefined && (
-                        <>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="rounded-md border bg-card p-4 text-card-foreground shadow-sm">
-                                    <p className="text-sm text-muted-foreground">
-                                        Sisa Tahunan
-                                    </p>
-                                    <p className="text-2xl font-bold">
-                                        {leaveQuota}{' '}
-                                        <span className="text-sm font-normal text-muted-foreground">
-                                            hari
-                                        </span>
-                                    </p>
-                                </div>
-                                <div className="rounded-md border bg-card p-4 text-card-foreground shadow-sm">
-                                    <p className="text-sm text-muted-foreground">
-                                        Sisa Bulan Ini
-                                    </p>
-                                    <p className="text-2xl font-bold">
-                                        {monthlyRemaining}{' '}
-                                        <span className="text-sm font-normal text-muted-foreground">
-                                            / {monthlyLimit} hari
-                                        </span>
-                                    </p>
-                                </div>
+                {/* Quota Summary - shown when a type is selected */}
+                {!canCreateAny && selectedTypeUsage && (
+                    <>
+                        <div
+                            className={`grid gap-4 ${isCutiTahunan ? 'grid-cols-3' : 'grid-cols-2'}`}
+                        >
+                            <div className="rounded-md border bg-card p-4 text-card-foreground shadow-sm">
+                                <p className="text-sm text-muted-foreground">
+                                    Kuota {selectedType?.name}
+                                </p>
+                                <p className="text-2xl font-bold">
+                                    {selectedTypeUsage.remaining}{' '}
+                                    <span className="text-sm font-normal text-muted-foreground">
+                                        / {selectedTypeUsage.max} hari
+                                    </span>
+                                </p>
                             </div>
+                            {isCutiTahunan && (
+                                <>
+                                    <div className="rounded-md border bg-card p-4 text-card-foreground shadow-sm">
+                                        <p className="text-sm text-muted-foreground">
+                                            Sisa Kuota Tahunan
+                                        </p>
+                                        <p className="text-2xl font-bold">
+                                            {leaveQuota}{' '}
+                                            <span className="text-sm font-normal text-muted-foreground">
+                                                hari
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <div className="rounded-md border bg-card p-4 text-card-foreground shadow-sm">
+                                        <p className="text-sm text-muted-foreground">
+                                            Sisa Bulan Ini
+                                        </p>
+                                        <p className="text-2xl font-bold">
+                                            {monthlyRemaining}{' '}
+                                            <span className="text-sm font-normal text-muted-foreground">
+                                                / {monthlyLimit} hari
+                                            </span>
+                                        </p>
+                                    </div>
+                                </>
+                            )}
+                        </div>
 
+                        {isCutiTahunan && (
                             <Alert>
                                 <AlertCircle className="h-4 w-4" />
                                 <AlertDescription>
-                                    Maksimal {monthlyLimit} hari cuti per bulan
-                                    kalender. Total tahunan: 12 hari.
+                                    Maksimal {monthlyLimit} hari cuti tahunan
+                                    per bulan kalender.
                                 </AlertDescription>
                             </Alert>
-                        </>
-                    )}
+                        )}
+                    </>
+                )}
 
                 <div className="rounded-md border bg-card p-6 text-card-foreground shadow-sm">
                     <form onSubmit={submit} className="space-y-6">
@@ -146,6 +193,42 @@ export default function Create({
                                 )}
                             </div>
                         )}
+
+                        {/* Leave Type selector */}
+                        <div className="space-y-2">
+                            <Label htmlFor="leave_type_id">Jenis Cuti</Label>
+                            <Select
+                                value={data.leave_type_id}
+                                onValueChange={(val) =>
+                                    setData('leave_type_id', val)
+                                }
+                            >
+                                <SelectTrigger id="leave_type_id">
+                                    <SelectValue placeholder="Pilih jenis cuti" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {leaveTypes.map((type) => (
+                                        <SelectItem
+                                            key={type.id}
+                                            value={String(type.id)}
+                                        >
+                                            {type.name} (maks{' '}
+                                            {type.max_days_per_year} hari/tahun)
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {selectedType?.description && (
+                                <p className="text-xs text-muted-foreground">
+                                    {selectedType.description}
+                                </p>
+                            )}
+                            {errors.leave_type_id && (
+                                <p className="text-sm font-medium text-destructive">
+                                    {errors.leave_type_id}
+                                </p>
+                            )}
+                        </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
@@ -219,21 +302,44 @@ export default function Create({
                             )}
                         </div>
 
+                        {/* Attachment upload */}
+                        <div className="space-y-2">
+                            <Label htmlFor="attachment">
+                                <Paperclip className="mr-1 inline h-4 w-4" />
+                                Lampiran
+                                {selectedType?.requires_attachment
+                                    ? ' (disarankan)'
+                                    : ' (opsional)'}
+                            </Label>
+                            <Input
+                                id="attachment"
+                                type="file"
+                                accept=".jpg,.jpeg,.png,.pdf"
+                                onChange={(e) =>
+                                    setData(
+                                        'attachment',
+                                        e.target.files?.[0] ?? null,
+                                    )
+                                }
+                                className="w-full"
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                Format: JPG, PNG, PDF. Maks 2MB.
+                            </p>
+                            {errors.attachment && (
+                                <p className="text-sm font-medium text-destructive">
+                                    {errors.attachment}
+                                </p>
+                            )}
+                        </div>
+
                         <div className="flex justify-end gap-2 pt-4">
                             <Link href="/leave-requests">
                                 <Button variant="outline" type="button">
                                     Batal
                                 </Button>
                             </Link>
-                            <Button
-                                type="submit"
-                                disabled={
-                                    processing ||
-                                    (!canCreateAny &&
-                                        ((leaveQuota ?? 0) <= 0 ||
-                                            (monthlyRemaining ?? 0) <= 0))
-                                }
-                            >
+                            <Button type="submit" disabled={processing}>
                                 Kirim Pengajuan
                             </Button>
                         </div>

@@ -16,9 +16,11 @@ class StoreLeaveRequest extends FormRequest
         $canCreateAny = $this->user()->can('leave.create.any');
 
         $rules = [
-            'start_date' => $canCreateAny ? 'required|date' : 'required|date|after_or_equal:today',
-            'end_date'   => 'required|date|after_or_equal:start_date',
-            'reason'     => 'required|string|max:500',
+            'leave_type_id' => 'required|exists:leave_types,id',
+            'start_date'    => $canCreateAny ? 'required|date' : 'required|date|after_or_equal:today',
+            'end_date'      => 'required|date|after_or_equal:start_date',
+            'reason'        => 'required|string|max:500',
+            'attachment'    => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ];
 
         if ($canCreateAny) {
@@ -31,8 +33,11 @@ class StoreLeaveRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'start_date.after_or_equal' => 'Leave start date must be today or in the future.',
-            'end_date.after_or_equal'   => 'End date must be on or after the start date.',
+            'leave_type_id.required'    => 'Jenis cuti wajib dipilih.',
+            'start_date.after_or_equal' => 'Tanggal mulai harus hari ini atau setelahnya.',
+            'end_date.after_or_equal'   => 'Tanggal selesai harus sama atau setelah tanggal mulai.',
+            'attachment.mimes'          => 'Lampiran harus berupa file JPG, PNG, atau PDF.',
+            'attachment.max'            => 'Ukuran lampiran maksimal 2MB.',
         ];
     }
 }
