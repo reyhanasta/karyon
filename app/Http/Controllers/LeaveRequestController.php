@@ -6,10 +6,13 @@ use App\Http\Requests\StoreLeaveRequest;
 use App\Http\Requests\UpdateLeaveRequest;
 use App\Models\Employee;
 use App\Models\LeaveRequest;
+use App\Models\User;
+use App\Notifications\LeaveRequestNotification;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 
 class LeaveRequestController extends Controller
@@ -130,8 +133,9 @@ class LeaveRequestController extends Controller
             }
         }
 
-        DB::transaction(function () use ($employee, $validated) {
-            LeaveRequest::create([
+        $leaveRequest = null;
+        DB::transaction(function () use ($employee, $validated, &$leaveRequest) {
+            $leaveRequest = LeaveRequest::create([
                 'employee_id' => $employee->id,
                 'start_date' => $validated['start_date'],
                 'end_date' => $validated['end_date'],
@@ -139,6 +143,10 @@ class LeaveRequestController extends Controller
                 'status' => 'pending',
             ]);
         });
+
+        // Notify all approvers (super-admin, hr-admin, manager)
+        $approvers = User::role(['super-admin', 'hr-admin', 'manager'])->get();
+        Notification::send($approvers, new LeaveRequestNotification($leaveRequest, $employee, 'submitted'));
 
         return redirect()->route('leave-requests.index')->with('success', 'Leave request submitted successfully.');
     }
@@ -223,6 +231,17 @@ class LeaveRequestController extends Controller
                 }
             }
         });
+
+        // Notify the employee about the status change
+        $leaveRequest->load('employee');
+        $employeeUser = $leaveRequest->employee->user;
+        if ($employeeUser) {
+            $employeeUser->notify(new LeaveRequestNotification(
+                $leaveRequest,
+                $leaveRequest->employee,
+                $validated['status']
+            ));
+        }
 
         return redirect()->back()->with('success', 'Leave request status updated.');
     }

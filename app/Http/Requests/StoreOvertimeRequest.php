@@ -16,7 +16,7 @@ class StoreOvertimeRequest extends FormRequest
         $rules = [
             'date'        => 'required|date|before_or_equal:today',
             'start_time'  => 'required',
-            'end_time'    => 'required|after:start_time',
+            'end_time'    => 'required',
             'description' => 'required|string|max:500',
         ];
 

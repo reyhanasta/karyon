@@ -6,9 +6,12 @@ use App\Http\Requests\StoreOvertimeRequest;
 use App\Http\Requests\UpdateOvertimeRequest;
 use App\Models\Employee;
 use App\Models\OvertimeRequest;
+use App\Models\User;
+use App\Notifications\OvertimeRequestNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 
 class OvertimeRequestController extends Controller
@@ -100,8 +103,9 @@ class OvertimeRequestController extends Controller
             ]);
         }
 
-        DB::transaction(function () use ($employee, $validated) {
-            OvertimeRequest::create([
+        $overtimeRequest = null;
+        DB::transaction(function () use ($employee, $validated, &$overtimeRequest) {
+            $overtimeRequest = OvertimeRequest::create([
                 'employee_id' => $employee->id,
                 'date' => $validated['date'],
                 'start_time' => $validated['start_time'],
@@ -110,6 +114,10 @@ class OvertimeRequestController extends Controller
                 'status' => 'pending',
             ]);
         });
+
+        // Notify all approvers (super-admin, hr-admin, manager)
+        $approvers = User::role(['super-admin', 'hr-admin', 'manager'])->get();
+        Notification::send($approvers, new OvertimeRequestNotification($overtimeRequest, $employee, 'submitted'));
 
         return redirect()->route('overtime-requests.index')->with('success', 'Overtime request submitted successfully.');
     }
@@ -178,6 +186,17 @@ class OvertimeRequestController extends Controller
         DB::transaction(function () use ($overtimeRequest, $validated) {
             $overtimeRequest->update(['status' => $validated['status']]);
         });
+
+        // Notify the employee about the status change
+        $overtimeRequest->load('employee');
+        $employeeUser = $overtimeRequest->employee->user;
+        if ($employeeUser) {
+            $employeeUser->notify(new OvertimeRequestNotification(
+                $overtimeRequest,
+                $overtimeRequest->employee,
+                $validated['status']
+            ));
+        }
 
         return redirect()->back()->with('success', 'Overtime request status updated.');
     }

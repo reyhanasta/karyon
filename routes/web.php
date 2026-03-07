@@ -41,6 +41,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('overtime-requests/{overtimeRequest}/status', [App\Http\Controllers\OvertimeRequestController::class, 'updateStatus'])
         ->name('overtime-requests.status')
         ->middleware('permission:overtime.approve');
+
+    // Notifications
+    Route::get('notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
 });
 
 require __DIR__.'/settings.php';
