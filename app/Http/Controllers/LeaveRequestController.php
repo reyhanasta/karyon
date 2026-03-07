@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreLeaveRequest;
+use App\Http\Requests\UpdateLeaveRequest;
 use App\Models\Employee;
 use App\Models\LeaveRequest;
 use Carbon\Carbon;
@@ -17,6 +18,9 @@ class LeaveRequestController extends Controller
     {
         $user = Auth::user();
         $status = $request->input('status');
+        $search = $request->input('search');
+        $dateFrom = $request->input('date_from');
+        $dateTo = $request->input('date_to');
 
         $query = LeaveRequest::with('employee');
 
@@ -26,11 +30,23 @@ class LeaveRequestController extends Controller
 
         $query->when($status, fn ($q) => $q->where('status', $status));
 
+        $query->when($search, function ($q) use ($search) {
+            $q->whereHas('employee', fn ($q2) => $q2->where('full_name', 'like', "%{$search}%"));
+        });
+
+        $query->when($dateFrom, fn ($q) => $q->where('start_date', '>=', $dateFrom));
+        $query->when($dateTo, fn ($q) => $q->where('end_date', '<=', $dateTo));
+
         $leaveRequests = $query->latest()->paginate(10)->withQueryString();
         
         return Inertia::render('leave-requests/index', [
             'leaveRequests' => $leaveRequests,
-            'filters' => ['status' => $status],
+            'filters' => [
+                'status' => $status,
+                'search' => $search,
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
+            ],
         ]);
     }
 
@@ -129,11 +145,7 @@ class LeaveRequestController extends Controller
 
     public function edit(LeaveRequest $leaveRequest)
     {
-        $user = Auth::user();
-
-        if (!$user->can('leave.edit')) {
-            abort(403, 'Unauthorized action.');
-        }
+        $this->authorize('update', $leaveRequest);
 
         $leaveRequest->load('employee');
 
@@ -145,24 +157,13 @@ class LeaveRequestController extends Controller
         ]);
     }
 
-    public function update(Request $request, LeaveRequest $leaveRequest)
+    public function update(UpdateLeaveRequest $request, LeaveRequest $leaveRequest)
     {
-        $user = Auth::user();
-
-        if (!$user->can('leave.edit')) {
-            abort(403, 'Unauthorized action.');
-        }
-
         if ($leaveRequest->status !== 'pending') {
             return back()->with('error', 'Only pending requests can be edited.');
         }
 
-        $validated = $request->validate([
-            'employee_id' => 'required|exists:employees,id',
-            'start_date'  => 'required|date|after_or_equal:today',
-            'end_date'    => 'required|date|after_or_equal:start_date',
-            'reason'      => 'required|string|max:500',
-        ]);
+        $validated = $request->validated();
 
         $employee = Employee::findOrFail($validated['employee_id']);
 
@@ -197,9 +198,7 @@ class LeaveRequestController extends Controller
 
     public function updateStatus(Request $request, LeaveRequest $leaveRequest)
     {
-        if (!Auth::user()->hasRole(['super-admin', 'hr-admin', 'manager'])) {
-            abort(403, 'Unauthorized action.');
-        }
+        $this->authorize('updateStatus', $leaveRequest);
 
         $validated = $request->validate([
             'status' => 'required|in:approved,rejected'

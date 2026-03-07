@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreOvertimeRequest;
+use App\Http\Requests\UpdateOvertimeRequest;
 use App\Models\Employee;
 use App\Models\OvertimeRequest;
 use Illuminate\Http\Request;
@@ -16,6 +17,9 @@ class OvertimeRequestController extends Controller
     {
         $user = Auth::user();
         $status = $request->input('status');
+        $search = $request->input('search');
+        $dateFrom = $request->input('date_from');
+        $dateTo = $request->input('date_to');
 
         $query = OvertimeRequest::with('employee');
 
@@ -25,11 +29,23 @@ class OvertimeRequestController extends Controller
 
         $query->when($status, fn ($q) => $q->where('status', $status));
 
+        $query->when($search, function ($q) use ($search) {
+            $q->whereHas('employee', fn ($q2) => $q2->where('full_name', 'like', "%{$search}%"));
+        });
+
+        $query->when($dateFrom, fn ($q) => $q->where('date', '>=', $dateFrom));
+        $query->when($dateTo, fn ($q) => $q->where('date', '<=', $dateTo));
+
         $overtimeRequests = $query->orderBy('date', 'desc')->paginate(10)->withQueryString();
         
         return Inertia::render('overtime-requests/index', [
             'overtimeRequests' => $overtimeRequests,
-            'filters' => ['status' => $status],
+            'filters' => [
+                'status' => $status,
+                'search' => $search,
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
+            ],
         ]);
     }
 
@@ -100,11 +116,7 @@ class OvertimeRequestController extends Controller
 
     public function edit(OvertimeRequest $overtimeRequest)
     {
-        $user = Auth::user();
-
-        if (!$user->can('overtime.edit')) {
-            abort(403, 'Unauthorized action.');
-        }
+        $this->authorize('update', $overtimeRequest);
 
         $overtimeRequest->load('employee');
 
@@ -116,25 +128,13 @@ class OvertimeRequestController extends Controller
         ]);
     }
 
-    public function update(Request $request, OvertimeRequest $overtimeRequest)
+    public function update(UpdateOvertimeRequest $request, OvertimeRequest $overtimeRequest)
     {
-        $user = Auth::user();
-
-        if (!$user->can('overtime.edit')) {
-            abort(403, 'Unauthorized action.');
-        }
-
         if ($overtimeRequest->status !== 'pending') {
             return back()->with('error', 'Only pending requests can be edited.');
         }
 
-        $validated = $request->validate([
-            'employee_id' => 'required|exists:employees,id',
-            'date'        => 'required|date|before_or_equal:today',
-            'start_time'  => 'required',
-            'end_time'    => 'required|after:start_time',
-            'description' => 'required|string|max:500',
-        ]);
+        $validated = $request->validated();
 
         $employee = Employee::findOrFail($validated['employee_id']);
 
@@ -165,9 +165,7 @@ class OvertimeRequestController extends Controller
 
     public function updateStatus(Request $request, OvertimeRequest $overtimeRequest)
     {
-        if (!Auth::user()->hasRole(['super-admin', 'hr-admin', 'manager'])) {
-            abort(403, 'Unauthorized action.');
-        }
+        $this->authorize('updateStatus', $overtimeRequest);
 
         $validated = $request->validate([
             'status' => 'required|in:approved,rejected'

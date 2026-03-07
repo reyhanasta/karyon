@@ -11,7 +11,6 @@ use App\Models\Employee;
 use App\Models\Position;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
@@ -174,12 +173,10 @@ class EmployeeController extends Controller
 
     public function destroy(Employee $employee)
     {
-        if (!Auth::user()->can('employee.delete')) {
-            abort(403, 'Unauthorized action.');
-        }
-        // Deleting the user will cascade to delete the employee relation
+        $this->authorize('delete', $employee);
+
         DB::transaction(function () use ($employee) {
-            $employee->user->delete();
+            $employee->delete();
         });
 
         return redirect()->route('employees.index')->with('success', 'Employee deleted successfully.');

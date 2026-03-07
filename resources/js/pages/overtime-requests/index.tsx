@@ -1,6 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Check, Pencil, Plus, X } from 'lucide-react';
-import { useState } from 'react';
+import { Check, Pencil, Plus, Search, X } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { Pagination } from '@/components/pagination';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import {
     Select,
     SelectContent,
@@ -37,12 +38,20 @@ export default function Index({
     filters,
 }: {
     overtimeRequests: any;
-    filters: { status?: string };
+    filters: {
+        status?: string;
+        search?: string;
+        date_from?: string;
+        date_to?: string;
+    };
 }) {
     const { can } = usePermissions();
     const canApprove = can('overtime.approve');
     const canCreate = can('overtime.create') || can('overtime.create.any');
     const canEdit = can('overtime.edit');
+
+    const [search, setSearch] = useState(filters.search ?? '');
+    const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const [confirmAction, setConfirmAction] = useState<{
         id: number;
@@ -65,10 +74,26 @@ export default function Index({
         );
     };
 
-    const handleFilterChange = (value: string) => {
+    const handleSearchChange = (value: string) => {
+        setSearch(value);
+        if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+        searchTimerRef.current = setTimeout(() => {
+            router.get(
+                '/overtime-requests',
+                { ...filters, search: value || undefined },
+                { preserveState: true, replace: true },
+            );
+        }, 350);
+    };
+
+    const handleFilterChange = (key: string, value: string) => {
         router.get(
             '/overtime-requests',
-            { status: value === 'all' ? undefined : value },
+            {
+                ...filters,
+                search,
+                [key]: value === 'all' || !value ? undefined : value,
+            },
             {
                 preserveState: true,
                 replace: true,
@@ -114,25 +139,65 @@ export default function Index({
                     )}
                 </div>
 
-                {/* Status filter */}
-                <div className="flex items-center gap-3">
-                    <span className="text-sm text-muted-foreground">
-                        Saring berdasarkan status:
-                    </span>
-                    <Select
-                        defaultValue={filters.status ?? 'all'}
-                        onValueChange={handleFilterChange}
-                    >
-                        <SelectTrigger className="w-40">
-                            <SelectValue placeholder="Semua" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Semua</SelectItem>
-                            <SelectItem value="pending">Menunggu</SelectItem>
-                            <SelectItem value="approved">Disetujui</SelectItem>
-                            <SelectItem value="rejected">Ditolak</SelectItem>
-                        </SelectContent>
-                    </Select>
+                {/* Filters */}
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                    {canApprove && (
+                        <div className="relative max-w-sm flex-1">
+                            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                placeholder="Cari nama karyawan..."
+                                value={search}
+                                onChange={(e) =>
+                                    handleSearchChange(e.target.value)
+                                }
+                                className="pl-9"
+                            />
+                        </div>
+                    )}
+                    <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
+                        <Select
+                            value={filters.status ?? 'all'}
+                            onValueChange={(val) =>
+                                handleFilterChange('status', val)
+                            }
+                        >
+                            <SelectTrigger className="w-40">
+                                <SelectValue placeholder="Semua Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">
+                                    Semua Status
+                                </SelectItem>
+                                <SelectItem value="pending">
+                                    Menunggu
+                                </SelectItem>
+                                <SelectItem value="approved">
+                                    Disetujui
+                                </SelectItem>
+                                <SelectItem value="rejected">
+                                    Ditolak
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Input
+                            type="date"
+                            className="w-40"
+                            placeholder="Dari"
+                            value={filters.date_from ?? ''}
+                            onChange={(e) =>
+                                handleFilterChange('date_from', e.target.value)
+                            }
+                        />
+                        <Input
+                            type="date"
+                            className="w-40"
+                            placeholder="Sampai"
+                            value={filters.date_to ?? ''}
+                            onChange={(e) =>
+                                handleFilterChange('date_to', e.target.value)
+                            }
+                        />
+                    </div>
                 </div>
 
                 <div className="rounded-md border bg-card text-card-foreground shadow-sm">
