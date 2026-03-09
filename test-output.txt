@@ -1,0 +1,37 @@
+
+   FAIL  Tests\Feature\EmployeeTest
+  ✓ unauthenticated user… 0.73s  
+  ✓ unauthorized users g… 0.16s  
+  ✓ authorized users can… 0.07s  
+  ✓ can view create empl… 0.05s  
+  ✓ unauthorized users c… 0.08s  
+  ✓ can store an employe… 0.07s  
+  ✓ can view employee de… 0.06s  
+  ✓ can view edit employ… 0.05s  
+  ✓ can update an employ… 0.07s  
+  ✓ unauthorized users c… 0.06s  
+  ✓ can delete an employ… 0.05s  
+  ✓ can export employees  0.06s  
+  ⨯ can import employees  0.07s  
+  ─────────────────────────────  
+   FAILED  Tests\F…  TypeError   
+  Maatwebsite\Excel\Fakes\ExcelFake::assertImported(): Argument #1 ($filePath) must be of type string, App\Imports\EmployeeImport given, called in C:\laragon\www\sistem-manajemen-kepegawaian\vendor\laravel\framework\src\Illuminate\Support\Facades\Facade.php on line 363
+
+  at vendor\maatwebsite\excel\src\Fakes\ExcelFake.php:333
+    329▕      * @param  string  $filePath
+    330▕      * @param  string|callable|null  $disk
+    331▕      * @param  callable|null  $callback
+    332▕      */
+  ➜ 333▕     public function assertImported(string $filePath, $disk = null, $callback = null)
+    334▕     {
+    335▕         if (is_callable($disk)) {
+    336▕             $callback = $disk;
+    337▕             $disk     = null;
+
+  1   vendor\maatwebsite\excel\src\Fakes\ExcelFake.php:333
+  2   vendor\laravel\framework\src\Illuminate\Support\Facades\Facade.php:363
+
+
+  Tests:    1 failed, 12 passed (24 assertions)
+  Duration: 1.91s
+

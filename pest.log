@@ -1,0 +1,37 @@
+
+   FAIL  Tests\Feature\LeaveRequestTest
+  ✓ unauthenticated user… 0.61s  
+  ✓ employees can view t… 0.16s  
+  ✓ manager can view all… 0.15s  
+  ✓ employee can submit…  0.12s  
+  ✓ employee cannot exce… 0.07s  
+  ⨯ employee cannot exce… 0.07s  
+  ✓ file is uploaded if…  0.09s  
+  ✓ manager can update l… 0.06s  
+  ✓ rejecting leave does… 0.07s  
+  ✓ manager can edit pen… 0.06s  
+  ✓ manager cannot edit…  0.05s  
+  ─────────────────────────────  
+   FAILED  Tests\Feature\Leav…   
+  Session missing error: end_date
+Failed asserting that false is true.
+
+The following errors occurred during the last request:
+
+Tanggal mulai harus hari ini atau setelahnya.
+
+  at tests\Feature\LeaveRequestTest.php:143
+    139▕         'end_date' => $end->toDateString(),
+    140▕         'reason' => 'Vacation',
+    141▕     ]);
+    142▕ 
+  ➜ 143▕     $response->assertSessionHasErrors('end_date');
+    144▕ });
+    145▕ 
+    146▕ test('file is uploaded if attachment is provided', function () {
+    147▕     Notification::fake();
+
+
+  Tests:    1 failed, 10 passed (27 assertions)
+  Duration: 1.90s
+

@@ -9,7 +9,7 @@ export default function AppLogo() {
                     Karyon
                 </span>
                 <span className="mb-0.5 truncate text-xs leading-tight">
-                    Sistem Manajemen Kepegawaian
+                    Manajemen Kepegawaian
                 </span>
             </div>
         </>
