@@ -32,13 +32,6 @@ class LeaveTypeSeeder extends Seeder
                 'description' => 'Cuti melahirkan sesuai UU Ketenagakerjaan.',
             ],
             [
-                'name' => 'Cuti Besar',
-                'max_days_per_year' => 30,
-                'is_paid' => true,
-                'requires_attachment' => false,
-                'description' => 'Cuti besar untuk karyawan yang telah bekerja minimal 6 tahun berturut-turut.',
-            ],
-            [
                 'name' => 'Izin Penting',
                 'max_days_per_year' => 3,
                 'is_paid' => true,

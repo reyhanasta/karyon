@@ -137,7 +137,7 @@ export default function Index({
                 </div>
 
                 {/* Filters */}
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                     {canApprove && (
                         <div className="relative max-w-sm flex-1">
                             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -151,7 +151,7 @@ export default function Index({
                             />
                         </div>
                     )}
-                    <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
+                    <div className="flex flex-wrap items-center gap-4">
                         <Select
                             value={filters.leave_type_id ?? 'all'}
                             onValueChange={(val) =>
@@ -197,7 +197,7 @@ export default function Index({
                                 </SelectItem>
                             </SelectContent>
                         </Select>
-                        <Input
+                        {/* <Input
                             type="date"
                             className="w-40"
                             placeholder="Dari"
@@ -214,7 +214,7 @@ export default function Index({
                             onChange={(e) =>
                                 handleFilterChange('date_to', e.target.value)
                             }
-                        />
+                        /> */}
                     </div>
                 </div>
 

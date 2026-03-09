@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import {
+    Book,
     Building2,
     Calendar,
     Clock,
@@ -47,6 +48,12 @@ const mainNavItems: NavItem[] = [
         href: '/positions',
         icon: UsersRound,
         permission: 'employee.view',
+    },
+    {
+        title: 'Jenis Cuti',
+        href: '/leave-types',
+        icon: Book,
+        permission: 'leave.view',
     },
 ];
 
