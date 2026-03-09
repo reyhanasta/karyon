@@ -53,7 +53,7 @@ const mainNavItems: NavItem[] = [
         title: 'Jenis Cuti',
         href: '/leave-types',
         icon: Book,
-        permission: 'leave.view',
+        permission: 'employee.view',
     },
 ];
 

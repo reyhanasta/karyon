@@ -183,6 +183,18 @@ class LeaveRequestController extends Controller
         return redirect()->route('leave-requests.index')->with('success', 'Pengajuan cuti berhasil dikirim.');
     }
 
+    public function show(LeaveRequest $leaveRequest)
+    {
+        $this->authorize('view', $leaveRequest); // Or handle authorization similarly to index/edit
+        
+        $leaveRequest->load(['employee', 'leaveType']);
+
+        return Inertia::render('leave-requests/show', [
+            'leaveRequest' => $leaveRequest,
+            'canApprove' => Auth::user()->can('leave.approve'),
+        ]);
+    }
+
     public function edit(LeaveRequest $leaveRequest)
     {
         $this->authorize('update', $leaveRequest);

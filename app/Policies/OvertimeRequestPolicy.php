@@ -12,6 +12,15 @@ class OvertimeRequestPolicy
         return $user->can('overtime.view');
     }
 
+    public function view(User $user, OvertimeRequest $overtimeRequest): bool
+    {
+        if ($user->can('overtime.approve')) {
+            return true;
+        }
+
+        return $user->employee && $user->employee->id === $overtimeRequest->employee_id;
+    }
+
     public function create(User $user): bool
     {
         return $user->can('overtime.create') || $user->can('overtime.create.any');

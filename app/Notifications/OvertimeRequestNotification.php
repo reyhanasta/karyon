@@ -39,7 +39,7 @@ class OvertimeRequestNotification extends Notification implements ShouldQueue
             'employee_id' => $this->employee->id,
             'employee_name' => $this->employee->full_name,
             'message' => $messages[$this->action] ?? '',
-            'url' => '/overtime-requests',
+            'url' => '/overtime-requests/' . $this->overtimeRequest->id,
         ];
     }
 

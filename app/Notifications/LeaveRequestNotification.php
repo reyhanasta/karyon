@@ -42,7 +42,7 @@ class LeaveRequestNotification extends Notification implements ShouldQueue
             'employee_name' => $this->employee->full_name,
             'leave_type' => $typeName,
             'message' => $messages[$this->action] ?? '',
-            'url' => '/leave-requests',
+            'url' => '/leave-requests/' . $this->leaveRequest->id,
         ];
     }
 

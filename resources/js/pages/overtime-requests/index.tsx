@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Check, Pencil, Plus, Search, X } from 'lucide-react';
+import { Check, Eye, Pencil, Plus, Search, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { Pagination } from '@/components/pagination';
 import { Badge } from '@/components/ui/badge';
@@ -108,7 +108,7 @@ export default function Index({
         return (h2 - h1 + (m2 - m1) / 60).toFixed(1);
     };
 
-    const showActions = canApprove || canEdit;
+    const showActions = true; // Everyone can at least view details
 
     return (
         <AppLayout
@@ -179,7 +179,7 @@ export default function Index({
                                 </SelectItem>
                             </SelectContent>
                         </Select>
-                        <Input
+                        {/* <Input
                             type="date"
                             className="w-40"
                             placeholder="Dari"
@@ -196,7 +196,7 @@ export default function Index({
                             onChange={(e) =>
                                 handleFilterChange('date_to', e.target.value)
                             }
-                        />
+                        /> */}
                     </div>
                 </div>
 
@@ -282,6 +282,17 @@ export default function Index({
                                     {showActions && (
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-2">
+                                                <Link
+                                                    href={`/overtime-requests/${request.id}`}
+                                                >
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                    >
+                                                        <Eye className="mr-1 h-3 w-3" />{' '}
+                                                        Detail
+                                                    </Button>
+                                                </Link>
                                                 {canEdit &&
                                                     request.status ===
                                                         'pending' && (

@@ -122,6 +122,18 @@ class OvertimeRequestController extends Controller
         return redirect()->route('overtime-requests.index')->with('success', 'Overtime request submitted successfully.');
     }
 
+    public function show(OvertimeRequest $overtimeRequest)
+    {
+        $this->authorize('view', $overtimeRequest);
+
+        $overtimeRequest->load('employee');
+
+        return Inertia::render('overtime-requests/show', [
+            'overtimeRequest' => $overtimeRequest,
+            'canApprove' => Auth::user()->can('overtime.approve'),
+        ]);
+    }
+
     public function edit(OvertimeRequest $overtimeRequest)
     {
         $this->authorize('update', $overtimeRequest);

@@ -12,6 +12,15 @@ class LeaveRequestPolicy
         return $user->can('leave.view');
     }
 
+    public function view(User $user, LeaveRequest $leaveRequest): bool
+    {
+        if ($user->can('leave.approve')) {
+            return true;
+        }
+
+        return $user->employee && $user->employee->id === $leaveRequest->employee_id;
+    }
+
     public function create(User $user): bool
     {
         return $user->can('leave.create') || $user->can('leave.create.any');
