@@ -19,10 +19,10 @@ class LeaveTypeSeeder extends Seeder
             ],
             [
                 'name' => 'Cuti Sakit',
-                'max_days_per_year' => 14,
+                'max_days_per_year' => null,
                 'is_paid' => true,
                 'requires_attachment' => true,
-                'description' => 'Cuti karena sakit. Disarankan melampirkan surat keterangan dokter.',
+                'description' => 'Cuti karena sakit. Wajib melampirkan surat keterangan dokter.',
             ],
             [
                 'name' => 'Cuti Melahirkan',

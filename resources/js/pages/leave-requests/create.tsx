@@ -38,7 +38,7 @@ type LeaveType = {
 };
 type TypeUsage = Record<
     number,
-    { used: number; max: number; remaining: number }
+    { used: number; max: number | null; remaining: number | null }
 >;
 
 export default function Create({
@@ -70,7 +70,10 @@ export default function Create({
             attachment: File | null;
         }>({
             employee_id: '',
-            leave_type_id: '',
+            leave_type_id:
+                leaveTypes
+                    .find((t) => t.name === 'Cuti Tahunan')
+                    ?.id.toString() || '',
             start_date: '',
             end_date: '',
             reason: '',
@@ -146,9 +149,14 @@ export default function Create({
                                     Kuota {selectedType?.name}
                                 </p>
                                 <p className="text-2xl font-bold">
-                                    {selectedTypeUsage.remaining}{' '}
+                                    {selectedTypeUsage.max !== null
+                                        ? selectedTypeUsage.remaining
+                                        : '∞'}{' '}
                                     <span className="text-sm font-normal text-muted-foreground">
-                                        / {selectedTypeUsage.max} hari
+                                        /{' '}
+                                        {selectedTypeUsage.max !== null
+                                            ? `${selectedTypeUsage.max} hari`
+                                            : 'Tak Terbatas'}
                                     </span>
                                 </p>
                             </div>
@@ -512,7 +520,10 @@ function LeaveFormFields({
                                             value={String(type.id)}
                                         >
                                             {type.name} (maks{' '}
-                                            {type.max_days_per_year} hari/tahun)
+                                            {type.max_days_per_year !== null
+                                                ? `${type.max_days_per_year} hari/tahun`
+                                                : 'Tak Terbatas'}
+                                            )
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -599,12 +610,15 @@ function LeaveFormFields({
 
                     {/* Attachment upload */}
                     <div className="space-y-2">
-                        <Label htmlFor="attachment">
+                        <Label
+                            htmlFor="attachment"
+                            required={selectedType?.requires_attachment}
+                        >
                             <Paperclip className="mr-1 inline h-4 w-4" />
                             Lampiran
                             {selectedType?.requires_attachment
-                                ? ' (disarankan)'
-                                : ' (opsional)'}
+                                ? ' (Wajib)'
+                                : ' (Opsional)'}
                         </Label>
                         <Input
                             id="attachment"
@@ -617,6 +631,7 @@ function LeaveFormFields({
                                 )
                             }
                             className="w-full"
+                            required={selectedType?.requires_attachment}
                         />
                         <p className="text-xs text-muted-foreground">
                             Format: JPG, PNG, PDF. Maks 2MB.

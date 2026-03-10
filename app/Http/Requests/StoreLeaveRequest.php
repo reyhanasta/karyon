@@ -14,14 +14,20 @@ class StoreLeaveRequest extends FormRequest
     public function rules(): array
     {
         $canCreateAny = $this->user()->can('leave.create.any');
+        $leaveType = \App\Models\LeaveType::find($this->input('leave_type_id'));
 
         $rules = [
             'leave_type_id' => 'required|exists:leave_types,id',
             'start_date'    => $canCreateAny ? 'required|date' : 'required|date|after_or_equal:today',
             'end_date'      => 'required|date|after_or_equal:start_date',
             'reason'        => 'required|string|max:500',
-            'attachment'    => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ];
+
+        if ($leaveType && $leaveType->requires_attachment) {
+            $rules['attachment'] = 'required|file|mimes:jpg,jpeg,png,pdf|max:2048';
+        } else {
+            $rules['attachment'] = 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048';
+        }
 
         if ($canCreateAny) {
             $rules['employee_id'] = 'nullable|exists:employees,id';

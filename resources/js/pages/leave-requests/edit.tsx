@@ -140,7 +140,10 @@ export default function Edit({
                                             value={String(type.id)}
                                         >
                                             {type.name} (maks{' '}
-                                            {type.max_days_per_year} hari/tahun)
+                                            {type.max_days_per_year !== null
+                                                ? `${type.max_days_per_year} hari/tahun`
+                                                : 'Tak Terbatas'}
+                                            )
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -218,12 +221,20 @@ export default function Edit({
 
                         {/* Attachment upload */}
                         <div className="space-y-2">
-                            <Label htmlFor="attachment">
+                            <Label
+                                htmlFor="attachment"
+                                required={
+                                    selectedType?.requires_attachment &&
+                                    !leaveRequest.attachment_path
+                                }
+                            >
                                 <Paperclip className="mr-1 inline h-4 w-4" />
                                 Lampiran
                                 {selectedType?.requires_attachment
-                                    ? ' (disarankan)'
-                                    : ' (opsional)'}
+                                    ? leaveRequest.attachment_path
+                                        ? ' (Opsional untuk diganti)'
+                                        : ' (Wajib)'
+                                    : ' (Opsional)'}
                             </Label>
                             {leaveRequest.attachment_path && (
                                 <p className="text-xs text-muted-foreground">
@@ -249,6 +260,10 @@ export default function Edit({
                                     )
                                 }
                                 className="w-full"
+                                required={
+                                    selectedType?.requires_attachment &&
+                                    !leaveRequest.attachment_path
+                                }
                             />
                             <p className="text-xs text-muted-foreground">
                                 Format: JPG, PNG, PDF. Maks 2MB. Kosongkan jika

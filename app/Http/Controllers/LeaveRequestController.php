@@ -128,13 +128,15 @@ class LeaveRequestController extends Controller
         $requestedDays = $start->diffInDays($end) + 1;
 
         // Per-type annual quota check
-        $usedDaysForType = $this->getUsedDaysForType($employee, $leaveType->id, $start->year);
-        $remainingForType = $leaveType->max_days_per_year - $usedDaysForType;
+        if ($leaveType->max_days_per_year !== null) {
+            $usedDaysForType = $this->getUsedDaysForType($employee, $leaveType->id, $start->year);
+            $remainingForType = $leaveType->max_days_per_year - $usedDaysForType;
 
-        if ($requestedDays > $remainingForType) {
-            return back()->withErrors([
-                'end_date' => "Kuota {$leaveType->name} tidak cukup. Diajukan {$requestedDays} hari, sisa {$remainingForType} hari."
-            ]);
+            if ($requestedDays > $remainingForType) {
+                return back()->withErrors([
+                    'end_date' => "Kuota {$leaveType->name} tidak cukup. Diajukan {$requestedDays} hari, sisa {$remainingForType} hari."
+                ]);
+            }
         }
 
         // Monthly cap check — only for "Cuti Tahunan" (ID check by name)
@@ -240,13 +242,15 @@ class LeaveRequestController extends Controller
         $requestedDays = $start->diffInDays($end) + 1;
 
         // Per-type quota check (exclude current request from used count)
-        $usedDaysForType = $this->getUsedDaysForType($employee, $leaveType->id, $start->year, $leaveRequest->id);
-        $remainingForType = $leaveType->max_days_per_year - $usedDaysForType;
+        if ($leaveType->max_days_per_year !== null) {
+            $usedDaysForType = $this->getUsedDaysForType($employee, $leaveType->id, $start->year, $leaveRequest->id);
+            $remainingForType = $leaveType->max_days_per_year - $usedDaysForType;
 
-        if ($requestedDays > $remainingForType) {
-            return back()->withErrors([
-                'end_date' => "Kuota {$leaveType->name} tidak cukup. Diajukan {$requestedDays} hari, sisa {$remainingForType} hari."
-            ]);
+            if ($requestedDays > $remainingForType) {
+                return back()->withErrors([
+                    'end_date' => "Kuota {$leaveType->name} tidak cukup. Diajukan {$requestedDays} hari, sisa {$remainingForType} hari."
+                ]);
+            }
         }
 
         // Monthly cap check for Cuti Tahunan
@@ -414,7 +418,7 @@ class LeaveRequestController extends Controller
             $usage[$type->id] = [
                 'used' => $used,
                 'max' => $type->max_days_per_year,
-                'remaining' => $type->max_days_per_year - $used,
+                'remaining' => $type->max_days_per_year !== null ? $type->max_days_per_year - $used : null,
             ];
         }
 
