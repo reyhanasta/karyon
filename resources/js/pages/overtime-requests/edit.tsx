@@ -71,7 +71,9 @@ export default function Edit({
                 <div className="rounded-md border bg-card p-6 text-card-foreground shadow-sm">
                     <form onSubmit={submit} className="space-y-6">
                         <div className="space-y-2">
-                            <Label htmlFor="employee_id">Karyawan</Label>
+                            <Label htmlFor="employee_id" required>
+                                Karyawan
+                            </Label>
                             <Select
                                 value={data.employee_id}
                                 onValueChange={(val) =>
@@ -100,7 +102,9 @@ export default function Edit({
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="date">Tanggal Lembur</Label>
+                            <Label htmlFor="date" required>
+                                Tanggal Lembur
+                            </Label>
                             <Input
                                 id="date"
                                 type="date"
@@ -120,7 +124,9 @@ export default function Edit({
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="start_time">Waktu Mulai</Label>
+                                <Label htmlFor="start_time" required>
+                                    Waktu Mulai
+                                </Label>
                                 <Input
                                     id="start_time"
                                     type="time"
@@ -138,7 +144,9 @@ export default function Edit({
                                 )}
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="end_time">Waktu Selesai</Label>
+                                <Label htmlFor="end_time" required>
+                                    Waktu Selesai
+                                </Label>
                                 <Input
                                     id="end_time"
                                     type="time"
@@ -158,7 +166,7 @@ export default function Edit({
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="description">
+                            <Label htmlFor="description" required>
                                 Deskripsi / Tugas Selesai
                             </Label>
                             <Textarea

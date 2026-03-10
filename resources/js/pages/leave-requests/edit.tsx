@@ -89,7 +89,9 @@ export default function Edit({
                 <div className="rounded-md border bg-card p-6 text-card-foreground shadow-sm">
                     <form onSubmit={submit} className="space-y-6">
                         <div className="space-y-2">
-                            <Label htmlFor="employee_id">Karyawan</Label>
+                            <Label htmlFor="employee_id" required>
+                                Karyawan
+                            </Label>
                             <Select
                                 value={data.employee_id}
                                 onValueChange={(val) =>
@@ -119,7 +121,9 @@ export default function Edit({
 
                         {/* Leave Type selector */}
                         <div className="space-y-2">
-                            <Label htmlFor="leave_type_id">Jenis Cuti</Label>
+                            <Label htmlFor="leave_type_id" required>
+                                Jenis Cuti
+                            </Label>
                             <Select
                                 value={data.leave_type_id}
                                 onValueChange={(val) =>
@@ -150,7 +154,7 @@ export default function Edit({
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="start_date">
+                                <Label htmlFor="start_date" required>
                                     Tanggal Mulai
                                 </Label>
                                 <Input
@@ -170,7 +174,7 @@ export default function Edit({
                                 )}
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="end_date">
+                                <Label htmlFor="end_date" required>
                                     Tanggal Selesai
                                 </Label>
                                 <Input
@@ -192,7 +196,9 @@ export default function Edit({
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="reason">Alasan Cuti</Label>
+                            <Label htmlFor="reason" required>
+                                Alasan Cuti
+                            </Label>
                             <Textarea
                                 id="reason"
                                 value={data.reason}

@@ -24,7 +24,7 @@ class StoreLeaveRequest extends FormRequest
         ];
 
         if ($canCreateAny) {
-            $rules['employee_id'] = 'required|exists:employees,id';
+            $rules['employee_id'] = 'nullable|exists:employees,id';
         }
 
         return $rules;

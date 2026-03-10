@@ -47,7 +47,8 @@ export default function Index({
 }) {
     const { can } = usePermissions();
     const canApprove = can('overtime.approve');
-    const canCreate = can('overtime.create') || can('overtime.create.any');
+    const canCreateAny = can('overtime.create.any');
+    const canCreate = can('overtime.create') || canCreateAny;
     const canEdit = can('overtime.edit');
 
     const [search, setSearch] = useState(filters.search ?? '');
@@ -130,13 +131,24 @@ export default function Index({
                                 : 'Lihat dan buat pengajuan lembur Anda.'}
                         </p>
                     </div>
-                    {canCreate && (
-                        <Link href="/overtime-requests/create">
-                            <Button>
-                                <Plus className="mr-2 h-4 w-4" /> Ajukan Lembur
-                            </Button>
-                        </Link>
-                    )}
+                    <div className="flex items-center gap-2">
+                        {canCreateAny && (
+                            <Link href="/overtime-requests/create?tab=other">
+                                <Button variant="secondary" className="border">
+                                    <Plus className="mr-2 h-4 w-4" /> Pegawai
+                                    Lain
+                                </Button>
+                            </Link>
+                        )}
+                        {canCreate && (
+                            <Link href="/overtime-requests/create">
+                                <Button>
+                                    <Plus className="mr-2 h-4 w-4" /> Ajukan
+                                    Lembur
+                                </Button>
+                            </Link>
+                        )}
+                    </div>
                 </div>
 
                 {/* Filters */}

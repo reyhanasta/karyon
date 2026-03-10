@@ -1,15 +1,12 @@
 import { Form, Head } from '@inertiajs/react';
 import InputError from '@/components/input-error';
-import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
-import { register } from '@/routes';
 import { store } from '@/routes/login';
-import { request } from '@/routes/password';
 
 type Props = {
     status?: string;
@@ -17,11 +14,7 @@ type Props = {
     canRegister: boolean;
 };
 
-export default function Login({
-    status,
-    canResetPassword,
-    canRegister,
-}: Props) {
+export default function Login({ status }: Props) {
     return (
         <AuthLayout
             title="Log in to your account"
@@ -38,7 +31,9 @@ export default function Login({
                     <>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="email" required>
+                                    Email address
+                                </Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -54,7 +49,9 @@ export default function Login({
 
                             <div className="grid gap-2">
                                 <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
+                                    <Label htmlFor="password" required>
+                                        Password
+                                    </Label>
                                     {/* {canResetPassword && (
                                         <TextLink
                                             href={request()}

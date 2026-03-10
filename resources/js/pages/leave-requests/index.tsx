@@ -51,7 +51,8 @@ export default function Index({
 }) {
     const { can } = usePermissions();
     const canApprove = can('leave.approve');
-    const canCreate = can('leave.create') || can('leave.create.any');
+    const canCreateAny = can('leave.create.any');
+    const canCreate = can('leave.create') || canCreateAny;
     const canEdit = can('leave.edit');
 
     const [search, setSearch] = useState(filters.search ?? '');
@@ -127,13 +128,24 @@ export default function Index({
                                 : 'Lihat dan buat pengajuan cuti Anda.'}
                         </p>
                     </div>
-                    {canCreate && (
-                        <Link href="/leave-requests/create">
-                            <Button>
-                                <Plus className="mr-2 h-4 w-4" /> Ajukan Cuti
-                            </Button>
-                        </Link>
-                    )}
+                    <div className="flex items-center gap-2">
+                        {canCreateAny && (
+                            <Link href="/leave-requests/create?tab=other">
+                                <Button variant="secondary" className="border">
+                                    <Plus className="mr-2 h-4 w-4" /> Pegawai
+                                    Lain
+                                </Button>
+                            </Link>
+                        )}
+                        {canCreate && (
+                            <Link href="/leave-requests/create">
+                                <Button>
+                                    <Plus className="mr-2 h-4 w-4" /> Ajukan
+                                    Cuti
+                                </Button>
+                            </Link>
+                        )}
+                    </div>
                 </div>
 
                 {/* Filters */}

@@ -62,7 +62,7 @@ export default function Password() {
                         {({ errors, processing, recentlySuccessful }) => (
                             <>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="current_password">
+                                    <Label htmlFor="current_password" required>
                                         Kata sandi saat ini
                                     </Label>
 
@@ -82,7 +82,7 @@ export default function Password() {
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label htmlFor="password">
+                                    <Label htmlFor="password" required>
                                         Kata sandi baru
                                     </Label>
 
@@ -100,7 +100,10 @@ export default function Password() {
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label htmlFor="password_confirmation">
+                                    <Label
+                                        htmlFor="password_confirmation"
+                                        required
+                                    >
                                         Konfirmasi kata sandi
                                     </Label>
 

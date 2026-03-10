@@ -98,7 +98,9 @@ export default function Index({ leaveTypes }: { leaveTypes: LeaveType[] }) {
     const formFields = (prefix: string) => (
         <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-                <Label htmlFor={`${prefix}-name`}>Nama Jenis Cuti</Label>
+                <Label htmlFor={`${prefix}-name`} required>
+                    Nama Jenis Cuti
+                </Label>
                 <Input
                     id={`${prefix}-name`}
                     value={data.name}
@@ -111,7 +113,9 @@ export default function Index({ leaveTypes }: { leaveTypes: LeaveType[] }) {
                 )}
             </div>
             <div className="grid gap-2">
-                <Label htmlFor={`${prefix}-max-days`}>Maks Hari / Tahun</Label>
+                <Label htmlFor={`${prefix}-max-days`} required>
+                    Maks Hari / Tahun
+                </Label>
                 <Input
                     id={`${prefix}-max-days`}
                     type="number"

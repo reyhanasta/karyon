@@ -21,7 +21,7 @@ class StoreOvertimeRequest extends FormRequest
         ];
 
         if ($this->user()->can('overtime.create.any')) {
-            $rules['employee_id'] = 'required|exists:employees,id';
+            $rules['employee_id'] = 'nullable|exists:employees,id';
         }
 
         return $rules;

@@ -143,7 +143,9 @@ export default function Index({
                             >
                                 <div className="grid gap-4 py-4">
                                     <div className="grid gap-2">
-                                        <Label htmlFor="name">Nama</Label>
+                                        <Label htmlFor="name" required>
+                                            Nama
+                                        </Label>
                                         <Input
                                             id="name"
                                             value={data.name}
@@ -285,7 +287,9 @@ export default function Index({
                         <form id="edit-position-form" onSubmit={handleUpdate}>
                             <div className="grid gap-4 py-4">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="edit-name">Nama</Label>
+                                    <Label htmlFor="edit-name" required>
+                                        Nama
+                                    </Label>
                                     <Input
                                         id="edit-name"
                                         value={data.name}

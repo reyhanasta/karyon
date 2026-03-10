@@ -79,7 +79,9 @@ export default function Create({
                                 )}
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="full_name">Nama Lengkap</Label>
+                                <Label htmlFor="full_name" required>
+                                    Nama Lengkap
+                                </Label>
                                 <Input
                                     id="full_name"
                                     type="text"
@@ -100,7 +102,9 @@ export default function Create({
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="col-span-2 space-y-2">
-                                <Label htmlFor="email">Email</Label>
+                                <Label htmlFor="email" required>
+                                    Email
+                                </Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -121,7 +125,9 @@ export default function Create({
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="position_id">Jabatan</Label>
+                                <Label htmlFor="position_id" required>
+                                    Jabatan
+                                </Label>
                                 <Select
                                     value={data.position_id}
                                     onValueChange={(value) =>
@@ -153,7 +159,7 @@ export default function Create({
                                 )}
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="department_id">
+                                <Label htmlFor="department_id" required>
                                     Departemen
                                 </Label>
                                 <Select
@@ -190,7 +196,7 @@ export default function Create({
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="join_date">
+                                <Label htmlFor="join_date" required>
                                     Tanggal Bergabung
                                 </Label>
                                 <Input
