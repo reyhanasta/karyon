@@ -286,14 +286,27 @@ export default function Index({
                                             className={
                                                 request.status === 'approved'
                                                     ? 'border-green-600 bg-green-600 text-white hover:bg-green-700'
-                                                    : ''
+                                                    : request.status.startsWith(
+                                                            'pending',
+                                                        )
+                                                      ? 'border-yellow-200 bg-yellow-100 text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900/40 dark:text-yellow-500'
+                                                      : ''
                                             }
                                         >
-                                            {request.status === 'pending'
-                                                ? 'Menunggu'
-                                                : request.status === 'approved'
-                                                  ? 'Disetujui'
-                                                  : 'Ditolak'}
+                                            {request.status === 'approved'
+                                                ? 'Disetujui'
+                                                : request.status === 'rejected'
+                                                  ? 'Ditolak'
+                                                  : request.status ===
+                                                      'pending_hrd'
+                                                    ? 'Menunggu HRD'
+                                                    : request.status ===
+                                                        'pending_manager'
+                                                      ? 'Menunggu Karu'
+                                                      : request.status ===
+                                                          'pending_director'
+                                                        ? 'Menunggu Direktur'
+                                                        : 'Menunggu'}
                                         </Badge>
                                     </TableCell>
                                     {showActions && (

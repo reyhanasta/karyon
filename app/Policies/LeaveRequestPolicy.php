@@ -14,7 +14,7 @@ class LeaveRequestPolicy
 
     public function view(User $user, LeaveRequest $leaveRequest): bool
     {
-        if ($user->can('leave.approve')) {
+        if ($user->can('leave.approve.hrd') || $user->can('leave.approve.manager') || $user->can('leave.approve.director')) {
             return true;
         }
 
@@ -33,6 +33,6 @@ class LeaveRequestPolicy
 
     public function updateStatus(User $user, LeaveRequest $leaveRequest): bool
     {
-        return $user->can('leave.approve');
+        return $user->can('leave.approve.hrd') || $user->can('leave.approve.manager') || $user->can('leave.approve.director');
     }
 }

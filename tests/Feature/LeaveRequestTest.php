@@ -20,7 +20,9 @@ beforeEach(function () {
         'leave.create',
         'leave.create.any',
         'leave.edit',
-        'leave.approve'
+        'leave.approve.hrd',
+        'leave.approve.manager',
+        'leave.approve.director'
     ];
     
     foreach ($permissions as $perm) {
@@ -28,7 +30,7 @@ beforeEach(function () {
     }
 
     $managerRole = Role::firstOrCreate(['name' => 'manager']);
-    $managerRole->syncPermissions(['leave.view', 'leave.create.any', 'leave.edit', 'leave.approve']);
+    $managerRole->syncPermissions(['leave.view', 'leave.create.any', 'leave.edit', 'leave.approve.manager']);
 
     Role::firstOrCreate(['name' => 'super-admin']);
     Role::firstOrCreate(['name' => 'hr-admin']);
@@ -112,7 +114,7 @@ test('employee can submit own leave request', function () {
     $this->assertDatabaseHas('leave_requests', [
         'employee_id' => $this->employee->id,
         'leave_type_id' => $this->tahunanType->id,
-        'status' => 'pending',
+        'status' => 'pending_hrd',
     ]);
 });
 
@@ -176,8 +178,11 @@ test('manager can update leave status', function () {
         'start_date' => now()->toDateString(),
         'end_date' => now()->addDays(2)->toDateString(),
         'reason' => 'Vacation',
-        'status' => 'pending'
+        'status' => 'pending_director'
     ]);
+
+    // Give manager director permission temporarily for this test
+    $this->managerUser->givePermissionTo('leave.approve.director');
 
     // Employee initial quota is 12
     $initialQuota = $this->employee->leave_quota;
@@ -207,8 +212,10 @@ test('rejecting leave does not deduct quota', function () {
         'start_date' => now()->toDateString(),
         'end_date' => now()->addDays(2)->toDateString(),
         'reason' => 'Vacation',
-        'status' => 'pending'
+        'status' => 'pending_director'
     ]);
+
+    $this->managerUser->givePermissionTo('leave.approve.director');
 
     $initialQuota = $this->employee->leave_quota;
 
@@ -227,7 +234,7 @@ test('manager can edit pending leave request', function () {
         'start_date' => now()->toDateString(),
         'end_date' => now()->addDays(1)->toDateString(),
         'reason' => 'Old Reason',
-        'status' => 'pending'
+        'status' => 'pending_hrd'
     ]);
 
     $response = $this->actingAs($this->managerUser)->put(route('leave-requests.update', $leave), [

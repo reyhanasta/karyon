@@ -28,6 +28,8 @@ class OvertimeRequestNotification extends Notification implements ShouldQueue
     {
         $messages = [
             'submitted' => "{$this->employee->full_name} mengajukan lembur tanggal {$this->overtimeRequest->date} ({$this->overtimeRequest->start_time} - {$this->overtimeRequest->end_time})",
+            'pending_manager'  => "Pengajuan lembur Anda tanggal {$this->overtimeRequest->date} telah disetujui HRD, menunggu Kepala Ruangan",
+            'pending_director' => "Pengajuan lembur Anda tanggal {$this->overtimeRequest->date} telah disetujui Kepala Ruangan, menunggu Direktur",
             'approved'  => "Pengajuan lembur Anda tanggal {$this->overtimeRequest->date} telah disetujui",
             'rejected'  => "Pengajuan lembur Anda tanggal {$this->overtimeRequest->date} telah ditolak",
         ];

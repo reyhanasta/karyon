@@ -4,11 +4,12 @@ import {
     Calendar,
     CalendarDays,
     Check,
+    CheckCircle,
     Clock,
     FileText,
     Paperclip,
-    UserCircle,
     X,
+    XCircle,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -40,6 +41,9 @@ type LeaveRequestData = {
     };
     leave_type?: { name: string };
     approver?: { employee?: { full_name: string } };
+    hrd_approver?: { employee?: { full_name: string } };
+    manager_approver?: { employee?: { full_name: string } };
+    director_approver?: { employee?: { full_name: string } };
 };
 
 export default function Show({
@@ -51,6 +55,12 @@ export default function Show({
 }) {
     const statusColor =
         {
+            pending_hrd:
+                'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500 border-yellow-200 dark:border-yellow-800/40',
+            pending_manager:
+                'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500 border-yellow-200 dark:border-yellow-800/40',
+            pending_director:
+                'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500 border-yellow-200 dark:border-yellow-800/40',
             pending:
                 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500 border-yellow-200 dark:border-yellow-800/40',
             approved:
@@ -62,16 +72,20 @@ export default function Show({
     const statusLabel =
         {
             pending: 'Menunggu',
+            pending_hrd: 'Menunggu HRD',
+            pending_manager: 'Menunggu Karu',
+            pending_director: 'Menunggu Direktur',
             approved: 'Disetujui',
             rejected: 'Ditolak',
         }[leaveRequest.status] || leaveRequest.status;
 
-    const statusIcon =
-        {
-            pending: '⏳',
-            approved: '✅',
-            rejected: '❌',
-        }[leaveRequest.status] || '▶️';
+    const statusIcon = leaveRequest.status.startsWith('pending') ? (
+        <Clock className="h-6 w-6" />
+    ) : leaveRequest.status === 'approved' ? (
+        <CheckCircle className="h-6 w-6" />
+    ) : (
+        <XCircle className="h-6 w-6" />
+    );
 
     // Calculate total days
     const start = new Date(leaveRequest.start_date);
@@ -134,6 +148,49 @@ export default function Show({
         );
     };
 
+    const renderApproverStep = (
+        title: string,
+        approver: any,
+        isPendingForThisStep: boolean,
+        isRejectedAtThisStep: boolean,
+    ) => {
+        const isApproved = !!approver && !isRejectedAtThisStep;
+
+        let icon = <Clock className="h-4 w-4" />;
+        let iconClass = 'border-muted bg-muted/50 text-muted-foreground/70';
+        let statusText = 'Menunggu...';
+
+        if (isApproved) {
+            icon = <Check className="h-4 w-4" />;
+            iconClass =
+                'border-green-200 bg-green-100 text-green-600 dark:border-green-800/50 dark:bg-green-900/40 dark:text-green-400';
+            statusText = `Disetujui oleh ${approver?.employee?.full_name ?? 'Sistem'}`;
+        } else if (isRejectedAtThisStep) {
+            icon = <X className="h-4 w-4" />;
+            iconClass =
+                'border-red-200 bg-red-100 text-red-600 dark:border-red-800/50 dark:bg-red-900/40 dark:text-red-400';
+            statusText = `Ditolak oleh ${approver?.employee?.full_name ?? 'Sistem'}`;
+        } else if (isPendingForThisStep) {
+            iconClass =
+                'border-blue-200 bg-blue-100 text-blue-600 dark:border-blue-800/50 dark:bg-blue-900/40 dark:text-blue-400';
+            statusText = 'Sedang Diproses...';
+        }
+
+        return (
+            <div className="flex items-center gap-3">
+                <div
+                    className={`flex h-8 w-8 items-center justify-center rounded-full border ${iconClass}`}
+                >
+                    {icon}
+                </div>
+                <div className="flex-1">
+                    <p className="text-sm font-semibold">{title}</p>
+                    <p className="text-xs opacity-70">{statusText}</p>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <AppLayout
             breadcrumbs={[
@@ -146,7 +203,7 @@ export default function Show({
             ]}
         >
             <Head title="Detail Pengajuan Cuti" />
-            <div className="mx-auto flex h-full w-full max-w-3xl flex-1 flex-col gap-6 p-4 lg:p-8">
+            <div className="mx-auto flex h-full w-full max-w-5xl flex-1 flex-col gap-6 p-4 lg:p-8">
                 {/* Header Actions */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -159,203 +216,293 @@ export default function Show({
                                 <ArrowLeft className="h-4 w-4" />
                             </Button>
                         </Link>
-                        <div>
+                        <div id="title">
                             <h2 className="text-2xl font-bold tracking-tight">
-                                Detail Cuti #{leaveRequest.id}
+                                Detail Pengajuan Cuti
                             </h2>
                             <p className="text-sm text-muted-foreground">
-                                Informasi lengkap pengajuan cuti.
+                                Kelola dan tinjau rincian pengajuan.
                             </p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                        {canApprove && leaveRequest.status === 'pending' && (
-                            <>
-                                <Button
-                                    variant="outline"
-                                    onClick={() =>
-                                        handleStatusUpdate('approved')
-                                    }
-                                    className="border-green-600 text-green-600 hover:border-green-700 hover:text-green-700"
-                                >
-                                    <Check className="mr-2 h-4 w-4" /> Setujui
-                                </Button>
-                                <Button
-                                    variant="destructive"
-                                    onClick={() =>
-                                        handleStatusUpdate('rejected')
-                                    }
-                                >
-                                    <X className="mr-2 h-4 w-4" /> Tolak
-                                </Button>
-                            </>
-                        )}
-                    </div>
-                </div>
 
-                {/* Status Banner */}
-                <div
-                    className={`flex items-center gap-4 rounded-lg border px-5 py-4 ${statusColor} bg-opacity-50`}
-                >
-                    <span className="text-3xl">{statusIcon}</span>
-                    <div className="flex-1 space-y-1">
-                        <p className="text-sm font-semibold tracking-wider uppercase">
-                            Status: {statusLabel}
-                        </p>
-                        <p className="text-sm opacity-90">
-                            Diajukan pada{' '}
-                            {formatDatetime(leaveRequest.created_at)}
-                        </p>
-                    </div>
-                    {leaveRequest.status !== 'pending' &&
-                        leaveRequest.approver && (
-                            <div className="flex items-center gap-2 text-sm opacity-90">
-                                <UserCircle className="h-4 w-4" />
-                                <span>
-                                    {leaveRequest.status === 'approved'
-                                        ? 'Disetujui'
-                                        : 'Ditolak'}{' '}
-                                    oleh{' '}
-                                    <span className="font-semibold">
-                                        {leaveRequest.approver.employee
-                                            ?.full_name ?? 'Sistem'}
-                                    </span>
-                                </span>
-                            </div>
-                        )}
-                </div>
-
-                {/* Employee Info Card */}
-                <div className="overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm">
-                    <div className="border-b bg-muted/40 px-6 py-3">
-                        <h3 className="text-sm font-semibold tracking-wider text-muted-foreground uppercase">
-                            Informasi Karyawan
-                        </h3>
-                    </div>
-                    <div className="flex items-center gap-4 p-6">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                            {getInitials(leaveRequest.employee?.full_name)}
-                        </div>
+                    {/* Status Badge in Header */}
+                    <div
+                        className={`inline-flex items-center gap-3 rounded-full border px-4 py-2 ${statusColor} bg-opacity-10 shadow-sm`}
+                    >
+                        <div className="opacity-80">{statusIcon}</div>
                         <div>
-                            <p className="text-base font-semibold">
-                                {leaveRequest.employee?.full_name}
+                            <p className="text-xs font-bold tracking-wider uppercase opacity-70">
+                                Status
                             </p>
-                            <p className="text-sm text-muted-foreground">
-                                {leaveRequest.employee?.position?.name ??
-                                    'Posisi tidak diketahui'}{' '}
-                                —{' '}
-                                {leaveRequest.employee?.department?.name ??
-                                    'Departemen tidak diketahui'}
+                            <p className="text-sm font-extrabold uppercase">
+                                {statusLabel}
                             </p>
                         </div>
                     </div>
                 </div>
 
-                {/* Detail Information Grid */}
-                <div className="overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm">
-                    <div className="border-b bg-muted/40 px-6 py-3">
-                        <h3 className="text-sm font-semibold tracking-wider text-muted-foreground uppercase">
-                            Detail Pengajuan
-                        </h3>
+                {/* Grid Layout */}
+                <div className="grid grid-cols-1 gap-8 pt-2 md:grid-cols-12">
+                    {/* Left Column: Sidebar Cards */}
+                    <div className="space-y-6 md:col-span-4">
+                        {/* Employee Card */}
+                        <div className="space-y-4 overflow-hidden rounded-xl border bg-card shadow-sm">
+                            <div className="border-b bg-muted/30 px-6 py-4">
+                                <h3 className="text-xs font-bold tracking-widest text-muted-foreground uppercase">
+                                    Informasi Karyawan
+                                </h3>
+                            </div>
+                            <div className="p-6">
+                                <div className="flex flex-col items-center gap-4 text-center">
+                                    <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-background bg-primary/10 text-2xl font-bold text-primary shadow-sm">
+                                        {getInitials(
+                                            leaveRequest.employee?.full_name,
+                                        )}
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-lg font-bold">
+                                            {leaveRequest.employee?.full_name}
+                                        </p>
+                                        <div className="flex flex-col items-center gap-1">
+                                            <Badge
+                                                variant="outline"
+                                                className="font-medium"
+                                            >
+                                                {leaveRequest.employee?.position
+                                                    ?.name ??
+                                                    'Posisi tidak diketahui'}
+                                            </Badge>
+                                            <p className="text-xs text-muted-foreground">
+                                                {leaveRequest.employee
+                                                    ?.department?.name ??
+                                                    'Departemen tidak diketahui'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Approval History Card */}
+                        <div className="overflow-hidden rounded-xl border bg-card shadow-sm transition-all">
+                            <div className="border-b bg-muted/30 px-6 py-4">
+                                <h3 className="text-xs font-bold tracking-widest text-muted-foreground uppercase">
+                                    Riwayat Persetujuan
+                                </h3>
+                            </div>
+                            <div className="p-6">
+                                <div className="space-y-4">
+                                    {renderApproverStep(
+                                        'HRD',
+                                        leaveRequest.hrd_approver,
+                                        leaveRequest.status === 'pending_hrd',
+                                        leaveRequest.status === 'rejected' &&
+                                            !!leaveRequest.hrd_approver &&
+                                            !leaveRequest.manager_approver,
+                                    )}
+                                    {renderApproverStep(
+                                        'Kepala Ruangan',
+                                        leaveRequest.manager_approver,
+                                        leaveRequest.status ===
+                                            'pending_manager',
+                                        leaveRequest.status === 'rejected' &&
+                                            !!leaveRequest.manager_approver &&
+                                            !leaveRequest.director_approver,
+                                    )}
+                                    {renderApproverStep(
+                                        'Direktur',
+                                        leaveRequest.director_approver,
+                                        leaveRequest.status ===
+                                            'pending_director',
+                                        leaveRequest.status === 'rejected' &&
+                                            !!leaveRequest.director_approver,
+                                    )}
+                                </div>
+
+                                {canApprove &&
+                                    leaveRequest.status.startsWith(
+                                        'pending',
+                                    ) && (
+                                        <div className="mt-8 space-y-3">
+                                            <Button
+                                                variant="default"
+                                                className="w-full bg-green-600 font-semibold text-white shadow-md transition-all hover:scale-[1.02] hover:bg-green-700 active:scale-[0.98]"
+                                                onClick={() =>
+                                                    handleStatusUpdate(
+                                                        'approved',
+                                                    )
+                                                }
+                                            >
+                                                <Check className="mr-2 h-4 w-4" />{' '}
+                                                Setujui
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full border-destructive text-destructive transition-all hover:bg-destructive/10 hover:text-destructive active:scale-[0.98]"
+                                                onClick={() =>
+                                                    handleStatusUpdate(
+                                                        'rejected',
+                                                    )
+                                                }
+                                            >
+                                                <X className="mr-2 h-4 w-4" />{' '}
+                                                Tolak
+                                            </Button>
+                                        </div>
+                                    )}
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="grid gap-6 p-6 sm:grid-cols-2">
-                        {/* Leave Type */}
-                        <div className="space-y-1.5">
-                            <div className="flex items-center gap-2 text-xs font-medium tracking-wider text-muted-foreground uppercase">
-                                <FileText className="h-3.5 w-3.5" />
-                                Jenis Cuti
-                            </div>
-                            <div>
-                                <Badge
-                                    variant="secondary"
-                                    className="px-3 py-1 text-sm font-medium"
-                                >
-                                    {leaveRequest.leave_type?.name ?? '-'}
-                                </Badge>
-                            </div>
-                        </div>
-
-                        {/* Total Days */}
-                        <div className="space-y-1.5">
-                            <div className="flex items-center gap-2 text-xs font-medium tracking-wider text-muted-foreground uppercase">
-                                <CalendarDays className="h-3.5 w-3.5" />
-                                Total Hari
-                            </div>
-                            <p className="text-xl font-bold">
-                                {totalDays}{' '}
-                                <span className="text-sm font-normal text-muted-foreground">
-                                    hari
-                                </span>
-                            </p>
-                        </div>
-
-                        {/* Dates range */}
-                        <div className="space-y-1.5 sm:col-span-2">
-                            <div className="flex items-center gap-2 text-xs font-medium tracking-wider text-muted-foreground uppercase">
-                                <Calendar className="h-3.5 w-3.5" />
-                                Jangka Waktu
-                            </div>
-                            <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
-                                <div className="rounded-md border bg-muted/30 px-4 py-2 text-sm font-medium">
-                                    {formatDate(leaveRequest.start_date)}
+                    {/* Right Column: Detail Content */}
+                    <div className="space-y-8 pb-10 md:col-span-8">
+                        {/* Summary Details */}
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            {/* Leave Type Info */}
+                            <div className="flex items-center justify-between rounded-xl border bg-card p-6 shadow-sm">
+                                <div className="space-y-1.5">
+                                    <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase">
+                                        Tipe Cuti
+                                    </p>
+                                    <p className="text-lg font-bold">
+                                        {leaveRequest.leave_type?.name ?? '-'}
+                                    </p>
                                 </div>
-                                <span className="hidden text-muted-foreground sm:inline">
-                                    →
-                                </span>
-                                <div className="rounded-md border bg-muted/30 px-4 py-2 text-sm font-medium">
-                                    {formatDate(leaveRequest.end_date)}
+                                <div className="rounded-xl border border-primary/10 bg-primary/5 p-3">
+                                    <FileText className="h-6 w-6 text-primary" />
+                                </div>
+                            </div>
+
+                            {/* Total Days Info */}
+                            <div className="flex items-center justify-between rounded-xl border bg-card p-6 shadow-sm">
+                                <div className="space-y-1.5">
+                                    <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase">
+                                        Durasi
+                                    </p>
+                                    <p className="text-2xl font-extrabold text-primary">
+                                        {totalDays}{' '}
+                                        <span className="text-base font-bold text-muted-foreground">
+                                            Hari
+                                        </span>
+                                    </p>
+                                </div>
+                                <div className="rounded-xl border border-primary/10 bg-primary/5 p-3">
+                                    <CalendarDays className="h-6 w-6 text-primary" />
                                 </div>
                             </div>
                         </div>
 
-                        <div className="mt-2 space-y-1.5 sm:col-span-2">
-                            <div className="flex items-center gap-2 text-xs font-medium tracking-wider text-muted-foreground uppercase">
-                                <Clock className="h-3.5 w-3.5" />
-                                Alasan Cuti
+                        {/* Main Detail Card */}
+                        <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
+                            <div className="border-b bg-muted/30 px-6 py-4">
+                                <h3 className="text-xs font-bold tracking-widest text-muted-foreground uppercase">
+                                    Rincian Waktu & Alasan
+                                </h3>
                             </div>
-                            <div className="rounded-md border-l-4 border-l-primary/50 bg-muted/30 p-4 text-sm leading-relaxed">
-                                {leaveRequest.reason || (
-                                    <span className="text-muted-foreground italic">
-                                        Tidak ada alasan diberikan.
+                            <div className="space-y-10 p-8">
+                                {/* Time Schedule */}
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-muted-foreground/80 uppercase">
+                                        <Calendar className="h-3.5 w-3.5" />
+                                        Jadwal Cuti
+                                    </div>
+                                    <div className="grid grid-cols-1 items-center gap-4 sm:grid-cols-7">
+                                        <div className="rounded-xl border bg-muted/20 p-4 text-center sm:col-span-3">
+                                            <p className="mb-1 text-xs font-semibold tracking-tighter text-muted-foreground uppercase">
+                                                Mulai
+                                            </p>
+                                            <p className="text-md font-bold">
+                                                {formatDate(
+                                                    leaveRequest.start_date,
+                                                )}
+                                            </p>
+                                        </div>
+                                        <div className="flex flex-col items-center justify-center text-muted-foreground">
+                                            <ArrowLeft className="hidden h-5 w-5 rotate-180 sm:block" />
+                                            <span className="text-xs font-bold sm:hidden">
+                                                Sampai Dengan
+                                            </span>
+                                        </div>
+                                        <div className="rounded-xl border bg-muted/20 p-4 text-center sm:col-span-3">
+                                            <p className="mb-1 text-xs font-semibold tracking-tighter text-muted-foreground uppercase">
+                                                Selesai
+                                            </p>
+                                            <p className="text-md font-bold">
+                                                {formatDate(
+                                                    leaveRequest.end_date,
+                                                )}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Reason Section */}
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-muted-foreground/80 uppercase">
+                                        <Clock className="h-3.5 w-3.5" />
+                                        Alasan Pengajuan
+                                    </div>
+                                    <div className="relative overflow-hidden rounded-xl border border-primary/10 bg-primary/2 p-6">
+                                        <div className="absolute top-0 left-0 h-full w-1.5 bg-primary/40"></div>
+                                        <p className="text-base leading-relaxed font-medium text-foreground/90 italic">
+                                            &quot;
+                                            {leaveRequest.reason ||
+                                                'Tidak ada alasan yang diberikan.'}
+                                            &quot;
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 border-t border-dashed pt-4 text-xs text-muted-foreground">
+                                    <Clock className="h-3 w-3" />
+                                    <span>
+                                        Diajukan pada{' '}
+                                        {formatDatetime(
+                                            leaveRequest.created_at,
+                                        )}
                                     </span>
-                                )}
+                                </div>
                             </div>
                         </div>
+
+                        {/* Attachments Area */}
+                        {leaveRequest.attachment_path && (
+                            <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
+                                <div className="border-b bg-muted/30 px-6 py-4">
+                                    <h3 className="text-xs font-bold tracking-widest text-muted-foreground uppercase">
+                                        Dokumen Lampiran
+                                    </h3>
+                                </div>
+                                <div className="p-6">
+                                    <a
+                                        href={`/storage/${leaveRequest.attachment_path}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="group inline-flex items-center gap-4 rounded-xl border-2 border-primary/10 bg-primary/5 p-4 text-sm font-bold text-primary transition-all hover:border-primary/30 hover:bg-primary/10"
+                                    >
+                                        <div className="rounded-lg bg-background p-2 shadow-sm">
+                                            <Paperclip className="h-5 w-5 transition-transform group-hover:rotate-12" />
+                                        </div>
+                                        <span>Lihat Berkas Lampiran</span>
+                                    </a>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
-
-                {/* Attachment Card */}
-                {leaveRequest.attachment_path && (
-                    <div className="overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm">
-                        <div className="border-b bg-muted/40 px-6 py-3">
-                            <h3 className="text-sm font-semibold tracking-wider text-muted-foreground uppercase">
-                                Lampiran
-                            </h3>
-                        </div>
-                        <div className="p-6">
-                            <a
-                                href={`/storage/${leaveRequest.attachment_path}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 rounded-md border bg-primary/5 px-4 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
-                            >
-                                <Paperclip className="h-4 w-4" />
-                                Lihat Berkas Lampiran
-                            </a>
-                        </div>
-                    </div>
-                )}
 
                 {/* Confirmation Dialog */}
                 <Dialog
                     open={!!confirmAction}
                     onOpenChange={(o) => !o && setConfirmAction(null)}
                 >
-                    <DialogContent>
+                    <DialogContent className="sm:max-w-106.25">
                         <DialogHeader>
-                            <DialogTitle>Konfirmasi Persetujuan</DialogTitle>
-                            <DialogDescription>
+                            <DialogTitle className="text-xl font-bold">
+                                Konfirmasi Persetujuan
+                            </DialogTitle>
+                            <DialogDescription className="pt-2 text-sm">
                                 Apakah Anda yakin ingin melakukan aksi{' '}
                                 <strong
                                     className={
@@ -368,12 +515,14 @@ export default function Show({
                                         ? 'Setujui'
                                         : 'Tolak'}
                                 </strong>{' '}
-                                untuk pengajuan ini?
+                                untuk pengajuan ini? Tindakan ini tidak dapat
+                                dibatalkan.
                             </DialogDescription>
                         </DialogHeader>
-                        <DialogFooter>
+                        <DialogFooter className="mt-6 gap-2">
                             <Button
                                 variant="outline"
+                                className="flex-1"
                                 onClick={() => setConfirmAction(null)}
                             >
                                 Batal
@@ -384,6 +533,7 @@ export default function Show({
                                         ? 'destructive'
                                         : 'default'
                                 }
+                                className={`flex-1 ${confirmAction?.status === 'approved' ? 'bg-green-600 hover:bg-green-700' : ''}`}
                                 onClick={executeStatusUpdate}
                             >
                                 Ya, Lanjutkan

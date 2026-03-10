@@ -163,6 +163,7 @@ class LeaveRequestController extends Controller
             $attachmentPath = $request->file('attachment')->store('leave-attachments', 'public');
         }
 
+        /** @var \App\Models\LeaveRequest $leaveRequest */
         $leaveRequest = null;
         DB::transaction(function () use ($employee, $validated, $leaveType, $attachmentPath, &$leaveRequest) {
             $leaveRequest = LeaveRequest::create([
@@ -172,12 +173,12 @@ class LeaveRequestController extends Controller
                 'end_date'      => $validated['end_date'],
                 'reason'        => $validated['reason'],
                 'attachment_path' => $attachmentPath,
-                'status'        => 'pending',
+                'status'        => 'pending_hrd',
             ]);
         });
 
-        // Notify all approvers (super-admin, hr-admin, manager)
-        $approvers = User::role(['super-admin', 'hr-admin', 'manager'])->get();
+        // Notify initial approvers (HRD)
+        $approvers = User::permission('leave.approve.hrd')->get();
         Notification::send($approvers, new LeaveRequestNotification($leaveRequest, $employee, 'submitted'));
 
         return redirect()->route('leave-requests.index')->with('success', 'Pengajuan cuti berhasil dikirim.');
@@ -187,11 +188,17 @@ class LeaveRequestController extends Controller
     {
         $this->authorize('view', $leaveRequest); // Or handle authorization similarly to index/edit
         
-        $leaveRequest->load(['employee.position', 'employee.department', 'leaveType', 'approver.employee']);
+        $leaveRequest->load(['employee.position', 'employee.department', 'leaveType', 'approver.employee', 'hrdApprover.employee', 'managerApprover.employee', 'directorApprover.employee']);
+
+        $user = Auth::user();
+        $canApprove = false;
+        if ($leaveRequest->status === 'pending_hrd' && $user->can('leave.approve.hrd')) $canApprove = true;
+        if ($leaveRequest->status === 'pending_manager' && $user->can('leave.approve.manager')) $canApprove = true;
+        if ($leaveRequest->status === 'pending_director' && $user->can('leave.approve.director')) $canApprove = true;
 
         return Inertia::render('leave-requests/show', [
             'leaveRequest' => $leaveRequest,
-            'canApprove' => Auth::user()->can('leave.approve'),
+            'canApprove' => $canApprove,
         ]);
     }
 
@@ -213,7 +220,7 @@ class LeaveRequestController extends Controller
 
     public function update(UpdateLeaveRequest $request, LeaveRequest $leaveRequest)
     {
-        if ($leaveRequest->status !== 'pending') {
+        if (!str_starts_with($leaveRequest->status, 'pending')) {
             return back()->with('error', 'Only pending requests can be edited.');
         }
 
@@ -278,19 +285,55 @@ class LeaveRequestController extends Controller
             'status' => 'required|in:approved,rejected'
         ]);
 
-        if ($leaveRequest->status !== 'pending') {
-            return back()->with('error', 'This request has already been processed.');
+        if (!str_starts_with($leaveRequest->status, 'pending')) {
+            return back()->with('error', 'This request has already been processed completely.');
         }
 
-        DB::transaction(function () use ($leaveRequest, $validated) {
-            $updateData = ['status' => $validated['status']];
-            if ($validated['status'] === 'approved' || $validated['status'] === 'rejected') {
-                $updateData['approved_by'] = Auth::id();
+        $user = Auth::user();
+        $nextStatus = null;
+        $approveColumn = null;
+        $approveAtColumn = null;
+        $rolesToNotify = [];
+
+        if ($leaveRequest->status === 'pending_hrd') {
+            if (!$user->can('leave.approve.hrd')) return back()->with('error', 'You do not have permission at this stage.');
+            $nextStatus = 'pending_manager';
+            $approveColumn = 'hrd_approved_by';
+            $approveAtColumn = 'hrd_approved_at';
+            $rolesToNotify = ['manager'];
+        } elseif ($leaveRequest->status === 'pending_manager') {
+            if (!$user->can('leave.approve.manager')) return back()->with('error', 'You do not have permission at this stage.');
+            $nextStatus = 'pending_director';
+            $approveColumn = 'manager_approved_by';
+            $approveAtColumn = 'manager_approved_at';
+            $rolesToNotify = ['director'];
+        } elseif ($leaveRequest->status === 'pending_director') {
+            if (!$user->can('leave.approve.director')) return back()->with('error', 'You do not have permission at this stage.');
+            $nextStatus = 'approved';
+            $approveColumn = 'director_approved_by';
+            $approveAtColumn = 'director_approved_at';
+        }
+
+        // If action was to reject, it immediately becomes rejected and halts
+        if ($validated['status'] === 'rejected') {
+            $nextStatus = 'rejected';
+        }
+
+        DB::transaction(function () use ($leaveRequest, $nextStatus, $approveColumn, $approveAtColumn) {
+            $updateData = [
+                'status' => $nextStatus,
+                $approveColumn => Auth::id(),
+                $approveAtColumn => now()
+            ];
+
+            if ($nextStatus === 'approved' || $nextStatus === 'rejected') {
+                $updateData['approved_by'] = Auth::id(); // keeping legacy column for final state
             }
+            
             $leaveRequest->update($updateData);
 
-            // If approved and it's Cuti Tahunan, deduct quota
-            if ($validated['status'] === 'approved') {
+            // If fully approved and it's Cuti Tahunan, deduct quota
+            if ($nextStatus === 'approved') {
                 $leaveRequest->load('leaveType');
                 if ($leaveRequest->leaveType && $leaveRequest->leaveType->name === 'Cuti Tahunan') {
                     $start = Carbon::parse($leaveRequest->start_date);
@@ -312,8 +355,14 @@ class LeaveRequestController extends Controller
             $employeeUser->notify(new LeaveRequestNotification(
                 $leaveRequest,
                 $leaveRequest->employee,
-                $validated['status']
+                $nextStatus
             ));
+        }
+
+        // Notify next approver in chain
+        if (!empty($rolesToNotify)) {
+            $nextApprovers = User::permission("leave.approve.{$rolesToNotify[0]}")->get();
+            Notification::send($nextApprovers, new LeaveRequestNotification($leaveRequest, $leaveRequest->employee, 'submitted'));
         }
 
         return redirect()->back()->with('success', 'Status pengajuan cuti berhasil diperbarui.');
@@ -327,7 +376,7 @@ class LeaveRequestController extends Controller
     {
         $query = $employee->leaveRequests()
             ->where('leave_type_id', $leaveTypeId)
-            ->whereIn('status', ['approved', 'pending'])
+            ->whereIn('status', ['approved', 'pending_hrd', 'pending_manager', 'pending_director'])
             ->where(function ($q) use ($year) {
                 $q->whereYear('start_date', $year)
                   ->orWhereYear('end_date', $year);

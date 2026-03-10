@@ -27,13 +27,17 @@ class RoleAndPermissionSeeder extends Seeder
             'leave.create',
             'leave.create.any',
             'leave.edit',
-            'leave.approve',
+            'leave.approve.hrd',
+            'leave.approve.manager',
+            'leave.approve.director',
             // Overtime request management
             'overtime.view',
             'overtime.create',
             'overtime.create.any',
             'overtime.edit',
-            'overtime.approve',
+            'overtime.approve.hrd',
+            'overtime.approve.manager',
+            'overtime.approve.director',
         ];
 
         foreach ($permissions as $perm) {
@@ -47,15 +51,22 @@ class RoleAndPermissionSeeder extends Seeder
         $hrAdmin = Role::firstOrCreate(['name' => 'hr-admin']);
         $hrAdmin->syncPermissions([
             'employee.view', 'employee.create', 'employee.edit', 'employee.delete',
-            'leave.view', 'leave.create.any', 'leave.edit', 'leave.approve',
-            'overtime.view', 'overtime.create.any', 'overtime.edit', 'overtime.approve',
+            'leave.view', 'leave.create.any', 'leave.edit', 'leave.approve.hrd',
+            'overtime.view', 'overtime.create.any', 'overtime.edit', 'overtime.approve.hrd',
         ]);
 
         $manager = Role::firstOrCreate(['name' => 'manager']);
         $manager->syncPermissions([
             'employee.view',
-            'leave.view', 'leave.approve',
-            'overtime.view', 'overtime.approve','overtime.create'
+            'leave.view', 'leave.approve.manager',
+            'overtime.view', 'overtime.approve.manager','overtime.create'
+        ]);
+
+        $director = Role::firstOrCreate(['name' => 'director']);
+        $director->syncPermissions([
+            'employee.view',
+            'leave.view', 'leave.approve.director',
+            'overtime.view', 'overtime.approve.director'
         ]);
 
         $employee = Role::firstOrCreate(['name' => 'employee']);

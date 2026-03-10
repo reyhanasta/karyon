@@ -33,14 +33,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:leave.view');
     Route::post('leave-requests/{leaveRequest}/status', [App\Http\Controllers\LeaveRequestController::class, 'updateStatus'])
         ->name('leave-requests.status')
-        ->middleware('permission:leave.approve');
+        ->middleware('permission:leave.approve.hrd|leave.approve.manager|leave.approve.director');
 
     // Overtime requests
     Route::resource('overtime-requests', App\Http\Controllers\OvertimeRequestController::class)
         ->middleware('permission:overtime.view');
     Route::post('overtime-requests/{overtimeRequest}/status', [App\Http\Controllers\OvertimeRequestController::class, 'updateStatus'])
         ->name('overtime-requests.status')
-        ->middleware('permission:overtime.approve');
+        ->middleware('permission:overtime.approve.hrd|overtime.approve.manager|overtime.approve.director');
 
     // Notifications
     Route::get('notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');

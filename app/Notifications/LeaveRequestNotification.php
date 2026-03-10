@@ -30,6 +30,8 @@ class LeaveRequestNotification extends Notification implements ShouldQueue
 
         $messages = [
             'submitted' => "{$this->employee->full_name} mengajukan {$typeName} ({$this->leaveRequest->start_date} s/d {$this->leaveRequest->end_date})",
+            'pending_manager' => "Pengajuan {$typeName} Anda ({$this->leaveRequest->start_date} s/d {$this->leaveRequest->end_date}) telah disetujui HRD, menunggu Kepala Ruangan",
+            'pending_director' => "Pengajuan {$typeName} Anda ({$this->leaveRequest->start_date} s/d {$this->leaveRequest->end_date}) telah disetujui Kepala Ruangan, menunggu Direktur",
             'approved'  => "Pengajuan {$typeName} Anda ({$this->leaveRequest->start_date} s/d {$this->leaveRequest->end_date}) telah disetujui",
             'rejected'  => "Pengajuan {$typeName} Anda ({$this->leaveRequest->start_date} s/d {$this->leaveRequest->end_date}) telah ditolak",
         ];

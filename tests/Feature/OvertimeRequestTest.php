@@ -16,7 +16,9 @@ beforeEach(function () {
         'overtime.create',
         'overtime.create.any',
         'overtime.edit',
-        'overtime.approve'
+        'overtime.approve.hrd',
+        'overtime.approve.manager',
+        'overtime.approve.director'
     ];
     
     foreach ($permissions as $perm) {
@@ -24,7 +26,7 @@ beforeEach(function () {
     }
 
     $managerRole = Role::firstOrCreate(['name' => 'manager']);
-    $managerRole->syncPermissions(['overtime.view', 'overtime.create.any', 'overtime.edit', 'overtime.approve']);
+    $managerRole->syncPermissions(['overtime.view', 'overtime.create.any', 'overtime.edit', 'overtime.approve.manager']);
 
     Role::firstOrCreate(['name' => 'super-admin']);
     Role::firstOrCreate(['name' => 'hr-admin']);
@@ -102,7 +104,7 @@ test('employee can submit own overtime request', function () {
     $this->assertDatabaseHas('overtime_requests', [
         'employee_id' => $this->employee->id,
         'description' => 'Fixing bug XYZ',
-        'status' => 'pending',
+        'status' => 'pending_hrd',
     ]);
 });
 
@@ -113,7 +115,7 @@ test('employee cannot submit multiple overtimes for same date', function () {
         'start_time' => '17:00',
         'end_time' => '19:00',
         'description' => 'Existing task',
-        'status' => 'pending'
+        'status' => 'pending_hrd'
     ]);
 
     $response = $this->actingAs($this->employeeUser)->post(route('overtime-requests.store'), [
@@ -152,7 +154,7 @@ test('employee can view own overtime detail', function () {
         'start_time' => '17:00',
         'end_time' => '19:00',
         'description' => 'Existing task',
-        'status' => 'pending'
+        'status' => 'pending_hrd'
     ]);
 
     $this->actingAs($this->employeeUser)->get(route('overtime-requests.show', $overtime))->assertOk();
@@ -165,7 +167,7 @@ test('employee cannot view other employee overtime detail', function () {
         'start_time' => '17:00',
         'end_time' => '19:00',
         'description' => 'Existing task',
-        'status' => 'pending'
+        'status' => 'pending_hrd'
     ]);
 
     $this->actingAs($this->employeeUser)->get(route('overtime-requests.show', $overtime))->assertForbidden();
@@ -178,7 +180,7 @@ test('manager can view any overtime detail', function () {
         'start_time' => '17:00',
         'end_time' => '19:00',
         'description' => 'Existing task',
-        'status' => 'pending'
+        'status' => 'pending_hrd'
     ]);
 
     $this->actingAs($this->managerUser)->get(route('overtime-requests.show', $overtime))->assertOk();
@@ -193,8 +195,12 @@ test('manager can update overtime status', function () {
         'start_time' => '17:00',
         'end_time' => '19:00',
         'description' => 'Existing task',
-        'status' => 'pending'
+        'status' => 'pending_manager'
     ]);
+
+    // Give manager manager permission as tested above.
+    // Ensure acting as manager will approve and status moves to pending_director
+
 
     $response = $this->actingAs($this->managerUser)->post(route('overtime-requests.status', $overtime), [
         'status' => 'approved'
@@ -203,7 +209,7 @@ test('manager can update overtime status', function () {
     $response->assertSessionHas('success');
     $this->assertDatabaseHas('overtime_requests', [
         'id' => $overtime->id,
-        'status' => 'approved',
+        'status' => 'pending_director', // After manager approves, it should be pending_director
     ]);
 });
 
@@ -214,7 +220,7 @@ test('employee cannot update overtime status', function () {
         'start_time' => '17:00',
         'end_time' => '19:00',
         'description' => 'Existing task',
-        'status' => 'pending'
+        'status' => 'pending_hrd'
     ]);
 
     $this->actingAs($this->employeeUser)->post(route('overtime-requests.status', $overtime), [

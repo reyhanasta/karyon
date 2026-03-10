@@ -103,6 +103,7 @@ class OvertimeRequestController extends Controller
             ]);
         }
 
+        /** @var \App\Models\OvertimeRequest $overtimeRequest */
         $overtimeRequest = null;
         DB::transaction(function () use ($employee, $validated, &$overtimeRequest) {
             $overtimeRequest = OvertimeRequest::create([
@@ -111,12 +112,12 @@ class OvertimeRequestController extends Controller
                 'start_time' => $validated['start_time'],
                 'end_time' => $validated['end_time'],
                 'description' => $validated['description'],
-                'status' => 'pending',
+                'status' => 'pending_hrd',
             ]);
         });
 
-        // Notify all approvers (super-admin, hr-admin, manager)
-        $approvers = User::role(['super-admin', 'hr-admin', 'manager'])->get();
+        // Notify initial approvers (HRD)
+        $approvers = User::permission('overtime.approve.hrd')->get();
         Notification::send($approvers, new OvertimeRequestNotification($overtimeRequest, $employee, 'submitted'));
 
         return redirect()->route('overtime-requests.index')->with('success', 'Overtime request submitted successfully.');
@@ -126,11 +127,17 @@ class OvertimeRequestController extends Controller
     {
         $this->authorize('view', $overtimeRequest);
 
-        $overtimeRequest->load(['employee.position', 'employee.department', 'approver.employee']);
+        $overtimeRequest->load(['employee.position', 'employee.department', 'approver.employee', 'hrdApprover.employee', 'managerApprover.employee', 'directorApprover.employee']);
+
+        $user = Auth::user();
+        $canApprove = false;
+        if ($overtimeRequest->status === 'pending_hrd' && $user->can('overtime.approve.hrd')) $canApprove = true;
+        if ($overtimeRequest->status === 'pending_manager' && $user->can('overtime.approve.manager')) $canApprove = true;
+        if ($overtimeRequest->status === 'pending_director' && $user->can('overtime.approve.director')) $canApprove = true;
 
         return Inertia::render('overtime-requests/show', [
             'overtimeRequest' => $overtimeRequest,
-            'canApprove' => Auth::user()->can('overtime.approve'),
+            'canApprove' => $canApprove,
         ]);
     }
 
@@ -150,7 +157,7 @@ class OvertimeRequestController extends Controller
 
     public function update(UpdateOvertimeRequest $request, OvertimeRequest $overtimeRequest)
     {
-        if ($overtimeRequest->status !== 'pending') {
+        if (!str_starts_with($overtimeRequest->status, 'pending')) {
             return back()->with('error', 'Only pending requests can be edited.');
         }
 
@@ -191,15 +198,51 @@ class OvertimeRequestController extends Controller
             'status' => 'required|in:approved,rejected'
         ]);
 
-        if ($overtimeRequest->status !== 'pending') {
-            return back()->with('error', 'This request has already been processed.');
+        if (!str_starts_with($overtimeRequest->status, 'pending')) {
+            return back()->with('error', 'This request has already been processed completely.');
         }
 
-        DB::transaction(function () use ($overtimeRequest, $validated) {
-            $updateData = ['status' => $validated['status']];
-            if ($validated['status'] === 'approved' || $validated['status'] === 'rejected') {
-                $updateData['approved_by'] = Auth::id();
+        $user = Auth::user();
+        $nextStatus = null;
+        $approveColumn = null;
+        $approveAtColumn = null;
+        $rolesToNotify = [];
+
+        if ($overtimeRequest->status === 'pending_hrd') {
+            if (!$user->can('overtime.approve.hrd')) return back()->with('error', 'You do not have permission at this stage.');
+            $nextStatus = 'pending_manager';
+            $approveColumn = 'hrd_approved_by';
+            $approveAtColumn = 'hrd_approved_at';
+            $rolesToNotify = ['manager'];
+        } elseif ($overtimeRequest->status === 'pending_manager') {
+            if (!$user->can('overtime.approve.manager')) return back()->with('error', 'You do not have permission at this stage.');
+            $nextStatus = 'pending_director';
+            $approveColumn = 'manager_approved_by';
+            $approveAtColumn = 'manager_approved_at';
+            $rolesToNotify = ['director'];
+        } elseif ($overtimeRequest->status === 'pending_director') {
+            if (!$user->can('overtime.approve.director')) return back()->with('error', 'You do not have permission at this stage.');
+            $nextStatus = 'approved';
+            $approveColumn = 'director_approved_by';
+            $approveAtColumn = 'director_approved_at';
+        }
+
+        // If action was to reject, it immediately becomes rejected and halts
+        if ($validated['status'] === 'rejected') {
+            $nextStatus = 'rejected';
+        }
+
+        DB::transaction(function () use ($overtimeRequest, $nextStatus, $approveColumn, $approveAtColumn) {
+            $updateData = [
+                'status' => $nextStatus,
+                $approveColumn => Auth::id(),
+                $approveAtColumn => now()
+            ];
+
+            if ($nextStatus === 'approved' || $nextStatus === 'rejected') {
+                $updateData['approved_by'] = Auth::id(); // keeping legacy column for final state
             }
+            
             $overtimeRequest->update($updateData);
         });
 
@@ -210,8 +253,14 @@ class OvertimeRequestController extends Controller
             $employeeUser->notify(new OvertimeRequestNotification(
                 $overtimeRequest,
                 $overtimeRequest->employee,
-                $validated['status']
+                $nextStatus
             ));
+        }
+
+        // Notify next approver in chain
+        if (!empty($rolesToNotify)) {
+            $nextApprovers = User::permission("overtime.approve.{$rolesToNotify[0]}")->get();
+            Notification::send($nextApprovers, new OvertimeRequestNotification($overtimeRequest, $overtimeRequest->employee, 'submitted'));
         }
 
         return redirect()->back()->with('success', 'Overtime request status updated.');
