@@ -50,7 +50,10 @@ export default function Index({
     };
 }) {
     const { can } = usePermissions();
-    const canApprove = can('leave.approve');
+    const canApproveHRD = can('leave.approve.hrd');
+    const canApproveManager = can('leave.approve.manager');
+    const canApproveDirector = can('leave.approve.director');
+    const canApprove = canApproveHRD || canApproveManager || canApproveDirector;
     const canCreateAny = can('leave.create.any');
     const canCreate = can('leave.create') || canCreateAny;
     const canEdit = can('leave.edit');
@@ -338,40 +341,46 @@ export default function Index({
                                                             </Button>
                                                         </Link>
                                                     )}
-                                                {canApprove &&
-                                                    request.status ===
-                                                        'pending' && (
-                                                        <>
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                onClick={() =>
-                                                                    handleStatusUpdate(
-                                                                        request.id,
-                                                                        'approved',
-                                                                    )
-                                                                }
-                                                                className="text-green-600 hover:text-green-700"
-                                                            >
-                                                                <Check className="mr-1 h-3 w-3" />{' '}
-                                                                Setujui
-                                                            </Button>
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                onClick={() =>
-                                                                    handleStatusUpdate(
-                                                                        request.id,
-                                                                        'rejected',
-                                                                    )
-                                                                }
-                                                                className="text-destructive hover:text-destructive"
-                                                            >
-                                                                <X className="mr-1 h-3 w-3" />{' '}
-                                                                Tolak
-                                                            </Button>
-                                                        </>
-                                                    )}
+                                                {((request.status ===
+                                                    'pending_hrd' &&
+                                                    canApproveHRD) ||
+                                                    (request.status ===
+                                                        'pending_manager' &&
+                                                        canApproveManager) ||
+                                                    (request.status ===
+                                                        'pending_director' &&
+                                                        canApproveDirector)) && (
+                                                    <>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() =>
+                                                                handleStatusUpdate(
+                                                                    request.id,
+                                                                    'approved',
+                                                                )
+                                                            }
+                                                            className="text-green-600 hover:text-green-700"
+                                                        >
+                                                            <Check className="mr-1 h-3 w-3" />{' '}
+                                                            Setujui
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() =>
+                                                                handleStatusUpdate(
+                                                                    request.id,
+                                                                    'rejected',
+                                                                )
+                                                            }
+                                                            className="text-destructive hover:text-destructive"
+                                                        >
+                                                            <X className="mr-1 h-3 w-3" />{' '}
+                                                            Tolak
+                                                        </Button>
+                                                    </>
+                                                )}
                                             </div>
                                         </TableCell>
                                     )}

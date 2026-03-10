@@ -30,7 +30,13 @@ class OvertimeRequestController extends Controller
             $query->where('employee_id', $user->employee->id ?? 0);
         }
 
-        $query->when($status, fn ($q) => $q->where('status', $status));
+        $query->when($status, function ($q) use ($status) {
+            if ($status === 'pending') {
+                $q->where('status', 'like', 'pending_%');
+            } else {
+                $q->where('status', $status);
+            }
+        });
 
         $query->when($search, function ($q) use ($search) {
             $q->whereHas('employee', fn ($q2) => $q2->where('full_name', 'like', "%{$search}%"));

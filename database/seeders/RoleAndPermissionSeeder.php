@@ -58,7 +58,14 @@ class RoleAndPermissionSeeder extends Seeder
         $manager = Role::firstOrCreate(['name' => 'manager']);
         $manager->syncPermissions([
             'employee.view',
-            'leave.view', 'leave.approve.manager',
+            'leave.view', 'leave.approve.manager', 'leave.create',
+            'overtime.view', 'overtime.approve.manager','overtime.create'
+        ]);
+
+        $karu = Role::firstOrCreate(['name' => 'karu']);
+        $karu->syncPermissions([
+            'employee.view',
+            'leave.view', 'leave.approve.manager','leave.create',
             'overtime.view', 'overtime.approve.manager','overtime.create'
         ]);
 

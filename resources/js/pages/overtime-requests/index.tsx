@@ -46,7 +46,10 @@ export default function Index({
     };
 }) {
     const { can } = usePermissions();
-    const canApprove = can('overtime.approve');
+    const canApproveHRD = can('overtime.approve.hrd');
+    const canApproveManager = can('overtime.approve.manager');
+    const canApproveDirector = can('overtime.approve.director');
+    const canApprove = canApproveHRD || canApproveManager || canApproveDirector;
     const canCreateAny = can('overtime.create.any');
     const canCreate = can('overtime.create') || canCreateAny;
     const canEdit = can('overtime.edit');
@@ -103,10 +106,12 @@ export default function Index({
     };
 
     const calculateDuration = (start: string, end: string) => {
-        if (!start || !end) return 0;
+        if (!start || !end) return '0';
         const [h1, m1] = start.split(':').map(Number);
         const [h2, m2] = end.split(':').map(Number);
-        return (h2 - h1 + (m2 - m1) / 60).toFixed(1);
+        let diffMinutes = h2 * 60 + m2 - (h1 * 60 + m1);
+        if (diffMinutes < 0) diffMinutes += 24 * 60;
+        return (diffMinutes / 60).toFixed(1);
     };
 
     const showActions = true; // Everyone can at least view details
@@ -326,39 +331,46 @@ export default function Index({
                                                             </Button>
                                                         </Link>
                                                     )}
-                                                {canApprove &&
-                                                    request.status ===
-                                                        'pending' && (
-                                                        <>
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                onClick={() =>
-                                                                    handleStatusUpdate(
-                                                                        request.id,
-                                                                        'approved',
-                                                                    )
-                                                                }
-                                                                className="border-green-600 text-green-600 hover:border-green-700 hover:text-green-700"
-                                                            >
-                                                                <Check className="mr-1 h-3 w-3" />{' '}
-                                                                Setujui
-                                                            </Button>
-                                                            <Button
-                                                                variant="destructive"
-                                                                size="sm"
-                                                                onClick={() =>
-                                                                    handleStatusUpdate(
-                                                                        request.id,
-                                                                        'rejected',
-                                                                    )
-                                                                }
-                                                            >
-                                                                <X className="mr-1 h-3 w-3" />{' '}
-                                                                Tolak
-                                                            </Button>
-                                                        </>
-                                                    )}
+                                                {((request.status ===
+                                                    'pending_hrd' &&
+                                                    canApproveHRD) ||
+                                                    (request.status ===
+                                                        'pending_manager' &&
+                                                        canApproveManager) ||
+                                                    (request.status ===
+                                                        'pending_director' &&
+                                                        canApproveDirector)) && (
+                                                    <>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() =>
+                                                                handleStatusUpdate(
+                                                                    request.id,
+                                                                    'approved',
+                                                                )
+                                                            }
+                                                            className="text-green-600 hover:text-green-700"
+                                                        >
+                                                            <Check className="mr-1 h-3 w-3" />{' '}
+                                                            Setujui
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() =>
+                                                                handleStatusUpdate(
+                                                                    request.id,
+                                                                    'rejected',
+                                                                )
+                                                            }
+                                                            className="text-destructive hover:text-destructive"
+                                                        >
+                                                            <X className="mr-1 h-3 w-3" />{' '}
+                                                            Tolak
+                                                        </Button>
+                                                    </>
+                                                )}
                                             </div>
                                         </TableCell>
                                     )}
