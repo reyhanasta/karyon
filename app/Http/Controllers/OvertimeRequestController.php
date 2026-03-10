@@ -126,7 +126,7 @@ class OvertimeRequestController extends Controller
     {
         $this->authorize('view', $overtimeRequest);
 
-        $overtimeRequest->load('employee');
+        $overtimeRequest->load(['employee.position', 'employee.department', 'approver.employee']);
 
         return Inertia::render('overtime-requests/show', [
             'overtimeRequest' => $overtimeRequest,
@@ -196,7 +196,11 @@ class OvertimeRequestController extends Controller
         }
 
         DB::transaction(function () use ($overtimeRequest, $validated) {
-            $overtimeRequest->update(['status' => $validated['status']]);
+            $updateData = ['status' => $validated['status']];
+            if ($validated['status'] === 'approved' || $validated['status'] === 'rejected') {
+                $updateData['approved_by'] = Auth::id();
+            }
+            $overtimeRequest->update($updateData);
         });
 
         // Notify the employee about the status change

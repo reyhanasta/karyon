@@ -187,7 +187,7 @@ class LeaveRequestController extends Controller
     {
         $this->authorize('view', $leaveRequest); // Or handle authorization similarly to index/edit
         
-        $leaveRequest->load(['employee', 'leaveType']);
+        $leaveRequest->load(['employee.position', 'employee.department', 'leaveType', 'approver.employee']);
 
         return Inertia::render('leave-requests/show', [
             'leaveRequest' => $leaveRequest,
@@ -283,7 +283,11 @@ class LeaveRequestController extends Controller
         }
 
         DB::transaction(function () use ($leaveRequest, $validated) {
-            $leaveRequest->update(['status' => $validated['status']]);
+            $updateData = ['status' => $validated['status']];
+            if ($validated['status'] === 'approved' || $validated['status'] === 'rejected') {
+                $updateData['approved_by'] = Auth::id();
+            }
+            $leaveRequest->update($updateData);
 
             // If approved and it's Cuti Tahunan, deduct quota
             if ($validated['status'] === 'approved') {

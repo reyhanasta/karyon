@@ -16,10 +16,16 @@ class OvertimeRequest extends Model
         'end_time',
         'description',
         'status',
+        'approved_by',
     ];
 
     public function employee()
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 }

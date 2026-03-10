@@ -17,6 +17,7 @@ class LeaveRequest extends Model
         'reason',
         'attachment_path',
         'status',
+        'approved_by',
     ];
 
     public function employee()
@@ -27,5 +28,10 @@ class LeaveRequest extends Model
     public function leaveType()
     {
         return $this->belongsTo(LeaveType::class);
+    }
+
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 }

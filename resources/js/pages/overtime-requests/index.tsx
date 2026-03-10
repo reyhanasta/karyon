@@ -132,14 +132,6 @@ export default function Index({
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
-                        {canCreateAny && (
-                            <Link href="/overtime-requests/create?tab=other">
-                                <Button variant="secondary" className="border">
-                                    <Plus className="mr-2 h-4 w-4" /> Pegawai
-                                    Lain
-                                </Button>
-                            </Link>
-                        )}
                         {canCreate && (
                             <Link href="/overtime-requests/create">
                                 <Button>

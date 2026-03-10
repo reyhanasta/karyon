@@ -1,0 +1,61 @@
+# Modern Show Pages for Leave & Overtime Requests
+
+Redesign the detail/show pages for leave requests and overtime requests to display richer, more organized information with a modern UI.
+
+## Proposed Changes
+
+### Backend — Eager Load More Relations
+
+#### [MODIFY] [LeaveRequestController.php](file:///c:/laragon/www/sistem-manajemen-kepegawaian/app/Http/Controllers/LeaveRequestController.php)
+- In the [show()](file:///c:/laragon/www/sistem-manajemen-kepegawaian/app/Http/Controllers/LeaveRequestController.php#186-197) method, eager-load `employee.position`, `employee.department` alongside current [employee](file:///c:/laragon/www/sistem-manajemen-kepegawaian/app/Models/OvertimeRequest.php#21-25) and [leaveType](file:///c:/laragon/www/sistem-manajemen-kepegawaian/app/Models/LeaveRequest.php#27-31).
+- Add computed fields: `total_days` (diffInDays + 1), `created_at` timestamp.
+
+#### [MODIFY] [OvertimeRequestController.php](file:///c:/laragon/www/sistem-manajemen-kepegawaian/app/Http/Controllers/OvertimeRequestController.php)
+- In the [show()](file:///c:/laragon/www/sistem-manajemen-kepegawaian/app/Http/Controllers/LeaveRequestController.php#186-197) method, eager-load `employee.position`, `employee.department`.
+- Add `created_at` timestamp.
+
+---
+
+### Frontend — Leave Request Show Page
+
+#### [MODIFY] [show.tsx](file:///c:/laragon/www/sistem-manajemen-kepegawaian/resources/js/pages/leave-requests/show.tsx)
+
+**New layout structure:**
+1. **Status Header Banner** — Full-width colored banner (green/yellow/red) with status icon, label, and request ID.
+2. **Employee Info Card** — Initials avatar, full name, position, department.
+3. **Detail Grid (2 columns):**
+   - Jenis Cuti (with badge)
+   - Tanggal Mulai → Tanggal Selesai (with arrow icon, formatted nicely)
+   - **Total Hari** (computed: `end_date - start_date + 1`)
+   - **Tanggal Pengajuan** (`created_at` formatted)
+4. **Alasan Cuti** — Full-width section with quote-style box.
+5. **Lampiran** — If exists, show clickable preview/link.
+6. **Approval Actions** — Kept at top-right (same as now) for pending requests.
+
+---
+
+### Frontend — Overtime Request Show Page
+
+#### [MODIFY] [show.tsx](file:///c:/laragon/www/sistem-manajemen-kepegawaian/resources/js/pages/overtime-requests/show.tsx)
+
+**New layout structure:**
+1. **Status Header Banner** — Same pattern as leave.
+2. **Employee Info Card** — Initials avatar, full name, position, department.
+3. **Detail Grid (2–3 columns):**
+   - Tanggal Lembur
+   - Waktu Mulai & Waktu Selesai (displayed side-by-side)
+   - **Durasi Lembur** — Computed from `start_time` and `end_time` (e.g., "1 jam 30 menit")
+   - **Tanggal Pengajuan** (`created_at` formatted)
+4. **Deskripsi/Tugas** — Full-width section with styled box.
+5. **Approval Actions** — Same placement.
+
+---
+
+## Verification Plan
+
+### Automated Tests
+- Run `./vendor/bin/pest --filter LeaveRequestTest` and `--filter OvertimeRequestTest`.
+
+### Manual Verification
+- Navigate to a leave request detail page and verify all new fields display correctly.
+- Navigate to an overtime request detail page and verify duration calculation is correct.
