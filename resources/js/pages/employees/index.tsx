@@ -4,6 +4,7 @@ import {
     Edit2,
     Eye,
     FileSpreadsheet,
+    Loader2,
     Plus,
     Search,
     Trash2,
@@ -105,10 +106,7 @@ export default function Index({
     const handleImport = () => {
         if (!importForm.data.file) return;
 
-        const formData = new FormData();
-        formData.append('file', importForm.data.file);
-
-        router.post('/employees/import', formData as any, {
+        importForm.post('/employees/import', {
             forceFormData: true,
             onSuccess: () => {
                 setImportOpen(false);
@@ -418,7 +416,12 @@ export default function Index({
                                 !importForm.data.file || importForm.processing
                             }
                         >
-                            <Upload className="mr-2 h-4 w-4" /> Impor
+                            {importForm.processing ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                                <Upload className="mr-2 h-4 w-4" />
+                            )}
+                            {importForm.processing ? 'Mengimpor...' : 'Impor'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

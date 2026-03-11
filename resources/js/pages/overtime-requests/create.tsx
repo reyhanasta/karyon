@@ -1,16 +1,10 @@
 import { Head, Link, useForm as useInertiaForm } from '@inertiajs/react';
 import { CheckCircle, Info, UserRound, Users } from 'lucide-react';
 import type { FormEventHandler } from 'react';
+import { EmployeeCombobox } from '@/components/employee-combobox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
@@ -191,43 +185,22 @@ export default function Create({
                                                 </Button>
                                             ) : (
                                                 <div className="group relative">
-                                                    {!data.employee_id ? (
-                                                        <Select
+                                                    {!data.employee_id ||
+                                                    !selectedEmployeeObj ? (
+                                                        <EmployeeCombobox
+                                                            employees={
+                                                                employees
+                                                            }
                                                             value={
                                                                 data.employee_id
                                                             }
-                                                            onValueChange={(
-                                                                val,
-                                                            ) =>
+                                                            onSelect={(val) =>
                                                                 setData(
                                                                     'employee_id',
                                                                     val,
                                                                 )
                                                             }
-                                                            required
-                                                        >
-                                                            <SelectTrigger id="employee_id">
-                                                                <SelectValue placeholder="Cari dan pilih karyawan..." />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {employees.map(
-                                                                    (emp) => (
-                                                                        <SelectItem
-                                                                            key={
-                                                                                emp.id
-                                                                            }
-                                                                            value={String(
-                                                                                emp.id,
-                                                                            )}
-                                                                        >
-                                                                            {
-                                                                                emp.full_name
-                                                                            }
-                                                                        </SelectItem>
-                                                                    ),
-                                                                )}
-                                                            </SelectContent>
-                                                        </Select>
+                                                        />
                                                     ) : (
                                                         <div className="flex items-center gap-3 rounded-md border border-blue-500/15 bg-blue-500/5 p-3">
                                                             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-500/15 text-sm font-semibold text-blue-600 dark:text-blue-400">

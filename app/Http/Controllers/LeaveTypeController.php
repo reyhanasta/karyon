@@ -21,7 +21,7 @@ class LeaveTypeController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:100|unique:leave_types,name',
-            'max_days_per_year' => 'required|integer|min:1',
+            'max_days_per_year' => 'nullable|integer|min:1',
             'is_paid' => 'boolean',
             'requires_attachment' => 'boolean',
             'is_active' => 'boolean',
@@ -38,7 +38,7 @@ class LeaveTypeController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:100|unique:leave_types,name,' . $leaveType->id,
-            'max_days_per_year' => 'required|integer|min:1',
+            'max_days_per_year' => 'nullable|integer|min:1',
             'is_paid' => 'boolean',
             'requires_attachment' => 'boolean',
             'is_active' => 'boolean',

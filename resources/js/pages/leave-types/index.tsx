@@ -29,7 +29,7 @@ import AppLayout from '@/layouts/app-layout';
 type LeaveType = {
     id: number;
     name: string;
-    max_days_per_year: number;
+    max_days_per_year: number | null;
     is_paid: boolean;
     requires_attachment: boolean;
     is_active: boolean;
@@ -43,7 +43,7 @@ export default function Index({ leaveTypes }: { leaveTypes: LeaveType[] }) {
 
     const { data, setData, post, put, reset, errors, processing } = useForm({
         name: '',
-        max_days_per_year: 12,
+        max_days_per_year: 12 as number | null,
         is_paid: true,
         requires_attachment: false,
         is_active: true,
@@ -113,22 +113,48 @@ export default function Index({ leaveTypes }: { leaveTypes: LeaveType[] }) {
                 )}
             </div>
             <div className="grid gap-2">
-                <Label htmlFor={`${prefix}-max-days`} required>
+                <Label
+                    htmlFor={`${prefix}-max-days`}
+                    required={data.max_days_per_year !== null}
+                >
                     Maks Hari / Tahun
                 </Label>
-                <Input
-                    id={`${prefix}-max-days`}
-                    type="number"
-                    min={1}
-                    value={data.max_days_per_year}
-                    onChange={(e) =>
-                        setData(
-                            'max_days_per_year',
-                            parseInt(e.target.value) || 1,
-                        )
-                    }
-                    required
-                />
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+                    <Input
+                        id={`${prefix}-max-days`}
+                        type="number"
+                        min={1}
+                        value={data.max_days_per_year ?? ''}
+                        disabled={data.max_days_per_year === null}
+                        onChange={(e) =>
+                            setData(
+                                'max_days_per_year',
+                                parseInt(e.target.value) || 1,
+                            )
+                        }
+                        required={data.max_days_per_year !== null}
+                        className="flex-1"
+                    />
+                    <div className="flex items-center gap-2">
+                        <Checkbox
+                            id={`${prefix}-unlimited`}
+                            checked={data.max_days_per_year === null}
+                            onCheckedChange={(checked) => {
+                                if (checked) {
+                                    setData('max_days_per_year', null);
+                                } else {
+                                    setData('max_days_per_year', 12);
+                                }
+                            }}
+                        />
+                        <Label
+                            htmlFor={`${prefix}-unlimited`}
+                            className="font-normal whitespace-nowrap"
+                        >
+                            Tanpa Batas
+                        </Label>
+                    </div>
+                </div>
                 {errors.max_days_per_year && (
                     <p className="text-sm text-destructive">
                         {errors.max_days_per_year}
@@ -283,7 +309,9 @@ export default function Index({ leaveTypes }: { leaveTypes: LeaveType[] }) {
                                         </div>
                                     </TableCell>
                                     <TableCell className="text-center">
-                                        {type.max_days_per_year} hari
+                                        {type.max_days_per_year !== null
+                                            ? `${type.max_days_per_year} hari`
+                                            : 'Tanpa Batas'}
                                     </TableCell>
                                     <TableCell className="text-center">
                                         {type.is_paid ? 'Ya' : 'Tidak'}

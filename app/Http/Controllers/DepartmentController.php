@@ -18,7 +18,7 @@ class DepartmentController extends Controller
                 $q->where('name', 'like', "%{$search}%");
             })
             ->latest()
-            ->paginate(10)
+            ->paginate(8)
             ->withQueryString();
 
         return Inertia::render('departments/index', [

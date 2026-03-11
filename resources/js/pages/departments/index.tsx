@@ -1,5 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { Edit2, Plus, Search, Trash2 } from 'lucide-react';
+import { Building2, Edit2, Plus, Search, Trash2, Users } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { Pagination } from '@/components/pagination';
 import { Button } from '@/components/ui/button';
@@ -14,14 +14,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 
 export default function Index({
@@ -203,74 +195,75 @@ export default function Index({
                     />
                 </div>
 
-                <div className="rounded-md border bg-card text-card-foreground shadow-sm">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Nama</TableHead>
-                                <TableHead>Deskripsi</TableHead>
-                                <TableHead>Jumlah Karyawan</TableHead>
-                                <TableHead className="text-right">
-                                    Aksi
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {departments.data.length === 0 && (
-                                <TableRow>
-                                    <TableCell
-                                        colSpan={4}
-                                        className="h-24 text-center"
-                                    >
-                                        Tidak ada departemen yang ditemukan.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                            {departments.data.map((department: any) => (
-                                <TableRow key={department?.id}>
-                                    <TableCell className="font-medium">
-                                        {department.name}
-                                    </TableCell>
-                                    <TableCell>
-                                        {department.description || '-'}
-                                    </TableCell>
-                                    <TableCell>
-                                        {department.employees_count}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <div className="flex justify-end gap-2">
-                                            <Button
-                                                variant="outline"
-                                                size="icon"
-                                                onClick={() =>
-                                                    handleEdit(department)
-                                                }
-                                            >
-                                                <Edit2 className="h-4 w-4" />
-                                            </Button>
+                {/* Card Grid */}
+                {departments.data.length === 0 ? (
+                    <div className="flex flex-1 items-center justify-center rounded-md border border-dashed py-16 text-muted-foreground">
+                        Tidak ada departemen yang ditemukan.
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        {departments.data.map((department: any) => (
+                            <div
+                                key={department.id}
+                                className="flex flex-col gap-4 rounded-lg border bg-card p-5 shadow-sm transition-shadow hover:shadow-md"
+                            >
+                                {/* Card header */}
+                                <div className="flex items-start gap-3">
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                        <Building2 className="h-5 w-5" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="truncate leading-tight font-semibold">
+                                            {department.name}
+                                        </p>
+                                        <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">
+                                            {department.description ||
+                                                'Tidak ada deskripsi.'}
+                                        </p>
+                                    </div>
+                                </div>
 
-                                            <Button
-                                                variant="destructive"
-                                                size="icon"
-                                                disabled={
-                                                    department.employees_count >
-                                                    0
-                                                }
-                                                onClick={() =>
-                                                    setDepartmentToDelete(
-                                                        department.id,
-                                                    )
-                                                }
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </div>
+                                {/* Employee count */}
+                                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                                    <Users className="h-4 w-4 shrink-0" />
+                                    <span>
+                                        <span className="font-medium text-foreground">
+                                            {department.employees_count}
+                                        </span>{' '}
+                                        karyawan
+                                    </span>
+                                </div>
+
+                                {/* Actions */}
+                                <div className="flex gap-2 border-t pt-4">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="flex-1"
+                                        onClick={() => handleEdit(department)}
+                                    >
+                                        <Edit2 className="mr-1.5 h-3.5 w-3.5" />
+                                        Edit
+                                    </Button>
+                                    <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        className="flex-1"
+                                        disabled={
+                                            department.employees_count > 0
+                                        }
+                                        onClick={() =>
+                                            setDepartmentToDelete(department.id)
+                                        }
+                                    >
+                                        <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                                        Hapus
+                                    </Button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
 
                 <Pagination links={departments.links} />
 

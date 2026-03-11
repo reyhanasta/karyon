@@ -10,7 +10,7 @@ interface Approver {
 interface RequestData {
     status: string;
     hrd_approver?: Approver | null;
-    manager_approver?: Approver | null;
+    kepala_ruangan_approver?: Approver | null;
     director_approver?: Approver | null;
 }
 
@@ -85,14 +85,14 @@ export function ApprovalHistory({
                         request.status === 'pending_hrd',
                         request.status === 'rejected' &&
                             !!request.hrd_approver &&
-                            !request.manager_approver,
+                            !request.kepala_ruangan_approver,
                     )}
                     {renderApproverStep(
                         'Kepala Ruangan',
-                        request.manager_approver,
-                        request.status === 'pending_manager',
+                        request.kepala_ruangan_approver,
+                        request.status === 'pending_kepala_ruangan',
                         request.status === 'rejected' &&
-                            !!request.manager_approver &&
+                            !!request.kepala_ruangan_approver &&
                             !request.director_approver,
                     )}
                     {renderApproverStep(

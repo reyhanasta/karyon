@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\OvertimeRequestExport;
 use App\Http\Requests\StoreOvertimeRequest;
 use App\Http\Requests\UpdateOvertimeRequest;
 use App\Models\Employee;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
 
 class OvertimeRequestController extends Controller
 {
@@ -270,5 +272,19 @@ class OvertimeRequestController extends Controller
         }
 
         return redirect()->back()->with('success', 'Overtime request status updated.');
+    }
+
+    public function export(Request $request)
+    {
+        $format = $request->input('format', 'xlsx');
+        $filename = 'overtime_requests_' . now()->format('Y-m-d');
+
+        $filters = $request->only(['status', 'search', 'date_from', 'date_to']);
+
+        if ($format === 'csv') {
+            return Excel::download(new OvertimeRequestExport($filters), $filename . '.csv', \Maatwebsite\Excel\Excel::CSV);
+        }
+
+        return Excel::download(new OvertimeRequestExport($filters), $filename . '.xlsx');
     }
 }

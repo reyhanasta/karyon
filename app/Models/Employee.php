@@ -59,7 +59,7 @@ class Employee extends Model
             ->where(function ($q) use ($year) {
                 $q->whereYear('start_date', $year)
                   ->orWhereYear('end_date', $year);
-            })
+            })->where('leave_type_id', 1)
             ->get(['start_date', 'end_date']);
 
         $usage = [];

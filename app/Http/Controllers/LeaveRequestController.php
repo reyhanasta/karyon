@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\LeaveRequestExport;
 use App\Http\Requests\StoreLeaveRequest;
 use App\Http\Requests\UpdateLeaveRequest;
 use App\Models\Employee;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
 
 class LeaveRequestController extends Controller
 {
@@ -423,5 +425,19 @@ class LeaveRequestController extends Controller
         }
 
         return $usage;
+    }
+
+    public function export(Request $request)
+    {
+        $format = $request->input('format', 'xlsx');
+        $filename = 'leave_requests_' . now()->format('Y-m-d');
+
+        $filters = $request->only(['status', 'search', 'date_from', 'date_to', 'leave_type_id']);
+
+        if ($format === 'csv') {
+            return Excel::download(new LeaveRequestExport($filters), $filename . '.csv', \Maatwebsite\Excel\Excel::CSV);
+        }
+
+        return Excel::download(new LeaveRequestExport($filters), $filename . '.xlsx');
     }
 }
