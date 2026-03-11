@@ -1,12 +1,16 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
     Briefcase,
     BuildingIcon,
     Calendar,
     ChevronLeft,
+    Download,
     Mail,
+    Upload,
     UserCircle,
+    Trash2,
 } from 'lucide-react';
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,9 +20,36 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { Textarea } from '@/components/ui/textarea';
 import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
+
+type DocumentType = {
+    id: number;
+    name: string;
+    description: string | null;
+    is_required: boolean;
+};
+
+type EmployeeDocument = {
+    id: number;
+    document_type_id: number;
+    file_name: string;
+    file_path: string;
+    created_at: string;
+};
 
 type EmployeeData = {
     id: number;
@@ -33,6 +64,7 @@ type EmployeeData = {
     };
     position?: { name: string };
     department?: { name: string };
+    documents?: EmployeeDocument[];
 };
 
 type LeaveStats = {
@@ -45,12 +77,64 @@ type LeaveStats = {
 
 export default function Show({
     employee,
+    documentTypes,
     leaveStats,
 }: {
     employee: EmployeeData;
+    documentTypes: DocumentType[];
     leaveStats: LeaveStats;
 }) {
     const { can } = usePermissions();
+
+    // Local states for Document actions
+    const [docToDelete, setDocToDelete] = useState<number | null>(null);
+    const [uploadFormOpen, setUploadFormOpen] = useState<number | null>(null);
+
+    const {
+        data: uploadData,
+        setData: setUploadData,
+        post: postUpload,
+        errors: uploadErrors,
+        processing: uploadProcessing,
+        reset: resetUpload,
+    } = useForm<{
+        document_type_id: number | null;
+        file: File | null;
+        notes: string;
+    }>({
+        document_type_id: null,
+        file: null,
+        notes: '',
+    });
+
+    const handleOpenUploadForm = (typeId: number) => {
+        setUploadData('document_type_id', typeId);
+        setUploadFormOpen(typeId);
+    };
+
+    const handleCloseUploadForm = () => {
+        setUploadFormOpen(null);
+        resetUpload();
+    };
+
+    const handleUploadSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!uploadData.document_type_id || !uploadData.file) return;
+
+        postUpload(`/employees/${employee.id}/documents`, {
+            preserveScroll: true,
+            onSuccess: handleCloseUploadForm,
+        });
+    };
+
+    const handleDeleteDocument = () => {
+        if (!docToDelete) return;
+
+        router.delete(`/employees/${employee.id}/documents/${docToDelete}`, {
+            preserveScroll: true,
+            onSuccess: () => setDocToDelete(null),
+        });
+    };
 
     // Calculate percentage for the progress bar. We want the bar to represent
     // the remaining quota out of the default total (12).
@@ -215,8 +299,273 @@ export default function Show({
                                 </div>
                             </CardContent>
                         </Card>
+
+                        {/* Employee Documents Details */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Dokumen Karyawan</CardTitle>
+                                <CardDescription>
+                                    Kelola berkas dan dokumen penting karyawan.
+                                    Maks 5MB (PDF/JPG/PNG).
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {documentTypes.length === 0 ? (
+                                    <p className="py-4 text-center text-sm text-muted-foreground">
+                                        Belum ada jenis dokumen yang ditetapkan.
+                                    </p>
+                                ) : (
+                                    <div className="grid gap-3">
+                                        {documentTypes.map(
+                                            (type: DocumentType) => {
+                                                const existingDoc =
+                                                    employee.documents?.find(
+                                                        (d: EmployeeDocument) =>
+                                                            d.document_type_id ===
+                                                            type.id,
+                                                    );
+                                                return (
+                                                    <div
+                                                        key={type.id}
+                                                        className="flex flex-wrap items-center justify-between gap-4 rounded-lg border p-3"
+                                                    >
+                                                        <div className="flex flex-col gap-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="font-semibold">
+                                                                    {type.name}
+                                                                </span>
+                                                                {type.is_required && (
+                                                                    <Badge
+                                                                        variant="destructive"
+                                                                        className="h-4 text-[10px]"
+                                                                    >
+                                                                        Wajib
+                                                                    </Badge>
+                                                                )}
+                                                            </div>
+                                                            <span className="text-xs text-muted-foreground">
+                                                                {type.description ||
+                                                                    'Tidak ada deskripsi'}
+                                                            </span>
+                                                            {existingDoc && (
+                                                                <span className="text-xs font-medium text-green-600 dark:text-green-400">
+                                                                    Diunggah
+                                                                    pada{' '}
+                                                                    {new Date(
+                                                                        existingDoc.created_at,
+                                                                    ).toLocaleDateString(
+                                                                        'id-ID',
+                                                                    )}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex flex-wrap items-center gap-2">
+                                                            {existingDoc ? (
+                                                                <>
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        asChild
+                                                                    >
+                                                                        <a
+                                                                            href={`/employees/${employee.id}/documents/${existingDoc.id}/download`}
+                                                                            target="_blank"
+                                                                        >
+                                                                            <Download className="mr-2 h-4 w-4" />{' '}
+                                                                            Unduh
+                                                                        </a>
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="destructive"
+                                                                        size="sm"
+                                                                        onClick={() =>
+                                                                            setDocToDelete(
+                                                                                existingDoc.id,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <Trash2 className="h-4 w-4" />
+                                                                    </Button>
+                                                                </>
+                                                            ) : (
+                                                                <Dialog
+                                                                    open={
+                                                                        uploadFormOpen ===
+                                                                        type.id
+                                                                    }
+                                                                    onOpenChange={(
+                                                                        open: boolean,
+                                                                    ) =>
+                                                                        !open &&
+                                                                        handleCloseUploadForm()
+                                                                    }
+                                                                >
+                                                                    <DialogTrigger
+                                                                        asChild
+                                                                    >
+                                                                        <Button
+                                                                            size="sm"
+                                                                            variant="secondary"
+                                                                            onClick={() =>
+                                                                                handleOpenUploadForm(
+                                                                                    type.id,
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            <Upload className="mr-2 h-4 w-4" />{' '}
+                                                                            Unggah
+                                                                        </Button>
+                                                                    </DialogTrigger>
+                                                                    <DialogContent>
+                                                                        <DialogHeader>
+                                                                            <DialogTitle>
+                                                                                Unggah{' '}
+                                                                                {
+                                                                                    type.name
+                                                                                }
+                                                                            </DialogTitle>
+                                                                            <DialogDescription>
+                                                                                Pilih
+                                                                                file
+                                                                                dokumen
+                                                                                untuk
+                                                                                diunggah
+                                                                                (PDF,
+                                                                                JPG,
+                                                                                PNG).
+                                                                                Maks
+                                                                                5MB.
+                                                                            </DialogDescription>
+                                                                        </DialogHeader>
+                                                                        <form
+                                                                            onSubmit={
+                                                                                handleUploadSubmit
+                                                                            }
+                                                                        >
+                                                                            <div className="grid gap-4 py-4">
+                                                                                <div className="grid gap-2">
+                                                                                    <Label
+                                                                                        htmlFor="file"
+                                                                                        required
+                                                                                    >
+                                                                                        File
+                                                                                    </Label>
+                                                                                    <Input
+                                                                                        id="file"
+                                                                                        type="file"
+                                                                                        accept=".pdf,.jpg,.jpeg,.png"
+                                                                                        onChange={(
+                                                                                            e: React.ChangeEvent<HTMLInputElement>,
+                                                                                        ) =>
+                                                                                            setUploadData(
+                                                                                                'file',
+                                                                                                e
+                                                                                                    .target
+                                                                                                    .files?.[0] ||
+                                                                                                    null,
+                                                                                            )
+                                                                                        }
+                                                                                        required
+                                                                                    />
+                                                                                    {uploadErrors.file && (
+                                                                                        <p className="text-sm text-destructive">
+                                                                                            {
+                                                                                                uploadErrors.file
+                                                                                            }
+                                                                                        </p>
+                                                                                    )}
+                                                                                </div>
+                                                                                <div className="grid gap-2">
+                                                                                    <Label htmlFor="notes">
+                                                                                        Catatan
+                                                                                        (opsional)
+                                                                                    </Label>
+                                                                                    <Textarea
+                                                                                        id="notes"
+                                                                                        value={
+                                                                                            uploadData.notes
+                                                                                        }
+                                                                                        onChange={(
+                                                                                            e: React.ChangeEvent<HTMLTextAreaElement>,
+                                                                                        ) =>
+                                                                                            setUploadData(
+                                                                                                'notes',
+                                                                                                e
+                                                                                                    .target
+                                                                                                    .value,
+                                                                                            )
+                                                                                        }
+                                                                                        placeholder="Tambahkan catatan jika perlu..."
+                                                                                    />
+                                                                                </div>
+                                                                            </div>
+                                                                            <DialogFooter>
+                                                                                <Button
+                                                                                    type="button"
+                                                                                    variant="outline"
+                                                                                    onClick={
+                                                                                        handleCloseUploadForm
+                                                                                    }
+                                                                                >
+                                                                                    Batal
+                                                                                </Button>
+                                                                                <Button
+                                                                                    type="submit"
+                                                                                    disabled={
+                                                                                        uploadProcessing
+                                                                                    }
+                                                                                >
+                                                                                    Unggah{' '}
+                                                                                    {uploadProcessing &&
+                                                                                        '...'}
+                                                                                </Button>
+                                                                            </DialogFooter>
+                                                                        </form>
+                                                                    </DialogContent>
+                                                                </Dialog>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            },
+                                        )}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
+
+                {/* Document Delete Confirmation Dialog */}
+                <Dialog
+                    open={!!docToDelete}
+                    onOpenChange={(open) => !open && setDocToDelete(null)}
+                >
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Hapus Dokumen?</DialogTitle>
+                            <DialogDescription>
+                                Apakah Anda yakin ingin menghapus dokumen ini?
+                                File fisik beserta datanya akan dihapus
+                                permanen.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <Button
+                                variant="outline"
+                                onClick={() => setDocToDelete(null)}
+                            >
+                                Batal
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                onClick={handleDeleteDocument}
+                            >
+                                Hapus
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
         </AppLayout>
     );

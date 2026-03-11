@@ -19,6 +19,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:employee.create');
     Route::resource('employees', App\Http\Controllers\EmployeeController::class)
         ->middleware('permission:employee.view');
+        
+    // Employee Documents (nested under employees)
+    Route::post('employees/{employee}/documents', [App\Http\Controllers\EmployeeDocumentController::class, 'store'])
+        ->name('employee-documents.store');
+    Route::get('employees/{employee}/documents/{document}/download', [App\Http\Controllers\EmployeeDocumentController::class, 'download'])
+        ->name('employee-documents.download');
+    Route::delete('employees/{employee}/documents/{document}', [App\Http\Controllers\EmployeeDocumentController::class, 'destroy'])
+        ->name('employee-documents.destroy');
 
     // Organization data (managed by those who can view employees)
     Route::resource('departments', App\Http\Controllers\DepartmentController::class)
@@ -55,6 +63,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Leave type management
     Route::resource('leave-types', App\Http\Controllers\LeaveTypeController::class)
+        ->except(['create', 'show', 'edit'])
+        ->middleware('permission:employee.view');
+
+    // Document type management
+    Route::resource('document-types', App\Http\Controllers\DocumentTypeController::class)
         ->except(['create', 'show', 'edit'])
         ->middleware('permission:employee.view');
 });

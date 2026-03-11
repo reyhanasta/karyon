@@ -48,6 +48,11 @@ class Employee extends Model
         return $this->hasMany(OvertimeRequest::class);
     }
 
+    public function documents()
+    {
+        return $this->hasMany(EmployeeDocument::class);
+    }
+
     /**
      * Get monthly leave usage (approved + pending) for a given year.
      * Returns ['2026-01' => 3, '2026-03' => 5, ...].

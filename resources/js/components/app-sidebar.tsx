@@ -4,6 +4,7 @@ import {
     Building2,
     Calendar,
     Clock,
+    FileText,
     LayoutGrid,
     Users,
     UsersRound,
@@ -53,6 +54,12 @@ const mainNavItems: NavItem[] = [
         title: 'Jenis Cuti',
         href: '/leave-types',
         icon: Book,
+        permission: 'employee.view',
+    },
+    {
+        title: 'Jenis Dokumen',
+        href: '/document-types',
+        icon: FileText,
         permission: 'employee.view',
     },
 ];

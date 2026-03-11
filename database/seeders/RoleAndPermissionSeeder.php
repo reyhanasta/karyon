@@ -22,6 +22,8 @@ class RoleAndPermissionSeeder extends Seeder
             'employee.create',
             'employee.edit',
             'employee.delete',
+            // Document management
+            'document.upload',
             // Leave request management
             'leave.view',
             'leave.create',
@@ -51,6 +53,7 @@ class RoleAndPermissionSeeder extends Seeder
         $hrAdmin = Role::firstOrCreate(['name' => 'hr-admin']);
         $hrAdmin->syncPermissions([
             'employee.view', 'employee.create', 'employee.edit', 'employee.delete',
+            'document.upload',
             'leave.view', 'leave.create.any', 'leave.edit', 'leave.approve.hrd',
             'overtime.view', 'overtime.create.any', 'overtime.edit', 'overtime.approve.hrd',
         ]);
@@ -78,6 +81,7 @@ class RoleAndPermissionSeeder extends Seeder
 
         $employee = Role::firstOrCreate(['name' => 'employee']);
         $employee->syncPermissions([
+            'document.upload',
             'leave.view', 'leave.create',
             'overtime.view', 'overtime.create',
         ]);

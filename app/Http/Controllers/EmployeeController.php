@@ -102,7 +102,13 @@ class EmployeeController extends Controller
 
     public function show(Employee $employee)
     {
-        $employee->load(['user.roles', 'position', 'department']);
+        $employee->load([
+            'user.roles', 
+            'position', 
+            'department',
+            'documents.documentType',
+            'documents.uploader'
+        ]);
         
         $currentYear = now()->year;
         $monthlyUsage = $employee->getMonthlyLeaveUsage($currentYear);
@@ -115,8 +121,11 @@ class EmployeeController extends Controller
         // Calculate total days used this year based on all the monthly usages
         $totalUsedThisYear = array_sum($monthlyUsage);
 
+        $documentTypes = \App\Models\DocumentType::where('is_active', true)->get();
+
         return Inertia::render('employees/show', [
             'employee' => $employee,
+            'documentTypes' => $documentTypes,
             'leaveStats' => [
                 'totalQuota' => $totalQuota,
                 'usedThisYear' => $totalUsedThisYear,
