@@ -8,6 +8,8 @@ import {
     LayoutGrid,
     Users,
     UsersRound,
+    RefreshCw,
+    CalendarDays,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
@@ -62,6 +64,18 @@ const mainNavItems: NavItem[] = [
         icon: FileText,
         permission: 'employee.view',
     },
+    {
+        title: 'Managemen Shift',
+        href: '/shifts',
+        icon: Clock,
+        permission: 'shift.view',
+    },
+    {
+        title: 'Jadwal Shift',
+        href: '/shift-assignments',
+        icon: CalendarDays,
+        permission: 'shift.view',
+    },
 ];
 
 const Request: NavItem[] = [
@@ -76,6 +90,12 @@ const Request: NavItem[] = [
         href: '/overtime-requests',
         icon: Clock,
         permission: 'overtime.view',
+    },
+    {
+        title: 'Penggantian Shift',
+        href: '/shift-change-requests',
+        icon: RefreshCw,
+        permission: 'shift-change.view',
     },
 ];
 

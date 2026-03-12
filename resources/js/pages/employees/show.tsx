@@ -40,7 +40,7 @@ type DocumentType = {
     id: number;
     name: string;
     description: string | null;
-    is_required: boolean;
+    positions?: { pivot: { is_required: boolean } }[];
 };
 
 type EmployeeDocument = {
@@ -180,9 +180,9 @@ export default function Show({
                     )}
                 </div>
 
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                     {/* Left Column: Profile Card */}
-                    <Card className="md:col-span-1">
+                    <Card className="lg:col-span-1">
                         <CardHeader className="text-center">
                             <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-primary/10 text-primary">
                                 <UserCircle className="h-16 w-16" />
@@ -213,8 +213,8 @@ export default function Show({
                         </CardContent>
                     </Card>
 
-                    {/* Right Column: Work & Leave Details */}
-                    <div className="flex flex-col gap-6 md:col-span-2">
+                    {/* Middle Column: Work & Leave Details */}
+                    <div className="flex flex-col gap-6 lg:col-span-1">
                         {/* Employment Details */}
                         <Card>
                             <CardHeader>
@@ -299,7 +299,10 @@ export default function Show({
                                 </div>
                             </CardContent>
                         </Card>
+                    </div>
 
+                    {/* Right Column: Employee Documents */}
+                    <div className="flex flex-col gap-6 lg:col-span-1">
                         {/* Employee Documents Details */}
                         <Card>
                             <CardHeader>
@@ -324,6 +327,9 @@ export default function Show({
                                                             d.document_type_id ===
                                                             type.id,
                                                     );
+                                                const isRequired =
+                                                    type.positions?.[0]?.pivot
+                                                        ?.is_required || false;
                                                 return (
                                                     <div
                                                         key={type.id}
@@ -334,12 +340,19 @@ export default function Show({
                                                                 <span className="font-semibold">
                                                                     {type.name}
                                                                 </span>
-                                                                {type.is_required && (
+                                                                {isRequired ? (
                                                                     <Badge
                                                                         variant="destructive"
                                                                         className="h-4 text-[10px]"
                                                                     >
                                                                         Wajib
+                                                                    </Badge>
+                                                                ) : (
+                                                                    <Badge
+                                                                        variant="secondary"
+                                                                        className="h-4 text-[10px]"
+                                                                    >
+                                                                        Opsional
                                                                     </Badge>
                                                                 )}
                                                             </div>

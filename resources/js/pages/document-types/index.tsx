@@ -26,15 +26,23 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 
+type Position = { id: number; name: string };
+
 type DocumentType = {
     id: number;
     name: string;
     description: string | null;
-    is_required: boolean;
     is_active: boolean;
+    positions?: { id: number; name: string; pivot: { is_required: boolean } }[];
 };
 
-export default function Index({ documentTypes }: { documentTypes: any }) {
+export default function Index({
+    documentTypes,
+    positions,
+}: {
+    documentTypes: any;
+    positions: Position[];
+}) {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [editType, setEditType] = useState<DocumentType | null>(null);
     const [typeToDelete, setTypeToDelete] = useState<number | null>(null);
@@ -42,8 +50,8 @@ export default function Index({ documentTypes }: { documentTypes: any }) {
     const { data, setData, post, put, reset, errors, processing } = useForm({
         name: '',
         description: '',
-        is_required: false,
         is_active: true,
+        positions: [] as { id: number; is_required: boolean }[],
     });
 
     const handleCreate = (e: React.FormEvent) => {
@@ -61,8 +69,12 @@ export default function Index({ documentTypes }: { documentTypes: any }) {
         setData({
             name: type.name,
             description: type.description || '',
-            is_required: type.is_required,
             is_active: type.is_active,
+            positions:
+                type.positions?.map((p) => ({
+                    id: p.id,
+                    is_required: p.pivot.is_required,
+                })) || [],
         });
     };
 
@@ -163,23 +175,106 @@ export default function Index({ documentTypes }: { documentTypes: any }) {
                                             }
                                         />
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <Checkbox
-                                            id="is_required"
-                                            checked={data.is_required}
-                                            onCheckedChange={(checked) =>
-                                                setData(
-                                                    'is_required',
-                                                    checked as boolean,
-                                                )
-                                            }
-                                        />
-                                        <Label
-                                            htmlFor="is_required"
-                                            className="font-normal"
-                                        >
-                                            Wajib diunggah oleh karyawan
+                                    <div className="grid gap-2">
+                                        <Label>
+                                            Berlaku untuk Posisi (Pilih & Set
+                                            Wajib)
                                         </Label>
+                                        <div className="max-h-48 space-y-1 overflow-y-auto rounded-md border p-2">
+                                            {positions.map((pos) => {
+                                                const isSelected =
+                                                    data.positions.some(
+                                                        (p) => p.id === pos.id,
+                                                    );
+                                                const isRequired =
+                                                    data.positions.find(
+                                                        (p) => p.id === pos.id,
+                                                    )?.is_required || false;
+
+                                                return (
+                                                    <div
+                                                        key={pos.id}
+                                                        className="flex items-center justify-between rounded-md p-2 hover:bg-muted/50"
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            <Checkbox
+                                                                id={`pos-${pos.id}`}
+                                                                checked={
+                                                                    isSelected
+                                                                }
+                                                                onCheckedChange={(
+                                                                    checked,
+                                                                ) => {
+                                                                    if (
+                                                                        checked
+                                                                    ) {
+                                                                        setData(
+                                                                            'positions',
+                                                                            [
+                                                                                ...data.positions,
+                                                                                {
+                                                                                    id: pos.id,
+                                                                                    is_required: false,
+                                                                                },
+                                                                            ],
+                                                                        );
+                                                                    } else {
+                                                                        setData(
+                                                                            'positions',
+                                                                            data.positions.filter(
+                                                                                (
+                                                                                    p,
+                                                                                ) =>
+                                                                                    p.id !==
+                                                                                    pos.id,
+                                                                            ),
+                                                                        );
+                                                                    }
+                                                                }}
+                                                            />
+                                                            <Label
+                                                                htmlFor={`pos-${pos.id}`}
+                                                                className="cursor-pointer font-normal"
+                                                            >
+                                                                {pos.name}
+                                                            </Label>
+                                                        </div>
+                                                        {isSelected && (
+                                                            <div className="flex shrink-0 items-center gap-2">
+                                                                <Label className="text-xs text-muted-foreground">
+                                                                    Wajib?
+                                                                </Label>
+                                                                <Checkbox
+                                                                    checked={
+                                                                        isRequired
+                                                                    }
+                                                                    onCheckedChange={(
+                                                                        checked,
+                                                                    ) => {
+                                                                        setData(
+                                                                            'positions',
+                                                                            data.positions.map(
+                                                                                (
+                                                                                    p,
+                                                                                ) =>
+                                                                                    p.id ===
+                                                                                    pos.id
+                                                                                        ? {
+                                                                                              ...p,
+                                                                                              is_required:
+                                                                                                  !!checked,
+                                                                                          }
+                                                                                        : p,
+                                                                            ),
+                                                                        );
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                 </div>
                                 <DialogFooter>
@@ -198,7 +293,7 @@ export default function Index({ documentTypes }: { documentTypes: any }) {
                             <TableRow>
                                 <TableHead>Nama</TableHead>
                                 <TableHead>Deskripsi</TableHead>
-                                <TableHead>Sifat</TableHead>
+                                <TableHead>Berlaku Untuk</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead className="text-right">
                                     Aksi
@@ -225,18 +320,10 @@ export default function Index({ documentTypes }: { documentTypes: any }) {
                                             {type.description || '-'}
                                         </TableCell>
                                         <TableCell>
-                                            {type.is_required ? (
-                                                <Badge
-                                                    variant="default"
-                                                    className="bg-orange-500 hover:bg-orange-600"
-                                                >
-                                                    Wajib
-                                                </Badge>
-                                            ) : (
-                                                <Badge variant="secondary">
-                                                    Opsional
-                                                </Badge>
-                                            )}
+                                            <Badge variant="secondary">
+                                                {type.positions?.length || 0}{' '}
+                                                Posisi
+                                            </Badge>
                                         </TableCell>
                                         <TableCell>
                                             {type.is_active ? (
@@ -329,23 +416,101 @@ export default function Index({ documentTypes }: { documentTypes: any }) {
                                         }
                                     />
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <Checkbox
-                                        id="edit-is_required"
-                                        checked={data.is_required}
-                                        onCheckedChange={(checked) =>
-                                            setData(
-                                                'is_required',
-                                                checked as boolean,
-                                            )
-                                        }
-                                    />
-                                    <Label
-                                        htmlFor="edit-is_required"
-                                        className="font-normal"
-                                    >
-                                        Wajib diunggah oleh karyawan
+                                <div className="grid gap-2">
+                                    <Label>
+                                        Berlaku untuk Posisi (Pilih & Set Wajib)
                                     </Label>
+                                    <div className="max-h-48 space-y-1 overflow-y-auto rounded-md border p-2">
+                                        {positions.map((pos) => {
+                                            const isSelected =
+                                                data.positions.some(
+                                                    (p) => p.id === pos.id,
+                                                );
+                                            const isRequired =
+                                                data.positions.find(
+                                                    (p) => p.id === pos.id,
+                                                )?.is_required || false;
+
+                                            return (
+                                                <div
+                                                    key={pos.id}
+                                                    className="flex items-center justify-between rounded-md p-2 hover:bg-muted/50"
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        <Checkbox
+                                                            id={`edit-pos-${pos.id}`}
+                                                            checked={isSelected}
+                                                            onCheckedChange={(
+                                                                checked,
+                                                            ) => {
+                                                                if (checked) {
+                                                                    setData(
+                                                                        'positions',
+                                                                        [
+                                                                            ...data.positions,
+                                                                            {
+                                                                                id: pos.id,
+                                                                                is_required: false,
+                                                                            },
+                                                                        ],
+                                                                    );
+                                                                } else {
+                                                                    setData(
+                                                                        'positions',
+                                                                        data.positions.filter(
+                                                                            (
+                                                                                p,
+                                                                            ) =>
+                                                                                p.id !==
+                                                                                pos.id,
+                                                                        ),
+                                                                    );
+                                                                }
+                                                            }}
+                                                        />
+                                                        <Label
+                                                            htmlFor={`edit-pos-${pos.id}`}
+                                                            className="cursor-pointer font-normal"
+                                                        >
+                                                            {pos.name}
+                                                        </Label>
+                                                    </div>
+                                                    {isSelected && (
+                                                        <div className="flex shrink-0 items-center gap-2">
+                                                            <Label className="text-xs text-muted-foreground">
+                                                                Wajib?
+                                                            </Label>
+                                                            <Checkbox
+                                                                checked={
+                                                                    isRequired
+                                                                }
+                                                                onCheckedChange={(
+                                                                    checked,
+                                                                ) => {
+                                                                    setData(
+                                                                        'positions',
+                                                                        data.positions.map(
+                                                                            (
+                                                                                p,
+                                                                            ) =>
+                                                                                p.id ===
+                                                                                pos.id
+                                                                                    ? {
+                                                                                          ...p,
+                                                                                          is_required:
+                                                                                              !!checked,
+                                                                                      }
+                                                                                    : p,
+                                                                        ),
+                                                                    );
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Checkbox

@@ -121,7 +121,17 @@ class EmployeeController extends Controller
         // Calculate total days used this year based on all the monthly usages
         $totalUsedThisYear = array_sum($monthlyUsage);
 
-        $documentTypes = \App\Models\DocumentType::where('is_active', true)->get();
+        $documentTypes = collect();
+        if ($employee->position_id) {
+            $documentTypes = \App\Models\DocumentType::where('is_active', true)
+                ->whereHas('positions', function ($query) use ($employee) {
+                    $query->where('positions.id', $employee->position_id);
+                })
+                ->with(['positions' => function ($query) use ($employee) {
+                    $query->where('positions.id', $employee->position_id);
+                }])
+                ->get();
+        }
 
         return Inertia::render('employees/show', [
             'employee' => $employee,

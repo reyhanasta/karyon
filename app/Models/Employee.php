@@ -53,6 +53,21 @@ class Employee extends Model
         return $this->hasMany(EmployeeDocument::class);
     }
 
+    public function shiftAssignments()
+    {
+        return $this->hasMany(ShiftAssignment::class);
+    }
+
+    public function shiftChangeRequests()
+    {
+        return $this->hasMany(ShiftChangeRequest::class, 'requester_id');
+    }
+
+    public function targetedShiftChangeRequests()
+    {
+        return $this->hasMany(ShiftChangeRequest::class, 'target_id');
+    }
+
     /**
      * Get monthly leave usage (approved + pending) for a given year.
      * Returns ['2026-01' => 3, '2026-03' => 5, ...].

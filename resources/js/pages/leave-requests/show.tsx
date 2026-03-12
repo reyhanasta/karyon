@@ -199,12 +199,12 @@ export default function Show({
                 </div>
 
                 {/* Grid Layout */}
-                <div className="grid grid-cols-1 gap-8 pt-2 md:grid-cols-12">
+                <div className="grid grid-cols-1 gap-4 pt-2 md:grid-cols-12">
                     {/* Left Column: Sidebar Cards */}
-                    <div className="space-y-6 md:col-span-4">
+                    <div className="space-y-4 md:col-span-4">
                         {/* Employee Card */}
                         <div className="space-y-4 overflow-hidden rounded-xl border bg-card shadow-sm">
-                            <div className="border-b bg-muted/30 px-6 py-4">
+                            <div className="border-b bg-muted/30 px-6 py-2">
                                 <h3 className="text-xs font-bold tracking-widest text-muted-foreground uppercase">
                                     Informasi Karyawan
                                 </h3>

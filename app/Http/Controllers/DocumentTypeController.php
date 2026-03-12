@@ -13,6 +13,7 @@ class DocumentTypeController extends Controller
         $search = $request->input('search');
 
         $documentTypes = DocumentType::query()
+            ->with('positions')
             ->when($search, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%");
             })
@@ -20,8 +21,11 @@ class DocumentTypeController extends Controller
             ->paginate(10)
             ->withQueryString();
 
+        $positions = \App\Models\Position::orderBy('name')->get(['id', 'name']);
+
         return Inertia::render('document-types/index', [
             'documentTypes' => $documentTypes,
+            'positions' => $positions,
             'filters' => ['search' => $search],
         ]);
     }
@@ -31,11 +35,25 @@ class DocumentTypeController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:100|unique:document_types,name',
             'description' => 'nullable|string',
-            'is_required' => 'boolean',
             'is_active' => 'boolean',
+            'positions' => 'nullable|array',
+            'positions.*.id' => 'required|exists:positions,id',
+            'positions.*.is_required' => 'boolean',
         ]);
 
-        DocumentType::create($validated);
+        $documentType = DocumentType::create([
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'is_active' => $validated['is_active'] ?? true,
+        ]);
+
+        if (isset($validated['positions'])) {
+            $syncData = [];
+            foreach ($validated['positions'] as $position) {
+                $syncData[$position['id']] = ['is_required' => $position['is_required'] ?? false];
+            }
+            $documentType->positions()->sync($syncData);
+        }
 
         return back()->with('success', 'Jenis dokumen berhasil ditambahkan.');
     }
@@ -45,11 +63,27 @@ class DocumentTypeController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:100|unique:document_types,name,' . $documentType->id,
             'description' => 'nullable|string',
-            'is_required' => 'boolean',
             'is_active' => 'boolean',
+            'positions' => 'nullable|array',
+            'positions.*.id' => 'required|exists:positions,id',
+            'positions.*.is_required' => 'boolean',
         ]);
 
-        $documentType->update($validated);
+        $documentType->update([
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'is_active' => $validated['is_active'] ?? true,
+        ]);
+
+        if (isset($validated['positions'])) {
+            $syncData = [];
+            foreach ($validated['positions'] as $position) {
+                $syncData[$position['id']] = ['is_required' => $position['is_required'] ?? false];
+            }
+            $documentType->positions()->sync($syncData);
+        } else {
+            $documentType->positions()->sync([]);
+        }
 
         return back()->with('success', 'Jenis dokumen berhasil diperbarui.');
     }
@@ -60,6 +94,7 @@ class DocumentTypeController extends Controller
             return back()->with('error', 'Tidak dapat menghapus jenis dokumen karena sedang digunakan oleh karyawan.');
         }
 
+        $documentType->positions()->detach();
         $documentType->delete();
 
         return back()->with('success', 'Jenis dokumen berhasil dihapus.');

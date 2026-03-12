@@ -22,6 +22,12 @@ class RoleAndPermissionSeeder extends Seeder
             'employee.create',
             'employee.edit',
             'employee.delete',
+            // Shift management
+            'shift.view',
+            'shift.manage',
+            'shift-change.view',
+            'shift-change.create',
+            'shift-change.approve.hrd',
             // Document management
             'document.upload',
             // Leave request management
@@ -53,6 +59,7 @@ class RoleAndPermissionSeeder extends Seeder
         $hrAdmin = Role::firstOrCreate(['name' => 'hr-admin']);
         $hrAdmin->syncPermissions([
             'employee.view', 'employee.create', 'employee.edit', 'employee.delete',
+            'shift.view', 'shift.manage', 'shift-change.view', 'shift-change.approve.hrd',
             'document.upload',
             'leave.view', 'leave.create.any', 'leave.edit', 'leave.approve.hrd',
             'overtime.view', 'overtime.create.any', 'overtime.edit', 'overtime.approve.hrd',
@@ -61,6 +68,7 @@ class RoleAndPermissionSeeder extends Seeder
         $manager = Role::firstOrCreate(['name' => 'manager']);
         $manager->syncPermissions([
             'employee.view',
+            'shift.view', 'shift.manage', 'shift-change.view',
             'leave.view', 'leave.approve.manager', 'leave.create',
             'overtime.view', 'overtime.approve.manager','overtime.create'
         ]);
@@ -68,6 +76,7 @@ class RoleAndPermissionSeeder extends Seeder
         $karu = Role::firstOrCreate(['name' => 'karu']);
         $karu->syncPermissions([
             'employee.view',
+            'shift.view', 'shift.manage', 'shift-change.view',
             'leave.view', 'leave.approve.manager','leave.create',
             'overtime.view', 'overtime.approve.manager','overtime.create'
         ]);
@@ -75,6 +84,7 @@ class RoleAndPermissionSeeder extends Seeder
         $director = Role::firstOrCreate(['name' => 'director']);
         $director->syncPermissions([
             'employee.view',
+            'shift.view', 'shift-change.view',
             'leave.view', 'leave.approve.director',
             'overtime.view', 'overtime.approve.director'
         ]);
@@ -82,6 +92,7 @@ class RoleAndPermissionSeeder extends Seeder
         $employee = Role::firstOrCreate(['name' => 'employee']);
         $employee->syncPermissions([
             'document.upload',
+            'shift.view', 'shift-change.view', 'shift-change.create',
             'leave.view', 'leave.create',
             'overtime.view', 'overtime.create',
         ]);

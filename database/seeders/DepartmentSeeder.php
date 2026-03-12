@@ -15,8 +15,9 @@ class DepartmentSeeder extends Seeder
         $departments = [
             ['name' => 'Manajemen'],
             ['name' => 'Pelayanan Medis'],
-            ['name' => 'Umum'],
-
+            ['name' => 'Cleaning Service'],
+            ['name' => 'Security & Driver'],
+            ['name' => 'Farmasi & Keuangan'],
         ];
 
         foreach ($departments as $department) {

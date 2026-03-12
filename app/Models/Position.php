@@ -18,4 +18,9 @@ class Position extends Model
     {
         return $this->hasMany(Employee::class);
     }
+
+    public function documentTypes()
+    {
+        return $this->belongsToMany(DocumentType::class)->withPivot('is_required')->withTimestamps();
+    }
 }

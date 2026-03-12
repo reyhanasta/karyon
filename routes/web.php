@@ -70,6 +70,30 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('document-types', App\Http\Controllers\DocumentTypeController::class)
         ->except(['create', 'show', 'edit'])
         ->middleware('permission:employee.view');
+
+    // Shift management
+    Route::resource('shifts', App\Http\Controllers\ShiftController::class)
+        ->except(['create', 'show', 'edit'])
+        ->middleware('permission:shift.view');
+
+    // Shift Assignments
+    Route::post('shift-assignments/bulk', [App\Http\Controllers\ShiftAssignmentController::class, 'bulkStore'])
+        ->name('shift-assignments.bulkStore')
+        ->middleware('permission:shift.manage');
+    Route::resource('shift-assignments', App\Http\Controllers\ShiftAssignmentController::class)
+        ->only(['index', 'store', 'destroy'])
+        ->middleware('permission:shift.view');
+
+    // Shift Change Requests
+    Route::post('shift-change-requests/{shift_change_request}/approve-target', [App\Http\Controllers\ShiftChangeRequestController::class, 'approveTarget'])
+        ->name('shift-change-requests.approve-target');
+    Route::post('shift-change-requests/{shift_change_request}/approve-hrd', [App\Http\Controllers\ShiftChangeRequestController::class, 'approveHrd'])
+        ->name('shift-change-requests.approve-hrd');
+    Route::post('shift-change-requests/{shift_change_request}/reject', [App\Http\Controllers\ShiftChangeRequestController::class, 'reject'])
+        ->name('shift-change-requests.reject');
+    Route::resource('shift-change-requests', App\Http\Controllers\ShiftChangeRequestController::class)
+        ->only(['index', 'create', 'store', 'show'])
+        ->middleware('permission:shift-change.view');
 });
 
 require __DIR__.'/settings.php';
