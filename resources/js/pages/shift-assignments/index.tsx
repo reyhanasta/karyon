@@ -1,3 +1,4 @@
+import { Head, router, useForm } from '@inertiajs/react';
 import {
     format,
     parseISO,
@@ -7,7 +8,6 @@ import {
     isSameDay,
 } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { Head, router, useForm } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -229,7 +229,7 @@ export default function Index({
                                                         className="relative flex h-full cursor-pointer flex-col items-center justify-center rounded bg-secondary p-1 text-xs"
                                                         title={`${assignment.shift.name} (${assignment.shift.start_time.slice(0, 5)} - ${assignment.shift.end_time.slice(0, 5)})`}
                                                     >
-                                                        <span className="max-w-[70px] truncate font-semibold">
+                                                        <span className="max-w-17.5 truncate font-semibold">
                                                             {
                                                                 assignment.shift
                                                                     .name
