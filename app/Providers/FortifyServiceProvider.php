@@ -66,7 +66,12 @@ class FortifyServiceProvider extends ServiceProvider
             'status' => $request->session()->get('status'),
         ]));
 
-        Fortify::registerView(fn () => Inertia::render('auth/register'));
+        Fortify::registerView(fn () => Inertia::render('auth/register', [
+            'departments' => \App\Models\Department::orderBy('name')->get(['id', 'name']),
+            'positions'   => \App\Models\Position::whereNotIn('name', ['Direktur', 'Manajer', 'HRD'])
+                ->orderBy('name')
+                ->get(['id', 'name']),
+        ]));
 
         Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/two-factor-challenge'));
 

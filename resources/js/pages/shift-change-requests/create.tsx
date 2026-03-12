@@ -1,5 +1,6 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Save, User2, CalendarDays, Clock, HelpCircle } from 'lucide-react';
+import { EmployeeCombobox } from '@/components/employee-combobox';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -22,7 +23,12 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 
 type Shift = { id: number; name: string; start_time: string; end_time: string };
-type Employee = { id: number; full_name: string };
+type Employee = {
+    id: number;
+    full_name: string;
+    department?: { name: string };
+    position?: { name: string };
+};
 
 export default function Create({
     shifts,
@@ -48,6 +54,16 @@ export default function Create({
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
         post('/shift-change-requests');
+    };
+
+    const getInitials = (name: string) => {
+        if (!name) return '??';
+        return name
+            .split(' ')
+            .map((n) => n[0])
+            .join('')
+            .toUpperCase()
+            .substring(0, 2);
     };
 
     return (
@@ -148,26 +164,50 @@ export default function Create({
                                     <User2 className="mr-2 inline h-4 w-4 text-muted-foreground" />
                                     Karyawan Pengganti
                                 </Label>
-                                <Select
-                                    value={data.target_id}
-                                    onValueChange={(val) =>
-                                        setData('target_id', val)
-                                    }
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Pilih karyawan yang akan menggantikan Anda..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {targetEmployees.map((emp) => (
-                                            <SelectItem
-                                                key={emp.id}
-                                                value={String(emp.id)}
+                                <div className="group relative">
+                                    {!data.target_id || !selectedTarget ? (
+                                        <EmployeeCombobox
+                                            employees={targetEmployees}
+                                            value={data.target_id}
+                                            onSelect={(val) =>
+                                                setData('target_id', val)
+                                            }
+                                        />
+                                    ) : (
+                                        <div className="flex items-center gap-3 rounded-md border border-blue-500/15 bg-blue-500/5 p-3">
+                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-500/15 text-sm font-semibold text-blue-600 dark:text-blue-400">
+                                                {getInitials(
+                                                    selectedTarget.full_name,
+                                                )}
+                                            </div>
+                                            <div className="flex-1 overflow-hidden">
+                                                <div className="truncate text-sm font-medium">
+                                                    {selectedTarget.full_name}
+                                                </div>
+                                                <div className="truncate text-xs text-muted-foreground">
+                                                    {selectedTarget.position
+                                                        ?.name ??
+                                                        'Pegawai'}{' '}
+                                                    —{' '}
+                                                    {selectedTarget.department
+                                                        ?.name ??
+                                                        'Tanpa Departemen'}
+                                                </div>
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-7 px-3 text-xs"
+                                                onClick={() =>
+                                                    setData('target_id', '')
+                                                }
                                             >
-                                                {emp.full_name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                                Ganti
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
                                 {errors.target_id && (
                                     <p className="text-sm text-destructive">
                                         {errors.target_id}

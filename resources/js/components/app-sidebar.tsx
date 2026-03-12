@@ -68,14 +68,14 @@ const mainNavItems: NavItem[] = [
         title: 'Managemen Shift',
         href: '/shifts',
         icon: Clock,
-        permission: 'shift.view',
+        permission: 'shift.manage',
     },
-    {
-        title: 'Jadwal Shift',
-        href: '/shift-assignments',
-        icon: CalendarDays,
-        permission: 'shift.view',
-    },
+    // {
+    //     title: 'Jadwal Shift',
+    //     href: '/shift-assignments',
+    //     icon: CalendarDays,
+    //     permission: 'shift.manage',
+    // },
 ];
 
 const Request: NavItem[] = [

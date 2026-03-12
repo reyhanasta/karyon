@@ -41,7 +41,8 @@ class ShiftChangeRequestController extends Controller
 
         $shifts = \App\Models\Shift::where('department_id', $employee->department_id)->where('is_active', true)->get();
         
-        $targetEmployees = Employee::where('department_id', $employee->department_id)
+        $targetEmployees = Employee::with(['department', 'position'])
+            ->where('department_id', $employee->department_id)
             ->where('id', '!=', $employee->id)
             ->get();
 
@@ -128,6 +129,7 @@ class ShiftChangeRequestController extends Controller
         
         // Notify HR Admin
         $hrAdmins = \App\Models\User::role('hr-admin')->get();
+        /** @var \App\Models\User $hr */
         foreach ($hrAdmins as $hr) {
             $hr->notify(new ShiftChangeRequestNotification($shift_change_request, 'target_approved'));
         }

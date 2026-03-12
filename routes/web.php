@@ -77,12 +77,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:shift.view');
 
     // Shift Assignments
-    Route::post('shift-assignments/bulk', [App\Http\Controllers\ShiftAssignmentController::class, 'bulkStore'])
-        ->name('shift-assignments.bulkStore')
-        ->middleware('permission:shift.manage');
-    Route::resource('shift-assignments', App\Http\Controllers\ShiftAssignmentController::class)
-        ->only(['index', 'store', 'destroy'])
-        ->middleware('permission:shift.view');
+    // Route::post('shift-assignments/bulk', [App\Http\Controllers\ShiftAssignmentController::class, 'bulkStore'])
+    //     ->name('shift-assignments.bulkStore')
+    //     ->middleware('permission:shift.manage');
+    // Route::resource('shift-assignments', App\Http\Controllers\ShiftAssignmentController::class)
+    //     ->only(['index', 'store', 'destroy'])
+    //     ->middleware('permission:shift.view');
 
     // Shift Change Requests
     Route::post('shift-change-requests/{shift_change_request}/approve-target', [App\Http\Controllers\ShiftChangeRequestController::class, 'approveTarget'])

@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             PositionSeeder::class,
             LeaveTypeSeeder::class,
             ShiftSeeder::class,
+            DocumentTypeSeeder::class,
         ]);
     }
 }
