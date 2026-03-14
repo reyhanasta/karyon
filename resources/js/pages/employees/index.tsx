@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { Pagination } from '@/components/pagination';
+import { TableSkeleton } from '@/components/table-skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -61,9 +62,9 @@ export default function Index({
         position_id?: string;
         role?: string;
     };
-    departments: { id: number; name: string }[];
-    positions: { id: number; name: string }[];
-    roles: { id: number; name: string }[];
+    departments?: { id: number; name: string }[];
+    positions?: { id: number; name: string }[];
+    roles?: { id: number; name: string }[];
 }) {
     const { can } = usePermissions();
     const [search, setSearch] = useState(filters.search ?? '');
@@ -71,6 +72,7 @@ export default function Index({
     const [employeeToDelete, setEmployeeToDelete] = useState<number | null>(
         null,
     );
+    const [isLoading, setIsLoading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const importForm = useForm<{ file: File | null }>({ file: null });
@@ -82,7 +84,13 @@ export default function Index({
             router.get(
                 '/employees',
                 { ...filters, search: value },
-                { preserveState: true, replace: true },
+                { 
+                    preserveState: true, 
+                    replace: true,
+                    only: ['employees', 'filters'],
+                    onStart: () => setIsLoading(true),
+                    onFinish: () => setIsLoading(false),
+                },
             );
         }, 350);
     };
@@ -91,7 +99,13 @@ export default function Index({
         router.get(
             '/employees',
             { ...filters, search, [key]: value === 'all' ? undefined : value },
-            { preserveState: true, replace: true },
+            { 
+                preserveState: true, 
+                replace: true,
+                only: ['employees', 'filters'],
+                onStart: () => setIsLoading(true),
+                onFinish: () => setIsLoading(false),
+            },
         );
     };
 
@@ -208,7 +222,7 @@ export default function Index({
                                 <SelectItem value="all">
                                     Semua Departemen
                                 </SelectItem>
-                                {departments.map((dept) => (
+                                {departments?.map((dept) => (
                                     <SelectItem
                                         key={dept.id}
                                         value={dept.id.toString()}
@@ -232,7 +246,7 @@ export default function Index({
                                 <SelectItem value="all">
                                     Semua Posisi
                                 </SelectItem>
-                                {positions.map((pos) => (
+                                {positions?.map((pos) => (
                                     <SelectItem
                                         key={pos.id}
                                         value={pos.id.toString()}
@@ -254,7 +268,7 @@ export default function Index({
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">Semua Peran</SelectItem>
-                                {roles.map((role) => (
+                                {roles?.map((role) => (
                                     <SelectItem key={role.id} value={role.name}>
                                         {role.name}
                                     </SelectItem>
@@ -264,111 +278,122 @@ export default function Index({
                     </div>
                 </div>
 
-                <div className="rounded-md border bg-card text-card-foreground shadow-sm">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>NIP</TableHead>
-                                <TableHead>Nama</TableHead>
-                                <TableHead>Jabatan</TableHead>
-                                <TableHead>Departemen</TableHead>
-                                <TableHead>Peran</TableHead>
-                                <TableHead>Kuota Cuti</TableHead>
-                                {(can('employee.edit') ||
-                                    can('employee.delete')) && (
-                                    <TableHead className="text-right">
-                                        Aksi
-                                    </TableHead>
-                                )}
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {employees.data.length === 0 && (
+                {isLoading ? (
+                    <TableSkeleton />
+                ) : (
+                    <div className="rounded-md border bg-card text-card-foreground shadow-sm">
+                        <Table>
+                            <TableHeader>
                                 <TableRow>
-                                    <TableCell
-                                        colSpan={7}
-                                        className="h-24 text-center"
-                                    >
-                                        Karyawan tidak ditemukan.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                            {employees.data.map((employee: any) => (
-                                <TableRow key={employee.id}>
-                                    <TableCell className="font-medium">
-                                        {employee.user?.nip}
-                                    </TableCell>
-                                    <TableCell>{employee.full_name}</TableCell>
-                                    <TableCell>
-                                        {employee.position?.name || '-'}
-                                    </TableCell>
-                                    <TableCell>
-                                        {employee.department?.name || '-'}
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex gap-1">
-                                            {employee.user?.roles?.map(
-                                                (role: any) => (
-                                                    <Badge
-                                                        key={role.id}
-                                                        variant="secondary"
-                                                    >
-                                                        {role.name}
-                                                    </Badge>
-                                                ),
-                                            )}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        {employee.leave_quota} hari
-                                    </TableCell>
+                                    <TableHead>NIP</TableHead>
+                                    <TableHead>Nama</TableHead>
+                                    <TableHead>Jabatan</TableHead>
+                                    <TableHead>Departemen</TableHead>
+                                    <TableHead>Peran</TableHead>
+                                    <TableHead>Kuota Cuti</TableHead>
                                     {(can('employee.edit') ||
                                         can('employee.delete')) && (
-                                        <TableCell className="text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <Link
-                                                    href={`/employees/${employee.id}`}
-                                                >
-                                                    <Button
-                                                        variant="outline"
-                                                        size="icon"
-                                                    >
-                                                        <Eye className="h-4 w-4" />
-                                                    </Button>
-                                                </Link>
-                                                {can('employee.edit') && (
+                                        <TableHead className="text-right">
+                                            Aksi
+                                        </TableHead>
+                                    )}
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {employees.data.length === 0 && (
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={7}
+                                            className="h-24 text-center"
+                                        >
+                                            Karyawan tidak ditemukan.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                                {employees.data.map((employee: any, index: number) => (
+                                    <TableRow 
+                                        key={employee.id}
+                                        className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both hover:-translate-y-0.5 transition-all hover:bg-muted/50"
+                                        style={{ animationDelay: `${index * 50}ms` }}
+                                    >
+                                        <TableCell className="font-medium">
+                                            {employee.user?.nip}
+                                        </TableCell>
+                                        <TableCell>{employee.full_name}</TableCell>
+                                        <TableCell>
+                                            {employee.position?.name || '-'}
+                                        </TableCell>
+                                        <TableCell>
+                                            {employee.department?.name || '-'}
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex gap-1">
+                                                {employee.user?.roles?.map(
+                                                    (role: any) => (
+                                                        <Badge
+                                                            key={role.id}
+                                                            variant="secondary"
+                                                        >
+                                                            {role.name}
+                                                        </Badge>
+                                                    ),
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            {employee.leave_quota} hari
+                                        </TableCell>
+                                        {(can('employee.edit') ||
+                                            can('employee.delete')) && (
+                                            <TableCell className="text-right">
+                                                <div className="flex justify-end gap-2">
                                                     <Link
-                                                        href={`/employees/${employee.id}/edit`}
+                                                        href={`/employees/${employee.id}`}
                                                     >
                                                         <Button
                                                             variant="outline"
                                                             size="icon"
+                                                            className="transition-transform hover:scale-110 active:scale-95"
                                                         >
-                                                            <Edit2 className="h-4 w-4" />
+                                                            <Eye className="h-4 w-4" />
                                                         </Button>
                                                     </Link>
-                                                )}
-                                                {can('employee.delete') && (
-                                                    <Button
-                                                        variant="destructive"
-                                                        size="icon"
-                                                        onClick={() =>
-                                                            setEmployeeToDelete(
-                                                                employee.id,
-                                                            )
-                                                        }
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        </TableCell>
-                                    )}
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </div>
+                                                    {can('employee.edit') && (
+                                                        <Link
+                                                            href={`/employees/${employee.id}/edit`}
+                                                        >
+                                                            <Button
+                                                                variant="outline"
+                                                                size="icon"
+                                                                className="transition-transform hover:scale-110 active:scale-95"
+                                                            >
+                                                                <Edit2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </Link>
+                                                    )}
+                                                    {can('employee.delete') && (
+                                                        <Button
+                                                            variant="destructive"
+                                                            size="icon"
+                                                            className="transition-transform hover:scale-110 active:scale-95"
+                                                            onClick={() =>
+                                                                setEmployeeToDelete(
+                                                                    employee.id,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                        )}
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                )}
 
                 <Pagination links={employees.links} />
             </div>

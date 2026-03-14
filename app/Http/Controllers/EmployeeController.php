@@ -11,6 +11,7 @@ use App\Models\Employee;
 use App\Models\Position;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
@@ -48,6 +49,10 @@ class EmployeeController extends Controller
             ->paginate(10)
             ->withQueryString();
 
+        $departments = Cache::remember('departments_list', 3600, fn () => Department::all(['id', 'name']));
+        $positions = Cache::remember('positions_list', 3600, fn () => Position::all(['id', 'name']));
+        $roles = Cache::remember('roles_list', 3600, fn () => Role::all(['id', 'name']));
+
         return Inertia::render('employees/index', [
             'employees' => $employees,
             'filters' => [
@@ -56,9 +61,9 @@ class EmployeeController extends Controller
                 'position_id' => $positionId,
                 'role' => $roleName,
             ],
-            'departments' => Department::all(['id', 'name']),
-            'positions' => Position::all(['id', 'name']),
-            'roles' => Role::all(['id', 'name']),
+            'departments' => Inertia::defer(fn () => $departments),
+            'positions' => Inertia::defer(fn () => $positions),
+            'roles' => Inertia::defer(fn () => $roles),
         ]);
     }
 

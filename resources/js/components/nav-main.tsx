@@ -28,6 +28,7 @@ export function NavMain({
                             asChild
                             isActive={isCurrentUrl(item.href)}
                             tooltip={{ children: item.title }}
+                            className="transition-all duration-300 hover:translate-x-1"
                         >
                             <Link href={item.href} prefetch>
                                 {item.icon && <item.icon />}

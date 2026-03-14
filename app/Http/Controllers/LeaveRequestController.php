@@ -189,7 +189,10 @@ class LeaveRequestController extends Controller
 
         // Notify initial approvers (HRD)
         $approvers = User::permission('leave.approve.hrd')->get();
-        Notification::send($approvers, new LeaveRequestNotification($leaveRequest, $employee, 'submitted'));
+        //Jika inputer adalah user yang sama dengan approver, maka tidak perlu mengirim notifikasi
+        if($employee->user_id != $approvers->first()->id){
+            Notification::send($approvers, new LeaveRequestNotification($leaveRequest, $employee, 'submitted'));
+        }
 
         return redirect()->route('leave-requests.index')->with('success', 'Pengajuan cuti berhasil dikirim.');
     }
