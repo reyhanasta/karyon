@@ -20,6 +20,8 @@ class StoreEmployeeRequest extends FormRequest
             'full_name'    => 'required|string|max:255',
             'position_id'  => 'required|exists:positions,id',
             'department_id'=> 'required|exists:departments,id',
+            'employee_sip' => 'nullable|string|max:255',
+            'employee_status' => 'required|string|in:orientasi,tidak_tetap,tetap,keluar',
             'join_date'    => 'required|date',
             'role'         => 'required|exists:roles,name',
             'leave_quota'  => 'required|integer|min:0',

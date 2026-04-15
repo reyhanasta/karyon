@@ -97,6 +97,8 @@ class EmployeeController extends Controller
                 'full_name' => $validated['full_name'],
                 'position_id' => $validated['position_id'],
                 'department_id' => $validated['department_id'],
+                'employee_sip' => $validated['employee_sip'] ?? null,
+                'employee_status' => $validated['employee_status'] ?? 'orientasi',
                 'join_date' => $validated['join_date'],
                 'leave_quota' => $validated['leave_quota'],
             ]);
@@ -187,6 +189,8 @@ class EmployeeController extends Controller
                 'full_name' => $validated['full_name'],
                 'position_id' => $validated['position_id'],
                 'department_id' => $validated['department_id'],
+                'employee_sip' => $validated['employee_sip'] ?? null,
+                'employee_status' => $validated['employee_status'] ?? 'orientasi',
                 'join_date' => $validated['join_date'],
                 'leave_quota' => $validated['leave_quota'],
             ]);

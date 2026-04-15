@@ -15,9 +15,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('full_name');
-            $table->string('position')->nullable();
-            $table->string('department')->nullable();
+            $table->foreignId('department_id')->nullable()->constrained('departments')->nullOnDelete();
+            $table->foreignId('position_id')->nullable()->constrained('positions')->nullOnDelete();
+            $table->enum('employee_status', ['orientasi', 'tidak_tetap', 'tetap', 'keluar'])->default('orientasi');
+            $table->string('employee_sip')->nullable();
             $table->date('join_date')->nullable();
+            $table->date('end_date')->nullable();
             $table->integer('leave_quota')->default(12);
             $table->timestamps();
         });

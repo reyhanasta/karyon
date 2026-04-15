@@ -84,8 +84,8 @@ export default function Index({
             router.get(
                 '/employees',
                 { ...filters, search: value },
-                { 
-                    preserveState: true, 
+                {
+                    preserveState: true,
                     replace: true,
                     only: ['employees', 'filters'],
                     onStart: () => setIsLoading(true),
@@ -99,8 +99,8 @@ export default function Index({
         router.get(
             '/employees',
             { ...filters, search, [key]: value === 'all' ? undefined : value },
-            { 
-                preserveState: true, 
+            {
+                preserveState: true,
                 replace: true,
                 only: ['employees', 'filters'],
                 onStart: () => setIsLoading(true),
@@ -288,9 +288,7 @@ export default function Index({
                                     <TableHead>NIP</TableHead>
                                     <TableHead>Nama</TableHead>
                                     <TableHead>Jabatan</TableHead>
-                                    <TableHead>Departemen</TableHead>
-                                    <TableHead>Peran</TableHead>
-                                    <TableHead>Kuota Cuti</TableHead>
+
                                     {(can('employee.edit') ||
                                         can('employee.delete')) && (
                                         <TableHead className="text-right">
@@ -310,86 +308,76 @@ export default function Index({
                                         </TableCell>
                                     </TableRow>
                                 )}
-                                {employees.data.map((employee: any, index: number) => (
-                                    <TableRow 
-                                        key={employee.id}
-                                        className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both hover:-translate-y-0.5 transition-all hover:bg-muted/50"
-                                        style={{ animationDelay: `${index * 50}ms` }}
-                                    >
-                                        <TableCell className="font-medium">
-                                            {employee.user?.nip}
-                                        </TableCell>
-                                        <TableCell>{employee.full_name}</TableCell>
-                                        <TableCell>
-                                            {employee.position?.name || '-'}
-                                        </TableCell>
-                                        <TableCell>
-                                            {employee.department?.name || '-'}
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex gap-1">
-                                                {employee.user?.roles?.map(
-                                                    (role: any) => (
-                                                        <Badge
-                                                            key={role.id}
-                                                            variant="secondary"
-                                                        >
-                                                            {role.name}
-                                                        </Badge>
-                                                    ),
-                                                )}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            {employee.leave_quota} hari
-                                        </TableCell>
-                                        {(can('employee.edit') ||
-                                            can('employee.delete')) && (
-                                            <TableCell className="text-right">
-                                                <div className="flex justify-end gap-2">
-                                                    <Link
-                                                        href={`/employees/${employee.id}`}
-                                                    >
-                                                        <Button
-                                                            variant="outline"
-                                                            size="icon"
-                                                            className="transition-transform hover:scale-110 active:scale-95"
-                                                        >
-                                                            <Eye className="h-4 w-4" />
-                                                        </Button>
-                                                    </Link>
-                                                    {can('employee.edit') && (
+                                {employees.data.map(
+                                    (employee: any, index: number) => (
+                                        <TableRow
+                                            key={employee.id}
+                                            style={{
+                                                animationDelay: `${index * 50}ms`,
+                                            }}
+                                        >
+                                            <TableCell className="font-medium">
+                                                {employee.user?.nip}
+                                            </TableCell>
+                                            <TableCell>
+                                                {employee.full_name}
+                                            </TableCell>
+                                            <TableCell>
+                                                {employee.position?.name || '-'}
+                                            </TableCell>
+
+                                            {(can('employee.edit') ||
+                                                can('employee.delete')) && (
+                                                <TableCell className="text-right">
+                                                    <div className="flex justify-end gap-2">
                                                         <Link
-                                                            href={`/employees/${employee.id}/edit`}
+                                                            href={`/employees/${employee.id}`}
                                                         >
                                                             <Button
                                                                 variant="outline"
                                                                 size="icon"
                                                                 className="transition-transform hover:scale-110 active:scale-95"
                                                             >
-                                                                <Edit2 className="h-4 w-4" />
+                                                                <Eye className="h-4 w-4" />
                                                             </Button>
                                                         </Link>
-                                                    )}
-                                                    {can('employee.delete') && (
-                                                        <Button
-                                                            variant="destructive"
-                                                            size="icon"
-                                                            className="transition-transform hover:scale-110 active:scale-95"
-                                                            onClick={() =>
-                                                                setEmployeeToDelete(
-                                                                    employee.id,
-                                                                )
-                                                            }
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    )}
-                                                </div>
-                                            </TableCell>
-                                        )}
-                                    </TableRow>
-                                ))}
+                                                        {can(
+                                                            'employee.edit',
+                                                        ) && (
+                                                            <Link
+                                                                href={`/employees/${employee.id}/edit`}
+                                                            >
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="icon"
+                                                                    className="transition-transform hover:scale-110 active:scale-95"
+                                                                >
+                                                                    <Edit2 className="h-4 w-4" />
+                                                                </Button>
+                                                            </Link>
+                                                        )}
+                                                        {can(
+                                                            'employee.delete',
+                                                        ) && (
+                                                            <Button
+                                                                variant="destructive"
+                                                                size="icon"
+                                                                className="transition-transform hover:scale-110 active:scale-95"
+                                                                onClick={() =>
+                                                                    setEmployeeToDelete(
+                                                                        employee.id,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                </TableCell>
+                                            )}
+                                        </TableRow>
+                                    ),
+                                )}
                             </TableBody>
                         </Table>
                     </div>

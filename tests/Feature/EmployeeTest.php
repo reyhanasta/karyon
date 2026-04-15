@@ -73,6 +73,8 @@ test('can store an employee', function () {
         'role' => 'employee',
         'department_id' => $this->department->id,
         'position_id' => $this->position->id,
+        'employee_sip' => 'SIP-123456',
+        'employee_status' => 'orientasi',
         'join_date' => now()->toDateString(),
         'leave_quota' => 12,
     ]);
@@ -86,6 +88,8 @@ test('can store an employee', function () {
 
     $this->assertDatabaseHas('employees', [
         'full_name' => 'New Employee',
+        'employee_sip' => 'SIP-123456',
+        'employee_status' => 'orientasi',
         'leave_quota' => 12,
     ]);
 });
@@ -97,6 +101,7 @@ test('can view employee details', function () {
         'full_name' => 'Detailed Employee',
         'department_id' => $this->department->id,
         'position_id' => $this->position->id,
+        'employee_status' => 'orientasi',
         'join_date' => now()->toDateString(),
         'leave_quota' => 12,
     ]);
@@ -113,6 +118,7 @@ test('can view edit employee page', function () {
         'full_name' => 'Edit Employee',
         'department_id' => $this->department->id,
         'position_id' => $this->position->id,
+        'employee_status' => 'orientasi',
         'join_date' => now()->toDateString(),
         'leave_quota' => 12,
     ]);
@@ -134,6 +140,7 @@ test('can update an employee', function () {
         'full_name' => 'Old Name',
         'department_id' => $this->department->id,
         'position_id' => $this->position->id,
+        'employee_status' => 'orientasi',
         'join_date' => now()->toDateString(),
         'leave_quota' => 10,
     ]);
@@ -145,6 +152,7 @@ test('can update an employee', function () {
         'role' => 'hr-admin',
         'department_id' => $this->department->id,
         'position_id' => $this->position->id,
+        'employee_status' => 'tetap',
         'join_date' => now()->toDateString(),
         'leave_quota' => 15,
     ]);
@@ -160,6 +168,7 @@ test('can update an employee', function () {
     $this->assertDatabaseHas('employees', [
         'id' => $employee->id,
         'full_name' => 'Updated Name',
+        'employee_status' => 'tetap',
         'leave_quota' => 15,
     ]);
 
@@ -173,6 +182,7 @@ test('unauthorized users cannot delete employee', function () {
         'full_name' => 'To Delete',
         'department_id' => $this->department->id,
         'position_id' => $this->position->id,
+        'employee_status' => 'orientasi',
         'join_date' => now()->toDateString(),
         'leave_quota' => 12,
     ]);
@@ -189,6 +199,7 @@ test('can delete an employee', function () {
         'full_name' => 'To Delete',
         'department_id' => $this->department->id,
         'position_id' => $this->position->id,
+        'employee_status' => 'orientasi',
         'join_date' => now()->toDateString(),
         'leave_quota' => 12,
     ]);

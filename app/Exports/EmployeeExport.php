@@ -36,6 +36,8 @@ class EmployeeExport extends DefaultValueBinder implements FromCollection, WithH
             'Role',
             'Join Date',
             'Leave Quota',
+            'SIP',
+            'Status',
         ];
     }
 
@@ -53,6 +55,8 @@ class EmployeeExport extends DefaultValueBinder implements FromCollection, WithH
             $employee->user?->roles?->first()?->name ?? 'employee',
             $employee->join_date ?? '',
             $employee->leave_quota,
+            $employee->employee_sip ?? '',
+            $employee->employee_status ?? 'orientasi',
         ];
     }
 

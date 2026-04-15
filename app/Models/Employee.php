@@ -19,6 +19,8 @@ class Employee extends Model
         'full_name',
         'position_id',
         'department_id',
+        'employee_sip',
+        'employee_status',
         'join_date',
         'leave_quota',
     ];

@@ -30,6 +30,8 @@ export default function Edit({
         password: '',
         position_id: employee.position_id?.toString() || '',
         department_id: employee.department_id?.toString() || '',
+        employee_sip: employee.employee_sip || '',
+        employee_status: employee.employee_status || 'orientasi',
         join_date: employee.join_date || '',
         leave_quota: employee.leave_quota || 12,
         role: employee.user?.roles?.[0]?.name || '',
@@ -101,6 +103,65 @@ export default function Edit({
                                 {errors.full_name && (
                                     <p className="text-sm font-medium text-destructive">
                                         {errors.full_name}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="employee_sip">Nomor SIP</Label>
+                                <Input
+                                    id="employee_sip"
+                                    type="text"
+                                    value={data.employee_sip}
+                                    onChange={(e) =>
+                                        setData('employee_sip', e.target.value)
+                                    }
+                                    placeholder="Jika ada"
+                                    className="w-full"
+                                />
+                                {errors.employee_sip && (
+                                    <p className="text-sm font-medium text-destructive">
+                                        {errors.employee_sip}
+                                    </p>
+                                )}
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="employee_status" required>
+                                    Status Pegawai
+                                </Label>
+                                <Select
+                                    value={data.employee_status}
+                                    onValueChange={(value) =>
+                                        setData('employee_status', value)
+                                    }
+                                    required
+                                >
+                                    <SelectTrigger
+                                        id="employee_status"
+                                        className="w-full"
+                                    >
+                                        <SelectValue placeholder="Pilih status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="orientasi">
+                                            Orientasi
+                                        </SelectItem>
+                                        <SelectItem value="tidak_tetap">
+                                            Tidak Tetap / Kontrak
+                                        </SelectItem>
+                                        <SelectItem value="tetap">
+                                            Tetap
+                                        </SelectItem>
+                                        <SelectItem value="keluar">
+                                            Keluar
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                {errors.employee_status && (
+                                    <p className="text-sm font-medium text-destructive">
+                                        {errors.employee_status}
                                     </p>
                                 )}
                             </div>

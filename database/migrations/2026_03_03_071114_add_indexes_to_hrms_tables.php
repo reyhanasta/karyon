@@ -10,8 +10,8 @@ return new class extends Migration
     {
         Schema::table('employees', function (Blueprint $table) {
             $table->index('full_name');
-            $table->index('department');
-            $table->index('position');
+            $table->index('department_id');
+            $table->index('position_id');
         });
 
         Schema::table('leave_requests', function (Blueprint $table) {
@@ -30,8 +30,8 @@ return new class extends Migration
     {
         Schema::table('employees', function (Blueprint $table) {
             $table->dropIndex(['full_name']);
-            $table->dropIndex(['department']);
-            $table->dropIndex(['position']);
+            $table->dropIndex(['department_id']);
+            $table->dropIndex(['position_id']);
         });
 
         Schema::table('leave_requests', function (Blueprint $table) {
