@@ -141,9 +141,41 @@ class EmployeeController extends Controller
                 ->get();
         }
 
+        // Fetch last 2 leave histories
+        $leaveHistories = \App\Models\LeaveRequest::with('leaveType')
+            ->where('employee_id', $employee->id)
+            ->whereIn('status', ['approved', 'completed']) // Only show valid/finished leaves
+            ->orderBy('start_date', 'desc')
+            ->take(2)
+            ->get()
+            ->map(function ($leave) {
+                $start = \Carbon\Carbon::parse($leave->start_date);
+                $end = \Carbon\Carbon::parse($leave->end_date);
+                $diffDays = $start->diffInDays($end) + 1;
+
+                // Format string: "21 Jun 2024" or "5-7 Mei 2024"
+                $dateString = $start->translatedFormat('d M Y');
+                if ($start->notEqualTo($end)) {
+                    if ($start->month === $end->month) {
+                        $dateString = $start->format('j') . '-' . $end->translatedFormat('j M Y');
+                    } else {
+                        $dateString = $start->translatedFormat('j M') . ' - ' . $end->translatedFormat('j M Y');
+                    }
+                }
+
+                return [
+                    'id' => $leave->id,
+                    'type_name' => $leave->leaveType ? $leave->leaveType->name : 'Cuti',
+                    'date_string' => $dateString,
+                    'days' => $diffDays,
+                    'reason' => $leave->reason
+                ];
+            });
+
         return Inertia::render('employees/show', [
             'employee' => $employee,
             'documentTypes' => $documentTypes,
+            'leaveHistories' => $leaveHistories,
             'leaveStats' => [
                 'totalQuota' => $totalQuota,
                 'usedThisYear' => $totalUsedThisYear,

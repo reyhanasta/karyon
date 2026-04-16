@@ -40,6 +40,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
 import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
 
@@ -84,14 +85,24 @@ type LeaveStats = {
     monthlyLimit: number;
 };
 
+type LeaveHistory = {
+    id: number;
+    type_name: string;
+    date_string: string;
+    days: number;
+    reason: string | null;
+};
+
 export default function Show({
     employee,
     documentTypes,
     leaveStats,
+    leaveHistories,
 }: {
     employee: EmployeeData;
     documentTypes: DocumentType[];
     leaveStats: LeaveStats;
+    leaveHistories: LeaveHistory[];
 }) {
     const { can } = usePermissions();
 
@@ -148,6 +159,8 @@ export default function Show({
     const defaultTotal = 12;
     const remainingPercentage =
         defaultTotal > 0 ? (leaveStats.remainingQuota / defaultTotal) * 100 : 0;
+    const monthlyPercentage =
+        leaveStats.monthlyLimit > 0 ? (leaveStats.usedThisMonth / leaveStats.monthlyLimit) * 100 : 0;
 
     const getUsedThisMonthColorClass = (used: number) => {
         if (used === 0) return 'text-green-600 dark:text-green-500';
@@ -328,77 +341,84 @@ export default function Show({
                                 </CardContent>
                             </Card>
 
-                            {/* Leave Quota Card */}
+                            {/* Leave Status Card Redesign */}
                             <Card className="shadow-none">
                                 <CardHeader>
                                     <CardTitle className="text-lg">
                                         Leave Quota
                                     </CardTitle>
                                 </CardHeader>
-                                <CardContent className="flex flex-col items-center justify-center space-y-8 pt-4">
-                                    <div className="relative flex items-center justify-center">
-                                        {/* Simple circular display using progress bar logic */}
-                                        <div className="text-center">
-                                            <p className="text-4xl font-bold text-primary">
-                                                {leaveStats.usedThisYear}/
-                                                {leaveStats.totalQuota}
-                                            </p>
-                                            <p className="text-sm text-muted-foreground">
-                                                Days Taken
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="w-full space-y-4">
+                                <CardContent className="space-y-6">
+                                    <div className="space-y-4">
+                                        <h4 className="font-semibold text-sm">Status Cuti</h4>
                                         <div className="space-y-2">
                                             <div className="flex justify-between text-sm font-medium">
-                                                <span>Annual Leave</span>
+                                                <span className="text-muted-foreground">Cuti Tahunan Tersisa</span>
                                                 <span className="text-muted-foreground">
                                                     {leaveStats.remainingQuota}{' '}
-                                                    / {leaveStats.totalQuota}{' '}
-                                                    Remaining
+                                                    dari {leaveStats.totalQuota}{' '}
+                                                    hari
                                                 </span>
                                             </div>
                                             <Progress
                                                 value={remainingPercentage}
                                                 className="h-2"
+                                                indicatorColor="bg-orange-500"
                                             />
                                         </div>
-
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="flex items-center gap-3 rounded-lg border p-3">
-                                                <div className="rounded-md bg-blue-100 p-2 dark:bg-blue-900/30">
-                                                    <Clock className="h-5 w-5 text-blue-600" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-xs text-nowrap text-muted-foreground">
-                                                        Bulan Ini
-                                                    </p>
-                                                    <p
-                                                        className={`text-lg font-bold ${getUsedThisMonthColorClass(leaveStats.usedThisMonth)}`}
-                                                    >
-                                                        {
-                                                            leaveStats.usedThisMonth
-                                                        }{' '}
-                                                        Hari
-                                                    </p>
-                                                </div>
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between text-sm font-medium">
+                                                <span className="text-muted-foreground">Jatah Cuti Bulanan</span>
+                                                <span className="text-muted-foreground">
+                                                    {leaveStats.usedThisMonth}{' '}
+                                                    dari {leaveStats.monthlyLimit}{' '}
+                                                    hari
+                                                </span>
                                             </div>
-                                            <div className="flex items-center gap-3 rounded-lg border p-3">
-                                                <div className="rounded-md bg-green-100 p-2 dark:bg-green-900/30">
-                                                    <Trophy className="h-5 w-5 text-green-600" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        Jatah Total
-                                                    </p>
-                                                    <p className="text-lg font-bold">
-                                                        {leaveStats.totalQuota}{' '}
-                                                        Hari
-                                                    </p>
-                                                </div>
-                                            </div>
+                                            <Progress
+                                                value={monthlyPercentage}
+                                                className="h-2"
+                                                indicatorColor="bg-blue-500"
+                                            />
                                         </div>
+                                    </div>
+
+                                    <Separator />
+
+                                    <div className="space-y-4">
+                                        <h4 className="font-semibold text-sm">Riwayat Cuti</h4>
+                                        {leaveHistories && leaveHistories.length > 0 ? (
+                                            <div className="space-y-4">
+                                                {leaveHistories.map((leave) => (
+                                                    <div
+                                                        key={leave.id}
+                                                        className="grid grid-cols-1 gap-2 border-b pb-4 text-sm last:border-0 last:pb-0 sm:grid-cols-3 sm:gap-4"
+                                                    >
+                                                        <div className="font-medium text-muted-foreground">
+                                                            {leave.type_name}
+                                                        </div>
+                                                        <div className="text-foreground">
+                                                            {leave.date_string}{' '}
+                                                            <br />
+                                                            <span className="text-xs text-muted-foreground">
+                                                                ({leave.days} hari)
+                                                            </span>
+                                                        </div>
+                                                        <div className="text-foreground">
+                                                            Deskripsi: <br />
+                                                            <span className="text-muted-foreground">
+                                                                {leave.reason || '-'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <p className="py-2 text-sm text-muted-foreground">
+                                                Belum ada riwayat pengajuan cuti
+                                                yang disetujui.
+                                            </p>
+                                        )}
                                     </div>
                                 </CardContent>
                             </Card>
