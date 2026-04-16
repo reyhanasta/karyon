@@ -89,12 +89,21 @@ class EmployeeImport implements ToCollection, WithHeadingRow
                     }
                 }
 
+                // Standardize the status values
+                $allowedStatuses = ['orientasi', 'tidak_tetap', 'tetap', 'keluar'];
+                $status = !empty($row['status']) ? strtolower(trim($row['status'])) : 'orientasi';
+                if (!in_array($status, $allowedStatuses)) {
+                    $status = 'orientasi';
+                }
+
                 // Create employee
                 Employee::create([
                     'user_id' => $user->id,
                     'full_name' => trim($row['full_name']),
                     'position_id' => $position?->id,
                     'department_id' => $department?->id,
+                    'employee_sip' => !empty($row['sip']) ? trim($row['sip']) : null,
+                    'employee_status' => $status,
                     'join_date' => $joinDate,
                     'leave_quota' => !empty($row['leave_quota']) ? (int)$row['leave_quota'] : 12,
                 ]);

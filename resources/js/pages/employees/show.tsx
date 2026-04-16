@@ -9,6 +9,12 @@ import {
     Upload,
     UserCircle,
     Trash2,
+    FileText,
+    ShieldCheck,
+    Clock,
+    Phone,
+    MapPin,
+    Trophy,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +39,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
 
@@ -65,6 +72,8 @@ type EmployeeData = {
     position?: { name: string };
     department?: { name: string };
     documents?: EmployeeDocument[];
+    employee_status: string;
+    employee_sip: string; // Corrected from 'sip' to 'employee_sip' based on DB schema
 };
 
 type LeaveStats = {
@@ -136,8 +145,6 @@ export default function Show({
         });
     };
 
-    // Calculate percentage for the progress bar. We want the bar to represent
-    // the remaining quota out of the default total (12).
     const defaultTotal = 12;
     const remainingPercentage =
         defaultTotal > 0 ? (leaveStats.remainingQuota / defaultTotal) * 100 : 0;
@@ -151,6 +158,8 @@ export default function Show({
         return 'text-foreground';
     };
 
+    console.log(employee);
+
     return (
         <AppLayout
             breadcrumbs={[
@@ -162,151 +171,312 @@ export default function Show({
                 },
             ]}
         >
-            <Head title={`Employee: ${employee.full_name}`} />
+            <Head title={`Profil Karyawan: ${employee.full_name}`} />
 
-            <div className="mx-auto flex h-full w-full max-w-5xl flex-1 flex-col gap-6 p-4 lg:p-8">
-                {/* Header Actions */}
-                <div className="flex items-center justify-between">
+            <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 p-4 lg:p-8">
+                {/* Back Button */}
+                <div>
                     <Link href="/employees">
-                        <Button variant="outline" size="sm">
-                            <ChevronLeft className="mr-2 h-4 w-4" /> Kembali ke
+                        <Button variant="ghost" size="sm" className="-ml-2">
+                            <ChevronLeft className="mr-1 h-4 w-4" /> Kembali ke
                             Direktori
                         </Button>
                     </Link>
-                    {can('employee.edit') && (
-                        <Link href={`/employees/${employee.id}/edit`}>
-                            <Button size="sm">Edit Karyawan</Button>
-                        </Link>
-                    )}
                 </div>
 
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                    {/* Left Column: Profile Card */}
-                    <Card className="lg:col-span-1">
-                        <CardHeader className="text-center">
-                            <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-primary/10 text-primary">
-                                <UserCircle className="h-16 w-16" />
-                            </div>
-                            <CardTitle className="text-xl">
+                {/* header profile section */}
+                <div className="flex flex-col gap-6 rounded-xl border bg-card p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+                        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary/10 text-primary">
+                            <UserCircle className="h-16 w-16" />
+                        </div>
+                        <div className="space-y-1">
+                            <h1 className="text-3xl font-bold tracking-tight">
                                 {employee.full_name}
-                            </CardTitle>
-                            <CardDescription className="font-mono text-sm">
-                                {employee.user?.nip || 'NIP tidak ditetapkan'}
-                            </CardDescription>
-                            <div className="mt-2 flex flex-wrap justify-center gap-1">
+                            </h1>
+                            <div className="flex flex-wrap items-center gap-2 text-muted-foreground">
+                                <span className="font-medium">
+                                    {employee.position?.name ||
+                                        'Jabatan Belum Diatur'}
+                                </span>
+                                <span className="hidden text-border sm:inline">
+                                    •
+                                </span>
+                                <span className="font-mono text-sm">
+                                    ID: {employee.user?.nip || 'N/A'}
+                                </span>
+                            </div>
+                            <div className="flex flex-wrap gap-2 pt-1">
                                 {employee.user?.roles?.map((role) => (
-                                    <Badge key={role.id} variant="secondary">
+                                    <Badge
+                                        key={role.id}
+                                        variant="secondary"
+                                        className="capitalize"
+                                    >
                                         {role.name}
                                     </Badge>
                                 ))}
+                                {/* <Badge variant="outline" className="capitalize bg-primary/5 text-primary border-primary/20">
+                                    {employee.employee_status?.replace('_', ' ')}
+                                </Badge> */}
                             </div>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                                <Mail className="h-4 w-4" />
-                                <span>{employee.user?.email}</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                                <Calendar className="h-4 w-4" />
-                                <span>Bergabung {employee.join_date}</span>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Middle Column: Work & Leave Details */}
-                    <div className="flex flex-col gap-6 lg:col-span-1">
-                        {/* Employment Details */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Detail Pekerjaan</CardTitle>
-                                <CardDescription>
-                                    Pemetaan jabatan dan departemen saat ini.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                <div className="flex flex-col gap-1">
-                                    <span className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                                        <Briefcase className="h-4 w-4" />{' '}
-                                        Jabatan
-                                    </span>
-                                    <span className="text-base font-semibold">
-                                        {employee.position?.name ||
-                                            'Belum Ditetapkan'}
-                                    </span>
-                                </div>
-                                <div className="flex flex-col gap-1">
-                                    <span className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                                        <BuildingIcon className="h-4 w-4" />{' '}
-                                        Departemen
-                                    </span>
-                                    <span className="text-base font-semibold">
-                                        {employee.department?.name ||
-                                            'Belum Ditetapkan'}
-                                    </span>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Leave Quota Details */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Status Kuota Cuti</CardTitle>
-                                <CardDescription>
-                                    Jatah cuti tahunan dan bulanan untuk tahun
-                                    ini.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                {/* Annual Quota Progress Bar */}
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between text-sm">
-                                        <span className="font-medium text-muted-foreground">
-                                            Sisa Kuota Tahunan
-                                        </span>
-                                        <span className="font-bold">
-                                            {leaveStats.remainingQuota} /{' '}
-                                            {leaveStats.totalQuota} hari
-                                        </span>
-                                    </div>
-                                    <Progress
-                                        value={remainingPercentage}
-                                        className="h-3 w-full"
-                                        // A custom class could be added here to colorize based on percentage (e.g., green if high, orange if low)
-                                    />
-                                    <p className="text-xs text-muted-foreground">
-                                        {leaveStats.usedThisYear} hari telah
-                                        digunakan atau diajukan tahun ini dari
-                                        total anggaran sebanyak{' '}
-                                        {leaveStats.totalQuota} hari.
-                                    </p>
-                                </div>
-
-                                {/* Monthly Usage */}
-                                <div className="rounded-md border bg-muted/50 p-4">
-                                    <h4 className="mb-2 text-sm font-medium">
-                                        Penggunaan Bulan Ini
-                                    </h4>
-                                    <div className="flex items-baseline gap-2">
-                                        <span
-                                            className={`text-2xl font-bold ${getUsedThisMonthColorClass(leaveStats.usedThisMonth)}`}
-                                        >
-                                            {leaveStats.usedThisMonth}
-                                        </span>
-                                        <span className="text-sm text-muted-foreground">
-                                            / {leaveStats.monthlyLimit} hari
-                                        </span>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
+                        </div>
                     </div>
+                    <div className="flex items-center gap-3">
+                        {can('employee.edit') && (
+                            <Link href={`/employees/${employee.id}/edit`}>
+                                <Button variant="outline" size="sm">
+                                    Edit Profil
+                                </Button>
+                            </Link>
+                        )}
+                        <Button size="sm">
+                            <Download className="mr-2 h-4 w-4" /> Download
+                            Resume
+                        </Button>
+                    </div>
+                </div>
 
-                    {/* Right Column: Employee Documents */}
-                    <div className="flex flex-col gap-6 lg:col-span-1">
-                        {/* Employee Documents Details */}
-                        <Card>
+                {/* Tabs Navigation */}
+                <Tabs defaultValue="informasi" className="w-full">
+                    <TabsList className="mb-6 w-full justify-start rounded-none border-b bg-transparent p-0">
+                        <TabsTrigger
+                            value="informasi"
+                            className="rounded-none border-b-2 border-transparent px-6 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+                        >
+                            Informasi Umum
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="job"
+                            className="rounded-none border-b-2 border-transparent px-6 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+                        >
+                            Detail Pekerjaan
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="dokumen"
+                            className="rounded-none border-b-2 border-transparent px-6 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+                        >
+                            Dokumen Pendukung
+                        </TabsTrigger>
+                    </TabsList>
+
+                    {/* Tab Pane: Informasi Umum & Cuti */}
+                    <TabsContent value="informasi" className="space-y-6">
+                        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                            {/* Personal Details Card */}
+                            <Card className="shadow-none">
+                                <CardHeader>
+                                    <CardTitle className="text-lg">
+                                        Personal Details
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-6">
+                                    <div className="flex items-start gap-4">
+                                        <div className="rounded-full bg-muted p-2">
+                                            <Mail className="h-5 w-5 text-muted-foreground" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-muted-foreground">
+                                                Email
+                                            </p>
+                                            <p className="text-base font-semibold">
+                                                {employee.user?.email}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-4">
+                                        <div className="rounded-full bg-muted p-2">
+                                            <Calendar className="h-5 w-5 text-muted-foreground" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-muted-foreground">
+                                                Join Date
+                                            </p>
+                                            <p className="text-base font-semibold">
+                                                {employee.join_date}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    {employee.employee_sip && (
+                                        <div className="flex items-start gap-4">
+                                            <div className="rounded-full bg-muted p-2">
+                                                <ShieldCheck className="h-5 w-5 text-muted-foreground" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-medium text-muted-foreground">
+                                                    No SIP
+                                                </p>
+                                                <p className="text-base font-semibold">
+                                                    {employee.employee_sip}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="flex items-start gap-4 opacity-50">
+                                        <div className="rounded-full bg-muted p-2">
+                                            <Phone className="h-5 w-5 text-muted-foreground" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-muted-foreground">
+                                                Phone
+                                            </p>
+                                            <p className="text-base">
+                                                Belum ditambahkan
+                                            </p>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Leave Quota Card */}
+                            <Card className="shadow-none">
+                                <CardHeader>
+                                    <CardTitle className="text-lg">
+                                        Leave Quota
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="flex flex-col items-center justify-center space-y-8 pt-4">
+                                    <div className="relative flex items-center justify-center">
+                                        {/* Simple circular display using progress bar logic */}
+                                        <div className="text-center">
+                                            <p className="text-4xl font-bold text-primary">
+                                                {leaveStats.usedThisYear}/
+                                                {leaveStats.totalQuota}
+                                            </p>
+                                            <p className="text-sm text-muted-foreground">
+                                                Days Taken
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="w-full space-y-4">
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between text-sm font-medium">
+                                                <span>Annual Leave</span>
+                                                <span className="text-muted-foreground">
+                                                    {leaveStats.remainingQuota}{' '}
+                                                    / {leaveStats.totalQuota}{' '}
+                                                    Remaining
+                                                </span>
+                                            </div>
+                                            <Progress
+                                                value={remainingPercentage}
+                                                className="h-2"
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="flex items-center gap-3 rounded-lg border p-3">
+                                                <div className="rounded-md bg-blue-100 p-2 dark:bg-blue-900/30">
+                                                    <Clock className="h-5 w-5 text-blue-600" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-nowrap text-muted-foreground">
+                                                        Bulan Ini
+                                                    </p>
+                                                    <p
+                                                        className={`text-lg font-bold ${getUsedThisMonthColorClass(leaveStats.usedThisMonth)}`}
+                                                    >
+                                                        {
+                                                            leaveStats.usedThisMonth
+                                                        }{' '}
+                                                        Hari
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-3 rounded-lg border p-3">
+                                                <div className="rounded-md bg-green-100 p-2 dark:bg-green-900/30">
+                                                    <Trophy className="h-5 w-5 text-green-600" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Jatah Total
+                                                    </p>
+                                                    <p className="text-lg font-bold">
+                                                        {leaveStats.totalQuota}{' '}
+                                                        Hari
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </TabsContent>
+
+                    {/* Tab Pane: Detail Pekerjaan */}
+                    <TabsContent value="job">
+                        <Card className="shadow-none">
+                            <CardHeader className="flex flex-row items-center justify-between">
+                                <div>
+                                    <CardTitle className="text-lg">
+                                        Detail Pekerjaan (Job Details)
+                                    </CardTitle>
+                                    <CardDescription>
+                                        Informasi struktural dan tanggung jawab
+                                        karyawan.
+                                    </CardDescription>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <div className="divide-y border-t">
+                                    <div className="grid grid-cols-1 gap-1 p-6 sm:grid-cols-3 sm:gap-4">
+                                        <dt className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                                            <BuildingIcon className="h-4 w-4" />{' '}
+                                            Departemen
+                                        </dt>
+                                        <dd className="text-sm font-semibold sm:col-span-2">
+                                            {employee.department?.name || 'N/A'}
+                                        </dd>
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-1 p-6 sm:grid-cols-3 sm:gap-4">
+                                        <dt className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                                            <Briefcase className="h-4 w-4" />{' '}
+                                            Jabatan (Position)
+                                        </dt>
+                                        <dd className="text-sm font-semibold sm:col-span-2">
+                                            {employee.position?.name || 'N/A'}
+                                        </dd>
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-1 p-6 sm:grid-cols-3 sm:gap-4">
+                                        <dt className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                                            <ShieldCheck className="h-4 w-4" />{' '}
+                                            Status Pegawai
+                                        </dt>
+                                        <dd className="text-sm sm:col-span-2">
+                                            <Badge
+                                                variant="secondary"
+                                                className="border-none bg-green-100 text-green-700 capitalize dark:bg-green-900/20 dark:text-green-400"
+                                            >
+                                                {employee.employee_status?.replace(
+                                                    '_',
+                                                    ' ',
+                                                )}
+                                            </Badge>
+                                        </dd>
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-1 p-6 opacity-50 sm:grid-cols-3 sm:gap-4">
+                                        <dt className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                                            <UserCircle className="h-4 w-4" />{' '}
+                                            Reporting Manager
+                                        </dt>
+                                        <dd className="text-sm italic sm:col-span-2">
+                                            Data belum tersedia
+                                        </dd>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    {/* Tab Pane: Dokumen Pendukung */}
+                    <TabsContent value="dokumen">
+                        <Card className="shadow-none">
                             <CardHeader>
-                                <CardTitle>Dokumen Karyawan</CardTitle>
+                                <CardTitle className="text-lg">
+                                    Dokumen Karyawan
+                                </CardTitle>
                                 <CardDescription>
                                     Kelola berkas dan dokumen penting karyawan.
                                     Maks 5MB (PDF/JPG/PNG).
@@ -314,8 +484,9 @@ export default function Show({
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 {documentTypes.length === 0 ? (
-                                    <p className="py-4 text-center text-sm text-muted-foreground">
-                                        Belum ada jenis dokumen yang ditetapkan.
+                                    <p className="py-8 text-center text-sm text-muted-foreground">
+                                        Belum ada persyaratan jenis dokumen yang
+                                        ditetapkan untuk jabatan ini.
                                     </p>
                                 ) : (
                                     <div className="grid gap-3">
@@ -333,44 +504,51 @@ export default function Show({
                                                 return (
                                                     <div
                                                         key={type.id}
-                                                        className="flex flex-wrap items-center justify-between gap-4 rounded-lg border p-3"
+                                                        className="flex flex-wrap items-center justify-between gap-4 rounded-lg border p-4 transition-colors hover:bg-muted/30"
                                                     >
-                                                        <div className="flex flex-col gap-1">
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="font-semibold">
-                                                                    {type.name}
+                                                        <div className="flex items-start gap-3">
+                                                            <div className="rounded-md bg-muted p-2">
+                                                                <FileText className="h-5 w-5 text-muted-foreground" />
+                                                            </div>
+                                                            <div className="flex flex-col gap-1">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="font-semibold">
+                                                                        {
+                                                                            type.name
+                                                                        }
+                                                                    </span>
+                                                                    {isRequired ? (
+                                                                        <Badge
+                                                                            variant="destructive"
+                                                                            className="h-4 text-[10px]"
+                                                                        >
+                                                                            Wajib
+                                                                        </Badge>
+                                                                    ) : (
+                                                                        <Badge
+                                                                            variant="secondary"
+                                                                            className="h-4 text-[10px]"
+                                                                        >
+                                                                            Opsional
+                                                                        </Badge>
+                                                                    )}
+                                                                </div>
+                                                                <span className="text-xs text-muted-foreground">
+                                                                    {type.description ||
+                                                                        'Gunakan format scan asli.'}
                                                                 </span>
-                                                                {isRequired ? (
-                                                                    <Badge
-                                                                        variant="destructive"
-                                                                        className="h-4 text-[10px]"
-                                                                    >
-                                                                        Wajib
-                                                                    </Badge>
-                                                                ) : (
-                                                                    <Badge
-                                                                        variant="secondary"
-                                                                        className="h-4 text-[10px]"
-                                                                    >
-                                                                        Opsional
-                                                                    </Badge>
+                                                                {existingDoc && (
+                                                                    <span className="text-xs font-medium text-green-600 dark:text-green-400">
+                                                                        Diperbarui
+                                                                        pada{' '}
+                                                                        {new Date(
+                                                                            existingDoc.created_at,
+                                                                        ).toLocaleDateString(
+                                                                            'id-ID',
+                                                                        )}
+                                                                    </span>
                                                                 )}
                                                             </div>
-                                                            <span className="text-xs text-muted-foreground">
-                                                                {type.description ||
-                                                                    'Tidak ada deskripsi'}
-                                                            </span>
-                                                            {existingDoc && (
-                                                                <span className="text-xs font-medium text-green-600 dark:text-green-400">
-                                                                    Diunggah
-                                                                    pada{' '}
-                                                                    {new Date(
-                                                                        existingDoc.created_at,
-                                                                    ).toLocaleDateString(
-                                                                        'id-ID',
-                                                                    )}
-                                                                </span>
-                                                            )}
                                                         </div>
                                                         <div className="flex flex-wrap items-center gap-2">
                                                             {existingDoc ? (
@@ -389,8 +567,9 @@ export default function Show({
                                                                         </a>
                                                                     </Button>
                                                                     <Button
-                                                                        variant="destructive"
+                                                                        variant="ghost"
                                                                         size="sm"
+                                                                        className="text-destructive hover:bg-destructive/10"
                                                                         onClick={() =>
                                                                             setDocToDelete(
                                                                                 existingDoc.id,
@@ -407,7 +586,7 @@ export default function Show({
                                                                         type.id
                                                                     }
                                                                     onOpenChange={(
-                                                                        open: boolean,
+                                                                        open,
                                                                     ) =>
                                                                         !open &&
                                                                         handleCloseUploadForm()
@@ -508,7 +687,7 @@ export default function Show({
                                                                                                     .value,
                                                                                             )
                                                                                         }
-                                                                                        placeholder="Tambahkan catatan jika perlu..."
+                                                                                        placeholder="Misal: Scan sertifikat asli..."
                                                                                     />
                                                                                 </div>
                                                                             </div>
@@ -546,8 +725,8 @@ export default function Show({
                                 )}
                             </CardContent>
                         </Card>
-                    </div>
-                </div>
+                    </TabsContent>
+                </Tabs>
 
                 {/* Document Delete Confirmation Dialog */}
                 <Dialog

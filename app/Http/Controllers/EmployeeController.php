@@ -126,7 +126,8 @@ class EmployeeController extends Controller
         $totalQuota = 12; // Default system total quota
         
         // Calculate total days used this year based on all the monthly usages
-        $totalUsedThisYear = array_sum($monthlyUsage);
+        // $totalUsedThisYear = array_sum($monthlyUsage);
+        $totalUsedThisYear = $totalQuota - $remainingQuota;
 
         $documentTypes = collect();
         if ($employee->position_id) {

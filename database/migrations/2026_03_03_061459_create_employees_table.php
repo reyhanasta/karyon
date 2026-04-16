@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('full_name');
             $table->foreignId('department_id')->nullable()->constrained('departments')->nullOnDelete();
             $table->foreignId('position_id')->nullable()->constrained('positions')->nullOnDelete();
-            $table->enum('employee_status', ['orientasi', 'tidak_tetap', 'tetap', 'keluar'])->default('orientasi');
+            $table->enum('employee_status', ['orientasi', 'tidak_tetap', 'tetap', 'kontrak','keluar'])->default('orientasi');
             $table->string('employee_sip')->nullable();
             $table->date('join_date')->nullable();
             $table->date('end_date')->nullable();
