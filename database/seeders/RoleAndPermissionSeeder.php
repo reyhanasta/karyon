@@ -27,6 +27,7 @@ class RoleAndPermissionSeeder extends Seeder
             'shift.manage',
             'shift-change.view',
             'shift-change.create',
+            'shift-change.create.any',
             'shift-change.approve.hrd',
             // Document management
             'document.upload',
@@ -59,7 +60,7 @@ class RoleAndPermissionSeeder extends Seeder
         $hrAdmin = Role::firstOrCreate(['name' => 'hr-admin']);
         $hrAdmin->syncPermissions([
             'employee.view', 'employee.create', 'employee.edit', 'employee.delete',
-            'shift.view', 'shift.manage', 'shift-change.view', 'shift-change.approve.hrd',
+            'shift.view', 'shift.manage', 'shift-change.view', 'shift-change.create.any', 'shift-change.approve.hrd',
             'document.upload',
             'leave.view', 'leave.create.any', 'leave.edit', 'leave.approve.hrd',
             'overtime.view', 'overtime.create.any', 'overtime.edit', 'overtime.approve.hrd',

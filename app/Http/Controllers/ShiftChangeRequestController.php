@@ -33,38 +33,57 @@ class ShiftChangeRequestController extends Controller
 
     public function create()
     {
-        $employee = Auth::user()->employee;
+        $user = Auth::user();
+        $canCreateAny = $user->can('shift-change.create.any');
         
+        // Fetch all potential shifts and employees for filtering on frontend
+        $shifts = \App\Models\Shift::where('is_active', true)->get();
+        $employees = Employee::with(['department', 'position'])->orderBy('full_name')->get();
+
+        if ($canCreateAny) {
+            return Inertia::render('shift-change-requests/create', [
+                'employees' => $employees,
+                'shifts' => $shifts,
+                'canCreateAny' => true,
+            ]);
+        }
+
+        $employee = $user->employee;
         if (!$employee) {
             return redirect()->route('shift-change-requests.index')->with('error', 'Hanya karyawan yang dapat mengajukan tukar shift.');
         }
 
-        $shifts = \App\Models\Shift::where('department_id', $employee->department_id)->where('is_active', true)->get();
-        
-        $targetEmployees = Employee::with(['department', 'position'])
-            ->where('department_id', $employee->department_id)
-            ->where('id', '!=', $employee->id)
-            ->get();
+        $filteredShifts = $shifts->where('department_id', $employee->department_id);
+        $targetEmployees = $employees->where('department_id', $employee->department_id)
+            ->where('id', '!=', $employee->id);
 
         return Inertia::render('shift-change-requests/create', [
-            'shifts' => $shifts,
-            'targetEmployees' => $targetEmployees,
+            'shifts' => $filteredShifts->values(),
+            'targetEmployees' => $targetEmployees->values(),
+            'canCreateAny' => false,
         ]);
     }
 
     public function store(Request $request)
     {
+        $user = Auth::user();
+        $canCreateAny = $user->can('shift-change.create.any');
+
         $validated = $request->validate([
+            'requester_id' => $canCreateAny ? 'required|exists:employees,id' : 'nullable',
             'request_date' => 'required|date',
             'requester_shift_id' => 'required|exists:shifts,id',
             'target_id' => 'required|exists:employees,id',
             'reason' => 'required|string|max:500',
         ]);
 
-        $requester = Auth::user()->employee;
-
-        if (!$requester) {
-            return redirect()->route('shift-change-requests.index')->with('error', 'Hanya karyawan yang dapat mengajukan penggantian shift.');
+        if ($canCreateAny && !empty($validated['requester_id'])) {
+            $requester = Employee::findOrFail($validated['requester_id']);
+        } else {
+            $requester = $user->employee;
+            if (!$requester) {
+                return redirect()->route('shift-change-requests.index')->with('error', 'Hanya karyawan yang dapat mengajukan penggantian shift.');
+            }
         }
 
         $targetEmployee = Employee::findOrFail($validated['target_id']);
