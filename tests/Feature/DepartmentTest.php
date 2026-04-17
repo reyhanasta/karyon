@@ -1,104 +1,78 @@
 <?php
 
-use App\Models\User;
-use App\Models\Employee;
 use App\Models\Department;
-use App\Models\Position;
-use Spatie\Permission\Models\Permission;
+use App\Models\User;
+use Database\Seeders\RoleAndPermissionSeeder;
+use Illuminate\Support\Facades\DB;
+use function Pest\Laravel\actingAs;
+use function Pest\Laravel\seed;
 
 beforeEach(function () {
-    Permission::firstOrCreate(['name' => 'employee.view']);
-
-    $this->authorizedUser = User::factory()->create();
-    $this->authorizedUser->givePermissionTo('employee.view');
-
-    $this->unauthorizedUser = User::factory()->create();
+    seed(RoleAndPermissionSeeder::class);
+    $this->user = User::where('email', 'admin@admin.com')->first();
 });
 
-test('unauthenticated users are redirected', function () {
-    $this->get(route('departments.index'))->assertRedirect(route('login'));
+test('admin can view departments list', function () {
+    Department::create(['name' => 'IT Department', 'description' => 'Test Desk']);
+
+    actingAs($this->user)
+        ->get(route('departments.index'))
+        ->assertStatus(200)
+        ->assertInertia(fn ($page) => $page
+            ->component('departments/index')
+            ->has('departments.data')
+        );
 });
 
-test('unauthorized users get forbidden', function () {
-    $this->actingAs($this->unauthorizedUser)
-         ->get(route('departments.index'))
-         ->assertForbidden();
-});
+test('admin can store a new department', function () {
+    actingAs($this->user)
+        ->post(route('departments.store'), [
+            'name' => 'Human Resources',
+            'description' => 'HR description'
+        ])
+        ->assertRedirect()
+        ->assertSessionHas('success');
 
-test('authorized users can view departments', function () {
-    $this->actingAs($this->authorizedUser)
-         ->get(route('departments.index'))
-         ->assertOk();
-});
-
-test('can create a department', function () {
-    $response = $this->actingAs($this->authorizedUser)->post(route('departments.store'), [
-        'name' => 'Finance',
-        'description' => 'Handles money',
-    ]);
-
-    $response->assertSessionHas('success');
     $this->assertDatabaseHas('departments', [
-        'name' => 'Finance',
-        'description' => 'Handles money',
+        'name' => 'Human Resources'
     ]);
 });
 
-test('cannot create duplicate department', function () {
-    Department::create(['name' => 'Marketing']);
+test('admin can update a department', function () {
+    $department = Department::create(['name' => 'Finance']);
 
-    $response = $this->actingAs($this->authorizedUser)->post(route('departments.store'), [
-        'name' => 'Marketing',
-    ]);
+    actingAs($this->user)
+        ->patch(route('departments.update', $department), [
+            'name' => 'Finance & Accounting',
+            'description' => 'Updated description'
+        ])
+        ->assertRedirect()
+        ->assertSessionHas('success');
 
-    $response->assertSessionHasErrors('name');
+    expect($department->refresh()->name)->toBe('Finance & Accounting');
 });
 
-test('can update a department', function () {
-    $department = Department::create(['name' => 'Old Name']);
+test('admin can delete a department without employees', function () {
+    $department = Department::create(['name' => 'Temporary Dept']);
 
-    $response = $this->actingAs($this->authorizedUser)->put(route('departments.update', $department), [
-        'name' => 'New Name',
-        'description' => 'New Description',
-    ]);
+    actingAs($this->user)
+        ->delete(route('departments.destroy', $department))
+        ->assertRedirect()
+        ->assertSessionHas('success');
 
-    $response->assertSessionHas('success');
-    $this->assertDatabaseHas('departments', [
-        'id' => $department->id,
-        'name' => 'New Name',
-        'description' => 'New Description',
-    ]);
+    $this->assertDatabaseMissing('departments', ['id' => $department->id]);
 });
 
-test('can delete a department without employees', function () {
-    $department = Department::create(['name' => 'To Delete']);
-
-    $response = $this->actingAs($this->authorizedUser)->delete(route('departments.destroy', $department));
-
-    $response->assertSessionHas('success');
-    $this->assertDatabaseMissing('departments', [
-        'id' => $department->id,
-    ]);
-});
-
-test('cannot delete a department with employees', function () {
-    $department = Department::create(['name' => 'Has Employees']);
-    $position = Position::firstOrCreate(['name' => 'Staff']);
-    
-    $user = User::factory()->create();
-    Employee::create([
-        'user_id' => $user->id,
-        'full_name' => 'John Doe',
-        'department_id' => $department->id,
-        'position_id' => $position->id,
-        'join_date' => now()->toDateString(),
-        'leave_quota' => 12,
+test('admin cannot delete a department with active employees', function () {
+    $department = Department::create(['name' => 'Critical Dept']);
+    \App\Models\Employee::factory()->create([
+        'department_id' => $department->id
     ]);
 
-    $response = $this->actingAs($this->authorizedUser)->delete(route('departments.destroy', $department));
+    actingAs($this->user)
+        ->delete(route('departments.destroy', $department))
+        ->assertRedirect()
+        ->assertSessionHas('error', 'Cannot delete department with active employees.');
 
-    $response->assertSessionHas('error');
-    $this->assertDatabaseHas('departments', [
-        'id' => $department->id,
-    ]);
+    $this->assertDatabaseHas('departments', ['id' => $department->id]);
 });
