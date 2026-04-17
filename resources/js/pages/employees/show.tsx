@@ -171,7 +171,7 @@ export default function Show({
         return 'text-foreground';
     };
 
-    console.log(employee);
+
 
     return (
         <AppLayout
