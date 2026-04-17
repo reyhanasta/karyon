@@ -123,6 +123,8 @@ class EmployeeController extends Controller
         
         // In this system, $employee->leave_quota represents the current REMAINING quota
         $remainingQuota = $employee->leave_quota ?? 0;
+        $monthlyQuota = 5 - $usedThisMonth;
+
         $totalQuota = 12; // Default system total quota
         
         // Calculate total days used this year based on all the monthly usages
@@ -181,6 +183,7 @@ class EmployeeController extends Controller
                 'usedThisYear' => $totalUsedThisYear,
                 'remainingQuota' => $remainingQuota,
                 'usedThisMonth' => $usedThisMonth,
+                'monthlyQuota' => $monthlyQuota,
                 'monthlyLimit' => Employee::MONTHLY_LEAVE_LIMIT,
             ]
         ]);

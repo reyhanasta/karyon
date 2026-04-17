@@ -351,9 +351,8 @@ export default function Index({
                                                     <Edit2 className="h-4 w-4" />
                                                 </Button>
                                                 <Button
-                                                    variant="outline"
+                                                    variant="destructive"
                                                     size="icon"
-                                                    className="text-destructive"
                                                     onClick={() =>
                                                         setTypeToDelete(type.id)
                                                     }

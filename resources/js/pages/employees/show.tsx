@@ -16,7 +16,7 @@ import {
     MapPin,
     Trophy,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -82,6 +82,7 @@ type LeaveStats = {
     usedThisYear: number;
     remainingQuota: number;
     usedThisMonth: number;
+    monthlyQuota: number;
     monthlyLimit: number;
 };
 
@@ -109,6 +110,10 @@ export default function Show({
     // Local states for Document actions
     const [docToDelete, setDocToDelete] = useState<number | null>(null);
     const [uploadFormOpen, setUploadFormOpen] = useState<number | null>(null);
+
+    // States for progress bar mount animations
+    const [displayAnnualProgress, setDisplayAnnualProgress] = useState(0);
+    const [displayMonthlyProgress, setDisplayMonthlyProgress] = useState(0);
 
     const {
         data: uploadData,
@@ -157,21 +162,23 @@ export default function Show({
     };
 
     const defaultTotal = 12;
-    const remainingPercentage =
+    const annualPercentage =
         defaultTotal > 0 ? (leaveStats.remainingQuota / defaultTotal) * 100 : 0;
+
+    // Updated logic: Match the "Available / Limit" text by showing remaining quota portion
     const monthlyPercentage =
-        leaveStats.monthlyLimit > 0 ? (leaveStats.usedThisMonth / leaveStats.monthlyLimit) * 100 : 0;
+        leaveStats.monthlyLimit > 0
+            ? (leaveStats.monthlyQuota / leaveStats.monthlyLimit) * 100
+            : 0;
 
-    const getUsedThisMonthColorClass = (used: number) => {
-        if (used === 0) return 'text-green-600 dark:text-green-500';
-        if (used === 1 || used === 2) return 'text-foreground';
-        if (used === 3 || used === 4)
-            return 'text-yellow-600 dark:text-yellow-500';
-        if (used >= 5) return 'text-red-600 dark:text-red-500';
-        return 'text-foreground';
-    };
-
-
+    // Trigger mount animations
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDisplayAnnualProgress(annualPercentage);
+            setDisplayMonthlyProgress(monthlyPercentage);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [annualPercentage, monthlyPercentage]);
 
     return (
         <AppLayout
@@ -243,10 +250,10 @@ export default function Show({
                                 </Button>
                             </Link>
                         )}
-                        <Button size="sm">
+                        {/* <Button size="sm">
                             <Download className="mr-2 h-4 w-4" /> Download
                             Resume
-                        </Button>
+                        </Button> */}
                     </div>
                 </div>
 
@@ -350,10 +357,14 @@ export default function Show({
                                 </CardHeader>
                                 <CardContent className="space-y-6">
                                     <div className="space-y-4">
-                                        <h4 className="font-semibold text-sm">Status Cuti</h4>
+                                        <h4 className="text-sm font-semibold">
+                                            Status Cuti
+                                        </h4>
                                         <div className="space-y-2">
                                             <div className="flex justify-between text-sm font-medium">
-                                                <span className="text-muted-foreground">Cuti Tahunan Tersisa</span>
+                                                <span className="text-muted-foreground">
+                                                    Cuti Tahunan Tersisa
+                                                </span>
                                                 <span className="text-muted-foreground">
                                                     {leaveStats.remainingQuota}{' '}
                                                     dari {leaveStats.totalQuota}{' '}
@@ -361,33 +372,37 @@ export default function Show({
                                                 </span>
                                             </div>
                                             <Progress
-                                                value={remainingPercentage}
+                                                value={displayAnnualProgress}
                                                 className="h-2"
                                                 indicatorColor="bg-orange-500"
                                             />
                                         </div>
                                         <div className="space-y-2">
                                             <div className="flex justify-between text-sm font-medium">
-                                                <span className="text-muted-foreground">Jatah Cuti Bulanan</span>
                                                 <span className="text-muted-foreground">
-                                                    {leaveStats.usedThisMonth}{' '}
-                                                    dari {leaveStats.monthlyLimit}{' '}
+                                                    Jatah Cuti Bulanan
+                                                </span>
+                                                <span className="text-muted-foreground">
+                                                    {leaveStats.monthlyQuota}{' '}
+                                                    dari{' '}
+                                                    {leaveStats.monthlyLimit}{' '}
                                                     hari
                                                 </span>
                                             </div>
                                             <Progress
-                                                value={monthlyPercentage}
+                                                value={displayMonthlyProgress}
                                                 className="h-2"
-                                                indicatorColor="bg-blue-500"
+                                                indicatorColor="bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)]"
                                             />
                                         </div>
                                     </div>
-
                                     <Separator />
-
                                     <div className="space-y-4">
-                                        <h4 className="font-semibold text-sm">Riwayat Cuti</h4>
-                                        {leaveHistories && leaveHistories.length > 0 ? (
+                                        <h4 className="text-sm font-semibold">
+                                            Riwayat Cuti
+                                        </h4>
+                                        {leaveHistories &&
+                                        leaveHistories.length > 0 ? (
                                             <div className="space-y-4">
                                                 {leaveHistories.map((leave) => (
                                                     <div
@@ -401,13 +416,15 @@ export default function Show({
                                                             {leave.date_string}{' '}
                                                             <br />
                                                             <span className="text-xs text-muted-foreground">
-                                                                ({leave.days} hari)
+                                                                ({leave.days}{' '}
+                                                                hari)
                                                             </span>
                                                         </div>
                                                         <div className="text-foreground">
                                                             Deskripsi: <br />
                                                             <span className="text-muted-foreground">
-                                                                {leave.reason || '-'}
+                                                                {leave.reason ||
+                                                                    '-'}
                                                             </span>
                                                         </div>
                                                     </div>
