@@ -96,14 +96,14 @@ export default function Login({ status, canRegister }: Props) {
                                 Log in
                             </Button>
                         </div>
-                        {canRegister && (
+                        {/* {canRegister && (
                             <div className="text-center text-sm text-muted-foreground">
                                 Belum memiliki akun?{' '}
                                 <TextLink href={register()} tabIndex={5}>
                                     Daftar
                                 </TextLink>
                             </div>
-                        )}
+                        )} */}
                     </>
                 )}
             </Form>

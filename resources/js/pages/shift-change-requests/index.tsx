@@ -70,6 +70,9 @@ export default function Index({
         }
     };
 
+    const canCreate =
+        can('shift-change.create') || can('shift-change.create.any');
+
     return (
         <AppLayout
             breadcrumbs={[
@@ -88,7 +91,7 @@ export default function Index({
                             Daftar pengajuan penggantian shift karyawan.
                         </p>
                     </div>
-                    {can('shift-change.create') && (
+                    {canCreate && (
                         <Button asChild>
                             <Link href="/shift-change-requests/create">
                                 <Plus className="mr-2 h-4 w-4" /> Ajukan
