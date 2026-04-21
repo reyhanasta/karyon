@@ -153,7 +153,7 @@ export function ApprovalHistory({
 
                     {/* Step 2: Karu / Manager */}
                     <TimelineStep
-                        title="Kepala Ruangan / Manager"
+                        title="Kepala Ruangan"
                         status={getKaruStatus()}
                         subtitle={
                             karuApprover

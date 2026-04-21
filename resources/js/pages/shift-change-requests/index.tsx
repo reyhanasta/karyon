@@ -1,6 +1,6 @@
+import { Head, Link } from '@inertiajs/react';
 import { format, parseISO } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { Head, Link } from '@inertiajs/react';
 import { Plus, Eye, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,12 @@ type ShiftChangeRequest = {
     target: Employee;
     request_date: string;
     requesterShift: Shift;
-    status: 'pending_target' | 'pending_hrd' | 'pending_manager' | 'approved' | 'rejected';
+    status:
+        | 'pending_target'
+        | 'pending_hrd'
+        | 'pending_manager'
+        | 'approved'
+        | 'rejected';
     created_at: string;
 };
 
