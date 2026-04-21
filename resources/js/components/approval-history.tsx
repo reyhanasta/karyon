@@ -20,6 +20,7 @@ interface ApprovalHistoryProps {
     canApprove?: boolean;
     onApprove?: () => void;
     onReject?: () => void;
+    showDirectorStep?: boolean;
 }
 
 type StepStatus = 'done' | 'rejected' | 'current' | 'waiting';
@@ -65,6 +66,7 @@ export function ApprovalHistory({
     canApprove,
     onApprove,
     onReject,
+    showDirectorStep = true,
 }: ApprovalHistoryProps) {
     const formatDatetime = (dateStr?: string) => {
         if (!dateStr) return '-';
@@ -167,19 +169,21 @@ export function ApprovalHistory({
                     />
 
                     {/* Step 3: Direktur */}
-                    <TimelineStep
-                        title="Direktur"
-                        status={getDirectorStatus()}
-                        subtitle={
-                            request.director_approver
-                                ? request.status === 'rejected'
-                                    ? `Ditolak oleh ${request.director_approver.employee?.full_name ?? 'Direktur'}`
-                                    : `Disetujui oleh ${request.director_approver.employee?.full_name ?? 'Direktur'}`
-                                : request.status === 'pending_director'
-                                  ? 'Sedang diproses…'
-                                  : 'Menunggu…'
-                        }
-                    />
+                    {showDirectorStep && (
+                        <TimelineStep
+                            title="Direktur"
+                            status={getDirectorStatus()}
+                            subtitle={
+                                request.director_approver
+                                    ? request.status === 'rejected'
+                                        ? `Ditolak oleh ${request.director_approver.employee?.full_name ?? 'Direktur'}`
+                                        : `Disetujui oleh ${request.director_approver.employee?.full_name ?? 'Direktur'}`
+                                    : request.status === 'pending_director'
+                                      ? 'Sedang diproses…'
+                                      : 'Menunggu…'
+                            }
+                        />
+                    )}
                 </ol>
 
                 {canApprove && request.status.startsWith('pending') && (

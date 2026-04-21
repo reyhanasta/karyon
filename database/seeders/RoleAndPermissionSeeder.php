@@ -29,6 +29,7 @@ class RoleAndPermissionSeeder extends Seeder
             'shift-change.create',
             'shift-change.create.any',
             'shift-change.approve.hrd',
+            'shift-change.approve.manager',
             // Document management
             'document.upload',
             // Leave request management
@@ -46,7 +47,6 @@ class RoleAndPermissionSeeder extends Seeder
             'overtime.edit',
             'overtime.approve.hrd',
             'overtime.approve.manager',
-            'overtime.approve.director',
         ];
 
         foreach ($permissions as $perm) {
@@ -71,7 +71,8 @@ class RoleAndPermissionSeeder extends Seeder
             'employee.view',
             'shift.view', 'shift.manage', 'shift-change.view',
             'leave.view', 'leave.approve.manager', 'leave.create',
-            'overtime.view', 'overtime.approve.manager','overtime.create'
+            'overtime.view', 'overtime.approve.manager','overtime.create',
+            'shift-change.view', 'shift-change.approve.manager'
         ]);
 
         $karu = Role::firstOrCreate(['name' => 'karu']);
@@ -79,15 +80,16 @@ class RoleAndPermissionSeeder extends Seeder
             'employee.view',
             'shift.view', 'shift.manage', 'shift-change.view',
             'leave.view', 'leave.approve.manager','leave.create',
-            'overtime.view', 'overtime.approve.manager','overtime.create'
+            'overtime.view', 'overtime.approve.manager','overtime.create',
+            'shift-change.view', 'shift-change.approve.manager'
         ]);
 
         $director = Role::firstOrCreate(['name' => 'director']);
         $director->syncPermissions([
             'employee.view',
-            'shift.view', 'shift-change.view',
+            'shift.view', 'shift-change.view', 'shift-change.approve.manager',
             'leave.view', 'leave.approve.hrd','leave.approve.manager','leave.approve.director','leave.create',
-            'overtime.view', 'overtime.approve.hrd','overtime.approve.manager','overtime.approve.director','overtime.create'
+            'overtime.view', 'overtime.approve.hrd','overtime.approve.manager','overtime.create'
         ]);
 
         $employee = Role::firstOrCreate(['name' => 'employee']);

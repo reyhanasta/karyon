@@ -14,7 +14,7 @@ class OvertimeRequestPolicy
 
     public function view(User $user, OvertimeRequest $overtimeRequest): bool
     {
-        if ($user->can('overtime.approve.hrd') || $user->can('overtime.approve.manager') || $user->can('overtime.approve.director')) {
+        if ($user->can('overtime.approve.hrd') || $user->can('overtime.approve.manager')) {
             return true;
         }
 
@@ -33,6 +33,6 @@ class OvertimeRequestPolicy
 
     public function updateStatus(User $user, OvertimeRequest $overtimeRequest): bool
     {
-        return $user->can('overtime.approve.hrd') || $user->can('overtime.approve.manager') || $user->can('overtime.approve.director');
+        return $user->can('overtime.approve.hrd') || $user->can('overtime.approve.manager');
     }
 }

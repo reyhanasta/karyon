@@ -40,7 +40,6 @@ type OvertimeRequestData = {
     approver?: { employee?: { full_name: string } };
     hrd_approver?: { employee?: { full_name: string } };
     manager_approver?: { employee?: { full_name: string } };
-    director_approver?: { employee?: { full_name: string } };
 };
 
 export default function Show({
@@ -56,8 +55,6 @@ export default function Show({
                 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500 border-yellow-200 dark:border-yellow-800/40',
             pending_manager:
                 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500 border-yellow-200 dark:border-yellow-800/40',
-            pending_director:
-                'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500 border-yellow-200 dark:border-yellow-800/40',
             pending:
                 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500 border-yellow-200 dark:border-yellow-800/40',
             approved:
@@ -72,7 +69,6 @@ export default function Show({
             pending: 'Menunggu',
             pending_hrd: 'Menunggu HRD',
             pending_manager: 'Menunggu Karu',
-            pending_director: 'Menunggu Direktur',
             approved: 'Disetujui',
             rejected: 'Ditolak',
         }[overtimeRequest.status] || overtimeRequest.status;
@@ -265,6 +261,7 @@ export default function Show({
                             canApprove={canApprove}
                             onApprove={() => handleStatusUpdate('approved')}
                             onReject={() => handleStatusUpdate('rejected')}
+                            showDirectorStep={false}
                         />
                     </div>
 

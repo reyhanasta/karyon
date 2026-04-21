@@ -135,13 +135,12 @@ class OvertimeRequestController extends Controller
     {
         $this->authorize('view', $overtimeRequest);
 
-        $overtimeRequest->load(['employee.position', 'employee.department', 'approver.employee', 'hrdApprover.employee', 'managerApprover.employee', 'directorApprover.employee']);
+        $overtimeRequest->load(['employee.position', 'employee.department', 'approver.employee', 'hrdApprover.employee', 'managerApprover.employee']);
 
         $user = Auth::user();
         $canApprove = false;
         if ($overtimeRequest->status === 'pending_hrd' && $user->can('overtime.approve.hrd')) $canApprove = true;
         if ($overtimeRequest->status === 'pending_manager' && $user->can('overtime.approve.manager')) $canApprove = true;
-        if ($overtimeRequest->status === 'pending_director' && $user->can('overtime.approve.director')) $canApprove = true;
 
         return Inertia::render('overtime-requests/show', [
             'overtimeRequest' => $overtimeRequest,
@@ -224,15 +223,10 @@ class OvertimeRequestController extends Controller
             $rolesToNotify = ['manager'];
         } elseif ($overtimeRequest->status === 'pending_manager') {
             if (!$user->can('overtime.approve.manager')) return back()->with('error', 'You do not have permission at this stage.');
-            $nextStatus = 'pending_director';
+            $nextStatus = 'approved';
             $approveColumn = 'manager_approved_by';
             $approveAtColumn = 'manager_approved_at';
-            $rolesToNotify = ['director'];
-        } elseif ($overtimeRequest->status === 'pending_director') {
-            if (!$user->can('overtime.approve.director')) return back()->with('error', 'You do not have permission at this stage.');
-            $nextStatus = 'approved';
-            $approveColumn = 'director_approved_by';
-            $approveAtColumn = 'director_approved_at';
+            $rolesToNotify = [];
         }
 
         // If action was to reject, it immediately becomes rejected and halts

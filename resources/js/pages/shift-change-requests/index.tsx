@@ -23,7 +23,7 @@ type ShiftChangeRequest = {
     target: Employee;
     request_date: string;
     requesterShift: Shift;
-    status: 'pending_target' | 'pending_hrd' | 'approved' | 'rejected';
+    status: 'pending_target' | 'pending_hrd' | 'pending_manager' | 'approved' | 'rejected';
     created_at: string;
 };
 
@@ -52,6 +52,15 @@ export default function Index({
                         className="bg-blue-100 text-blue-800"
                     >
                         Menunggu HRD
+                    </Badge>
+                );
+            case 'pending_manager':
+                return (
+                    <Badge
+                        variant="secondary"
+                        className="bg-purple-100 text-purple-800"
+                    >
+                        Menunggu Kepala Ruangan
                     </Badge>
                 );
             case 'approved':

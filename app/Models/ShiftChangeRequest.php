@@ -22,6 +22,8 @@ class ShiftChangeRequest extends Model
         'target_approved_at',
         'hrd_approved_by',
         'hrd_approved_at',
+        'manager_approved_by',
+        'manager_approved_at',
         'notes',
     ];
 
@@ -53,5 +55,10 @@ class ShiftChangeRequest extends Model
     public function hrdApprovedBy()
     {
         return $this->belongsTo(User::class, 'hrd_approved_by');
+    }
+
+    public function managerApprovedBy()
+    {
+        return $this->belongsTo(User::class, 'manager_approved_by');
     }
 }

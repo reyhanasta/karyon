@@ -25,11 +25,13 @@ type ShiftChangeRequest = {
     request_date: string;
     requesterShift: Shift;
     reason: string;
-    status: 'pending_target' | 'pending_hrd' | 'approved' | 'rejected';
+    status: 'pending_target' | 'pending_hrd' | 'pending_manager' | 'approved' | 'rejected';
     target_approved_at: string | null;
     targetApprovedBy?: { name: string };
     hrd_approved_at: string | null;
     hrdApprovedBy?: { name: string };
+    manager_approved_at: string | null;
+    managerApprovedBy?: { name: string };
     notes: string | null;
     created_at: string;
 };
@@ -41,6 +43,7 @@ export default function Show({ request }: { request: ShiftChangeRequest }) {
 
     const isTarget = request.target.user_id === currentUser.id;
     const isHrd = can('shift-change.approve.hrd');
+    const isManager = can('shift-change.approve.manager');
 
     const handleApproveTarget = () => {
         if (confirm('Konfirmasi bahwa Anda bersedia menggantikan shift ini?')) {
@@ -53,9 +56,19 @@ export default function Show({ request }: { request: ShiftChangeRequest }) {
     };
 
     const handleApproveHrd = () => {
-        if (confirm('Setujui pengajuan penggantian shift ini secara final?')) {
+        if (confirm('Setujui pengajuan penggantian shift ini?')) {
             router.post(
                 `/shift-change-requests/${request.id}/approve-hrd`,
+                {},
+                { preserveScroll: true },
+            );
+        }
+    };
+
+    const handleApproveManager = () => {
+        if (confirm('Setujui pengajuan penggantian shift ini sebagai Kepala Ruangan?')) {
+            router.post(
+                `/shift-change-requests/${request.id}/approve-manager`,
                 {},
                 { preserveScroll: true },
             );
@@ -81,6 +94,10 @@ export default function Show({ request }: { request: ShiftChangeRequest }) {
         pending_hrd: {
             label: 'Menunggu Persetujuan HRD',
             className: 'bg-blue-100 text-blue-800',
+        },
+        pending_manager: {
+            label: 'Menunggu Persetujuan Kepala Ruangan',
+            className: 'bg-purple-100 text-purple-800',
         },
         approved: {
             label: 'Disetujui',
@@ -283,21 +300,50 @@ export default function Show({ request }: { request: ShiftChangeRequest }) {
                             {/* Step 3: HRD */}
                             <li className="ms-6">
                                 <span
-                                    className={`absolute -inset-s-3 flex h-6 w-6 items-center justify-center rounded-full ring-4 ring-background ${request.hrd_approved_at ? (request.status === 'approved' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600') : 'bg-muted text-muted-foreground'}`}
+                                    className={`absolute -inset-s-3 flex h-6 w-6 items-center justify-center rounded-full ring-4 ring-background ${request.hrd_approved_at ? 'bg-green-100 text-green-600' : (request.status === 'rejected' && !!request.hrd_approved_by ? 'bg-red-100 text-red-600' : 'bg-muted text-muted-foreground')}`}
                                 >
-                                    {request.status === 'approved' ? (
+                                    {request.hrd_approved_at ? (
                                         <CheckCircle2 className="h-3.5 w-3.5" />
-                                    ) : (
+                                    ) : request.status === 'rejected' && !!request.hrd_approved_by ? (
                                         <XCircle className="h-3.5 w-3.5" />
+                                    ) : (
+                                        <CheckCircle2 className="h-3.5 w-3.5" />
                                     )}
                                 </span>
                                 <h3 className="text-sm font-medium">
-                                    Persetujuan HRD / Manajemen
+                                    Persetujuan HRD
                                 </h3>
                                 <p className="text-xs text-muted-foreground">
                                     {request.hrd_approved_at
-                                        ? `${request.status === 'approved' ? 'Disetujui' : 'Ditolak'} oleh ${request.hrdApprovedBy?.name ?? 'HRD'} · ${format(parseISO(request.hrd_approved_at), 'dd MMM yyyy, HH:mm', { locale: id })}`
-                                        : 'Menunggu persetujuan HRD…'}
+                                        ? `Disetujui oleh ${request.hrdApprovedBy?.name ?? 'HRD'} · ${format(parseISO(request.hrd_approved_at), 'dd MMM yyyy, HH:mm', { locale: id })}`
+                                        : request.status === 'rejected' && !!request.hrd_approved_by
+                                            ? 'Ditolak oleh HRD'
+                                            : 'Menunggu persetujuan HRD…'}
+                                </p>
+                            </li>
+
+                            {/* Step 4: Karu / Manager */}
+                            <li className="ms-6">
+                                <span
+                                    className={`absolute -inset-s-3 flex h-6 w-6 items-center justify-center rounded-full ring-4 ring-background ${request.manager_approved_at ? 'bg-green-100 text-green-600' : (request.status === 'rejected' && !!request.manager_approved_by ? 'bg-red-100 text-red-600' : 'bg-muted text-muted-foreground')}`}
+                                >
+                                    {request.status === 'approved' ? (
+                                        <CheckCircle2 className="h-3.5 w-3.5" />
+                                    ) : request.status === 'rejected' && !!request.manager_approved_by ? (
+                                        <XCircle className="h-3.5 w-3.5" />
+                                    ) : (
+                                        <CheckCircle2 className="h-3.5 w-3.5" />
+                                    )}
+                                </span>
+                                <h3 className="text-sm font-medium">
+                                    Persetujuan Kepala Ruangan
+                                </h3>
+                                <p className="text-xs text-muted-foreground">
+                                    {request.manager_approved_at
+                                        ? `Disetujui oleh ${request.managerApprovedBy?.name ?? 'Kepala Ruangan'} · ${format(parseISO(request.manager_approved_at), 'dd MMM yyyy, HH:mm', { locale: id })}`
+                                        : request.status === 'rejected' && !!request.manager_approved_by
+                                            ? 'Ditolak oleh Kepala Ruangan'
+                                            : 'Menunggu persetujuan Kepala Ruangan…'}
                                 </p>
                             </li>
                         </ol>
@@ -311,7 +357,8 @@ export default function Show({ request }: { request: ShiftChangeRequest }) {
                             {/* Reject: bisa dilakukan target (saat pending_target) atau HRD */}
                             {(isTarget &&
                                 request.status === 'pending_target') ||
-                            isHrd ? (
+                            isHrd ||
+                            (isManager && request.status === 'pending_manager') ? (
                                 <Button
                                     variant="destructive"
                                     onClick={handleReject}
@@ -339,10 +386,21 @@ export default function Show({ request }: { request: ShiftChangeRequest }) {
                                     <Button onClick={handleApproveHrd}>
                                         <CheckCircle2 className="mr-2 h-4 w-4" />
                                         {request.status === 'pending_target'
-                                            ? 'Bypass & Setujui'
+                                            ? 'Bypass & Setujui (HRD)'
                                             : 'Setujui (HRD)'}
                                     </Button>
                                 )}
+
+                            {/* Manager approve */}
+                            {isManager && request.status === 'pending_manager' && (
+                                <Button
+                                    className="bg-green-600 hover:bg-green-700"
+                                    onClick={handleApproveManager}
+                                >
+                                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                                    Setujui (Kepala Ruangan)
+                                </Button>
+                            )}
                         </div>
                     )}
             </div>

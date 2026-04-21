@@ -63,8 +63,7 @@ export default function Index({
     const { can } = usePermissions();
     const canApproveHRD = can('overtime.approve.hrd');
     const canApproveManager = can('overtime.approve.manager');
-    const canApproveDirector = can('overtime.approve.director');
-    const canApprove = canApproveHRD || canApproveManager || canApproveDirector;
+    const canApprove = canApproveHRD || canApproveManager;
     const canCreateAny = can('overtime.create.any');
     const canCreate = can('overtime.create') || canCreateAny;
     const canEdit = can('overtime.edit');
@@ -345,10 +344,7 @@ export default function Index({
                                                     : request.status ===
                                                         'pending_manager'
                                                       ? 'Menunggu Karu'
-                                                      : request.status ===
-                                                          'pending_director'
-                                                        ? 'Menunggu Direktur'
-                                                        : 'Menunggu'}
+                                                      : 'Menunggu'}
                                         </Badge>
                                     </TableCell>
                                     {showActions && (
@@ -386,10 +382,7 @@ export default function Index({
                                                     canApproveHRD) ||
                                                     (request.status ===
                                                         'pending_manager' &&
-                                                        canApproveManager) ||
-                                                    (request.status ===
-                                                        'pending_director' &&
-                                                        canApproveDirector)) && (
+                                                        canApproveManager)) && (
                                                     <>
                                                         <Button
                                                             variant="outline"

@@ -30,8 +30,9 @@ class ShiftChangeRequestNotification extends Notification implements ShouldQueue
 
         $messages = [
             'submitted' => "{$requesterName} mengajukan tukar shift dengan Anda pada tanggal {$date}.",
-            'target_approved' => "Tukar shift {$requesterName} & {$targetName} tgl {$date} disetujui, menunggu persetujuan Anda (HRD).",
-            'approved'  => "Tukar shift antara {$requesterName} & {$targetName} tgl {$date} telah disetujui HRD.",
+            'target_approved' => "Tukar shift {$requesterName} & {$targetName} tgl {$date} dikonfirmasi, menunggu persetujuan HRD.",
+            'pending_manager' => "Tukar shift {$requesterName} & {$targetName} tgl {$date} disetujui HRD, menunggu Kepala Ruangan.",
+            'approved'  => "Tukar shift antara {$requesterName} & {$targetName} tgl {$date} telah disetujui oleh Kepala Ruangan.",
             'rejected'  => "Pengajuan tukar shift Anda tgl {$date} telah ditolak.",
         ];
 

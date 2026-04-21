@@ -54,7 +54,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:overtime.view');
     Route::post('overtime-requests/{overtimeRequest}/status', [App\Http\Controllers\OvertimeRequestController::class, 'updateStatus'])
         ->name('overtime-requests.status')
-        ->middleware('permission:overtime.approve.hrd|overtime.approve.manager|overtime.approve.director');
+        ->middleware('permission:overtime.approve.hrd|overtime.approve.manager');
 
     // Notifications
     Route::get('notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
@@ -89,6 +89,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('shift-change-requests.approve-target');
     Route::post('shift-change-requests/{shift_change_request}/approve-hrd', [App\Http\Controllers\ShiftChangeRequestController::class, 'approveHrd'])
         ->name('shift-change-requests.approve-hrd');
+    Route::post('shift-change-requests/{shift_change_request}/approve-manager', [App\Http\Controllers\ShiftChangeRequestController::class, 'approveManager'])
+        ->name('shift-change-requests.approve-manager');
     Route::post('shift-change-requests/{shift_change_request}/reject', [App\Http\Controllers\ShiftChangeRequestController::class, 'reject'])
         ->name('shift-change-requests.reject');
     Route::resource('shift-change-requests', App\Http\Controllers\ShiftChangeRequestController::class)
