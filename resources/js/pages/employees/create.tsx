@@ -1,16 +1,4 @@
 import { Head, Link, useForm as useInertiaForm } from '@inertiajs/react';
-import type { FormEventHandler } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import AppLayout from '@/layouts/app-layout';
 import {
     UserPlus,
     ArrowLeft,
@@ -23,6 +11,18 @@ import {
     ShieldCheck,
     Stethoscope,
 } from 'lucide-react';
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 
 export default function Create({
@@ -47,7 +47,7 @@ export default function Create({
         role: 'employee',
     });
 
-    const submit: FormEventHandler = (e) => {
+    const submit = (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         post('/employees');
     };
@@ -70,7 +70,7 @@ export default function Create({
                             <div className="rounded-xl bg-primary/10 p-2.5 text-primary">
                                 <UserPlus className="h-6 w-6" />
                             </div>
-                            <h2 className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-3xl font-bold tracking-tight">
+                            <h2 className="bg-linear-to-r from-foreground to-foreground/70 bg-clip-text text-3xl font-bold tracking-tight">
                                 Tambah Karyawan
                             </h2>
                         </div>
@@ -220,7 +220,7 @@ export default function Create({
 
                     {/* Section 2: Informasi Pekerjaan */}
                     <div className="group relative">
-                        <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-primary/20 to-secondary/20 opacity-25 blur transition duration-1000 group-hover:opacity-40"></div>
+                        <div className="absolute -inset-0.5 rounded-2xl bg-linear-to-r from-primary/20 to-secondary/20 opacity-25 blur transition duration-1000 group-hover:opacity-40"></div>
                         <div className="relative overflow-hidden rounded-2xl border bg-card p-6 shadow-sm">
                             <div className="mb-6 flex items-center gap-2 border-b pb-4">
                                 <Briefcase className="h-5 w-5 text-primary" />
@@ -415,7 +415,7 @@ export default function Create({
                             <Button
                                 variant="outline"
                                 type="button"
-                                className="rounded-xl px-6"
+                                className="px-6"
                             >
                                 Batal
                             </Button>
@@ -423,7 +423,7 @@ export default function Create({
                         <Button
                             type="submit"
                             disabled={processing}
-                            className="gap-2 rounded-xl bg-primary px-8 shadow-md shadow-primary/20 transition-all hover:bg-primary/90 active:scale-95"
+                            className="gap-2 bg-primary px-8 shadow-md shadow-primary/20 transition-all hover:bg-primary/90 active:scale-95"
                         >
                             {processing ? (
                                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
