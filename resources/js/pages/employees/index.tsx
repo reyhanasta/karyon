@@ -13,7 +13,6 @@ import {
 import { useRef, useState } from 'react';
 import { Pagination } from '@/components/pagination';
 import { TableSkeleton } from '@/components/table-skeleton';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
