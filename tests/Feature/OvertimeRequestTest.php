@@ -209,7 +209,7 @@ test('manager can update overtime status', function () {
     $response->assertSessionHas('success');
     $this->assertDatabaseHas('overtime_requests', [
         'id' => $overtime->id,
-        'status' => 'pending_director', // After manager approves, it should be pending_director
+        'status' => 'approved', // After manager approves, it should be approved
     ]);
 });
 

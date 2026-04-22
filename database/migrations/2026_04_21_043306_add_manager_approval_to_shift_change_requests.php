@@ -24,8 +24,10 @@ return new class extends Migration
                   ->after('manager_approved_by');
         });
 
-        // Use a raw DB statement to update the enum
-        DB::statement("ALTER TABLE shift_change_requests MODIFY COLUMN status ENUM('pending_target', 'pending_hrd', 'pending_manager', 'approved', 'rejected') DEFAULT 'pending_target'");
+        // Use a raw DB statement to update the enum (MySQL only)
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE shift_change_requests MODIFY COLUMN status ENUM('pending_target', 'pending_hrd', 'pending_manager', 'approved', 'rejected') DEFAULT 'pending_target'");
+        }
     }
 
     /**
@@ -38,6 +40,8 @@ return new class extends Migration
             $table->dropColumn(['manager_approved_by', 'manager_approved_at']);
         });
 
-        DB::statement("ALTER TABLE shift_change_requests MODIFY COLUMN status ENUM('pending_target', 'pending_hrd', 'approved', 'rejected') DEFAULT 'pending_target'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE shift_change_requests MODIFY COLUMN status ENUM('pending_target', 'pending_hrd', 'approved', 'rejected') DEFAULT 'pending_target'");
+        }
     }
 };

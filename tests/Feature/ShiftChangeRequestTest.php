@@ -119,5 +119,5 @@ test('hr admin can approve a target-approved shift change request', function () 
         ->assertRedirect()
         ->assertSessionHas('success');
 
-    expect($request->refresh()->status)->toBe('approved');
+    expect($request->refresh()->status)->toBe('pending_manager');
 });
