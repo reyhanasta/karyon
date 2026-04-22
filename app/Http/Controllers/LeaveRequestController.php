@@ -207,9 +207,15 @@ class LeaveRequestController extends Controller
 
         $user = Auth::user();
         $canApprove = false;
+        
         if ($leaveRequest->status === 'pending_hrd' && $user->can('leave.approve.hrd')) $canApprove = true;
         if ($leaveRequest->status === 'pending_manager' && $user->can('leave.approve.manager')) $canApprove = true;
         if ($leaveRequest->status === 'pending_director' && $user->can('leave.approve.director')) $canApprove = true;
+
+        // Bypass: Direktur bisa action di semua status pending
+        if (str_starts_with($leaveRequest->status, 'pending_') && $user->can('leave.approve.director')) {
+            $canApprove = true;
+        }
 
         return Inertia::render('leave-requests/show', [
             'leaveRequest' => $leaveRequest,
@@ -312,23 +318,34 @@ class LeaveRequestController extends Controller
         $approveAtColumn = null;
         $rolesToNotify = [];
 
-        if ($leaveRequest->status === 'pending_hrd') {
-            if (!$user->can('leave.approve.hrd')) return back()->with('error', 'You do not have permission at this stage.');
-            $nextStatus = 'pending_manager';
-            $approveColumn = 'hrd_approved_by';
-            $approveAtColumn = 'hrd_approved_at';
-            $rolesToNotify = ['manager'];
-        } elseif ($leaveRequest->status === 'pending_manager') {
-            if (!$user->can('leave.approve.manager')) return back()->with('error', 'You do not have permission at this stage.');
-            $nextStatus = 'pending_director';
-            $approveColumn = 'manager_approved_by';
-            $approveAtColumn = 'manager_approved_at';
-            $rolesToNotify = ['director'];
-        } elseif ($leaveRequest->status === 'pending_director') {
-            if (!$user->can('leave.approve.director')) return back()->with('error', 'You do not have permission at this stage.');
+        // Cek Bypass: Jika Direktur menyetujui saat status masih di HRD atau Manager
+        $isDirectorBypass = str_starts_with($leaveRequest->status, 'pending_') && 
+                            $leaveRequest->status !== 'pending_director' && 
+                            $user->can('leave.approve.director');
+
+        if ($isDirectorBypass) {
             $nextStatus = 'approved';
             $approveColumn = 'director_approved_by';
             $approveAtColumn = 'director_approved_at';
+        } else {
+            if ($leaveRequest->status === 'pending_hrd') {
+                if (!$user->can('leave.approve.hrd')) return back()->with('error', 'You do not have permission at this stage.');
+                $nextStatus = 'pending_manager';
+                $approveColumn = 'hrd_approved_by';
+                $approveAtColumn = 'hrd_approved_at';
+                $rolesToNotify = ['manager'];
+            } elseif ($leaveRequest->status === 'pending_manager') {
+                if (!$user->can('leave.approve.manager')) return back()->with('error', 'You do not have permission at this stage.');
+                $nextStatus = 'pending_director';
+                $approveColumn = 'manager_approved_by';
+                $approveAtColumn = 'manager_approved_at';
+                $rolesToNotify = ['director'];
+            } elseif ($leaveRequest->status === 'pending_director') {
+                if (!$user->can('leave.approve.director')) return back()->with('error', 'You do not have permission at this stage.');
+                $nextStatus = 'approved';
+                $approveColumn = 'director_approved_by';
+                $approveAtColumn = 'director_approved_at';
+            }
         }
 
         // If action was to reject, it immediately becomes rejected and halts
