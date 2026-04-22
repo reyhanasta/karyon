@@ -71,7 +71,7 @@ export default function Edit({
         >
             <Head title={`Edit Karyawan - ${employee.full_name}`} />
 
-            <div className="mx-auto w-full max-w-4xl animate-in p-4 duration-700 fade-in slide-in-from-bottom-4 lg:p-8">
+            <div className="mx-auto w-full max-w-4xl p-4 lg:p-8">
                 {/* Header Section */}
                 <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
                     <div className="space-y-1">
@@ -97,7 +97,7 @@ export default function Edit({
                             variant="ghost"
                             className="group gap-2 text-muted-foreground hover:text-foreground"
                         >
-                            <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+                            <ArrowLeft className="h-4 w-4" />
                             Kembali
                         </Button>
                     </Link>
@@ -105,8 +105,7 @@ export default function Edit({
 
                 <form onSubmit={submit} className="space-y-8">
                     {/* Section 1: Informasi Identitas & Akun */}
-                    <div className="group relative">
-                        <div className="absolute -inset-0.5 rounded-2xl bg-linear-to-r from-primary/20 to-secondary/20 opacity-25 blur transition duration-1000 group-hover:opacity-40"></div>
+                    <div className="relative">
                         <div className="relative rounded-2xl border bg-card p-6 shadow-sm">
                             <div className="mb-6 flex items-center gap-2 border-b pb-4">
                                 <User className="h-5 w-5 text-primary" />
@@ -253,8 +252,7 @@ export default function Edit({
                     </div>
 
                     {/* Section 2: Informasi Pekerjaan & Akses */}
-                    <div className="group relative">
-                        <div className="absolute -inset-0.5 rounded-2xl bg-linear-to-r from-primary/20 to-secondary/20 opacity-25 blur transition duration-1000 group-hover:opacity-40"></div>
+                    <div className="relative">
                         <div className="relative rounded-2xl border bg-card p-6 shadow-sm">
                             <div className="mb-6 flex items-center gap-2 border-b pb-4">
                                 <Briefcase className="h-5 w-5 text-primary" />
@@ -458,7 +456,7 @@ export default function Edit({
                         <Button
                             type="submit"
                             disabled={processing}
-                            className="gap-2 bg-primary px-8 font-medium text-white shadow-md shadow-primary/20 transition-all hover:bg-primary/90 active:scale-95"
+                            className="gap-2 bg-primary px-8 font-medium text-white shadow-md shadow-primary/20"
                         >
                             {processing ? (
                                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
