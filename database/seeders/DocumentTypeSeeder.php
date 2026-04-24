@@ -12,6 +12,9 @@ class DocumentTypeSeeder extends Seeder
      */
     public function run(): void
     {
+        // Hapus entri lama
+        // DocumentType::where('name', 'Dokumen Lamaran Kerja')->delete();
+
         $types = [
             [
                 'name' => 'STR',
@@ -24,8 +27,23 @@ class DocumentTypeSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'name' => 'Dokumen Lamaran Kerja',
-                'description' => 'Berkas lamaran kerja awal (CV, Ijazah, dll)',
+                'name' => 'KTP',
+                'description' => 'Kartu Tanda Penduduk',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Surat Lamaran Kerja',
+                'description' => 'Surat lamaran kerja dari pelamar',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'CV',
+                'description' => 'Curriculum Vitae / Daftar Riwayat Hidup',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Transkrip Nilai',
+                'description' => 'Transkrip nilai akademik dari perguruan tinggi',
                 'is_active' => true,
             ],
         ];

@@ -173,12 +173,35 @@ export default function Show({
 
     // Trigger mount animations
     useEffect(() => {
-        const timer = setTimeout(() => {
+        setTimeout(() => {
             setDisplayAnnualProgress(annualPercentage);
             setDisplayMonthlyProgress(monthlyPercentage);
         }, 300);
-        return () => clearTimeout(timer);
     }, [annualPercentage, monthlyPercentage]);
+
+    const calculateTenure = (joinDateStr: string): string => {
+        const join = new Date(joinDateStr);
+        const now = new Date();
+        let years = now.getFullYear() - join.getFullYear();
+        let months = now.getMonth() - join.getMonth();
+        if (months < 0) {
+            years--;
+            months += 12;
+        }
+        const parts = [];
+        if (years > 0) parts.push(`${years} tahun`);
+        if (months > 0) parts.push(`${months} bulan`);
+        return parts.length > 0 ? parts.join(' ') : 'Kurang dari 1 bulan';
+    };
+
+    const formatDate = (dateStr: string): string => {
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('id-ID', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+        }).replace(/\//g, '-');
+    };
 
     return (
         <AppLayout
@@ -312,8 +335,23 @@ export default function Show({
                                             <p className="text-sm font-medium text-muted-foreground">
                                                 Join Date
                                             </p>
+                                             <p className="text-base font-semibold">
+                                                {formatDate(employee.join_date)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-4">
+                                        <div className="rounded-full bg-muted p-2">
+                                            <Clock className="h-5 w-5 text-muted-foreground" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-muted-foreground">
+                                                Lama Kerja
+                                            </p>
                                             <p className="text-base font-semibold">
-                                                {employee.join_date}
+                                                {calculateTenure(
+                                                    employee.join_date,
+                                                )}
                                             </p>
                                         </div>
                                     </div>
