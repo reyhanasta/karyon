@@ -11,6 +11,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/my-profile', [App\Http\Controllers\EmployeeController::class, 'myProfile'])->name('my-profile');
+    Route::get('/my-profile/edit', [App\Http\Controllers\EmployeeController::class, 'editMyProfile'])->name('my-profile.edit');
+    Route::put('/my-profile', [App\Http\Controllers\EmployeeController::class, 'updateMyProfile'])->name('my-profile.update');
 
     // Employee management
     Route::get('employees/export', [App\Http\Controllers\EmployeeController::class, 'export'])

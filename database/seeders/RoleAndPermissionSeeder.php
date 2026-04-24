@@ -22,6 +22,7 @@ class RoleAndPermissionSeeder extends Seeder
             'employee.create',
             'employee.edit',
             'employee.delete',
+            'employee-profile.edit',
             // Shift management
             'shift.view',
             'shift.manage',
@@ -72,7 +73,7 @@ class RoleAndPermissionSeeder extends Seeder
             'shift.view', 'shift.manage', 'shift-change.view',
             'leave.view', 'leave.approve.manager', 'leave.create',
             'overtime.view', 'overtime.approve.manager','overtime.create',
-            'shift-change.view', 'shift-change.approve.manager'
+            'shift-change.view', 'shift-change.approve.manager','employee-profile.edit'
         ]);
 
         $karu = Role::firstOrCreate(['name' => 'karu']);
@@ -81,7 +82,7 @@ class RoleAndPermissionSeeder extends Seeder
             'shift.view', 'shift.manage', 'shift-change.view',
             'leave.view', 'leave.approve.manager','leave.create',
             'overtime.view', 'overtime.approve.manager','overtime.create',
-            'shift-change.view', 'shift-change.approve.manager'
+            'shift-change.view', 'shift-change.approve.manager','employee-profile.edit'
         ]);
 
         $director = Role::firstOrCreate(['name' => 'director']);
@@ -89,7 +90,7 @@ class RoleAndPermissionSeeder extends Seeder
             'employee.view',
             'shift.view', 'shift-change.view', 'shift-change.approve.manager',
             'leave.view', 'leave.approve.hrd','leave.approve.manager','leave.approve.director','leave.create',
-            'overtime.view', 'overtime.approve.hrd','overtime.approve.manager','overtime.create'
+            'overtime.view', 'overtime.approve.hrd','overtime.approve.manager','overtime.create','employee-profile.edit'
         ]);
 
         $employee = Role::firstOrCreate(['name' => 'employee']);
@@ -97,7 +98,7 @@ class RoleAndPermissionSeeder extends Seeder
             'document.upload',
             'shift.view', 'shift-change.view', 'shift-change.create',
             'leave.view', 'leave.create',
-            'overtime.view', 'overtime.create',
+            'overtime.view', 'overtime.create','employee-profile.edit'
         ]);
 
         // Create default super-admin user

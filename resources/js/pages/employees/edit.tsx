@@ -27,6 +27,7 @@ import {
 import AppLayout from '@/layouts/app-layout';
 
 import { cn } from '@/lib/utils';
+import { usePermissions } from '@/hooks/use-permissions';
 
 export default function Edit({
     employee,
@@ -53,9 +54,15 @@ export default function Edit({
         role: employee.user?.roles?.[0]?.name || '',
     });
 
+    const { can } = usePermissions();
+
     const submit = (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
-        put(`/employees/${employee.id}`);
+        if (can('employee.edit')) {
+            put(`/employees/${employee.id}`);
+        } else {
+            put('/my-profile');
+        }
     };
 
     return (
@@ -252,196 +259,201 @@ export default function Edit({
                     </div>
 
                     {/* Section 2: Informasi Pekerjaan & Akses */}
-                    <div className="relative">
-                        <div className="relative rounded-2xl border bg-card p-6 shadow-sm">
-                            <div className="mb-6 flex items-center gap-2 border-b pb-4">
-                                <Briefcase className="h-5 w-5 text-primary" />
-                                <h3 className="text-lg font-semibold">
-                                    Detail Pekerjaan
-                                </h3>
-                            </div>
+                    {can('employee.create') && (
+                        <div className="relative">
+                            <div className="relative rounded-2xl border bg-card p-6 shadow-sm">
+                                <div className="mb-6 flex items-center gap-2 border-b pb-4">
+                                    <Briefcase className="h-5 w-5 text-primary" />
+                                    <h3 className="text-lg font-semibold">
+                                        Detail Pekerjaan
+                                    </h3>
+                                </div>
 
-                            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                                <div className="space-y-2.5">
-                                    <Label
-                                        htmlFor="position_id"
-                                        required
-                                        className="font-medium"
-                                    >
-                                        Jabatan
-                                    </Label>
-                                    <Select
-                                        value={data.position_id}
-                                        onValueChange={(v) =>
-                                            setData('position_id', v)
-                                        }
-                                        required
-                                    >
-                                        <SelectTrigger className="focus:ring-primary/30">
-                                            <SelectValue placeholder="Pilih jabatan" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {positions.map((pos) => (
-                                                <SelectItem
-                                                    key={pos.id}
-                                                    value={pos.id.toString()}
-                                                >
-                                                    {pos.name}
+                                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                    <div className="space-y-2.5">
+                                        <Label
+                                            htmlFor="position_id"
+                                            required
+                                            className="font-medium"
+                                        >
+                                            Jabatan
+                                        </Label>
+                                        <Select
+                                            value={data.position_id}
+                                            onValueChange={(v) =>
+                                                setData('position_id', v)
+                                            }
+                                            required
+                                        >
+                                            <SelectTrigger className="focus:ring-primary/30">
+                                                <SelectValue placeholder="Pilih jabatan" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {positions.map((pos) => (
+                                                    <SelectItem
+                                                        key={pos.id}
+                                                        value={pos.id.toString()}
+                                                    >
+                                                        {pos.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div className="space-y-2.5">
+                                        <Label
+                                            htmlFor="department_id"
+                                            required
+                                            className="font-medium"
+                                        >
+                                            Departemen
+                                        </Label>
+                                        <Select
+                                            value={data.department_id}
+                                            onValueChange={(v) =>
+                                                setData('department_id', v)
+                                            }
+                                            required
+                                        >
+                                            <SelectTrigger className="focus:ring-primary/30">
+                                                <SelectValue placeholder="Pilih departemen" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {departments.map((dept) => (
+                                                    <SelectItem
+                                                        key={dept.id}
+                                                        value={dept.id.toString()}
+                                                    >
+                                                        {dept.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div className="space-y-2.5">
+                                        <Label
+                                            htmlFor="join_date"
+                                            required
+                                            className="flex items-center gap-1.5 font-medium"
+                                        >
+                                            <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                                            Tanggal Bergabung
+                                        </Label>
+                                        <Input
+                                            id="join_date"
+                                            type="date"
+                                            value={data.join_date}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'join_date',
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="focus-visible:ring-primary/30"
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2.5">
+                                        <Label
+                                            htmlFor="employee_status"
+                                            required
+                                            className="font-medium"
+                                        >
+                                            Status Pegawai
+                                        </Label>
+                                        <Select
+                                            value={data.employee_status}
+                                            onValueChange={(v) =>
+                                                setData('employee_status', v)
+                                            }
+                                            required
+                                        >
+                                            <SelectTrigger className="focus:ring-primary/30">
+                                                <SelectValue placeholder="Pilih status" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="orientasi">
+                                                    Orientasi
                                                 </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div className="space-y-2.5">
-                                    <Label
-                                        htmlFor="department_id"
-                                        required
-                                        className="font-medium"
-                                    >
-                                        Departemen
-                                    </Label>
-                                    <Select
-                                        value={data.department_id}
-                                        onValueChange={(v) =>
-                                            setData('department_id', v)
-                                        }
-                                        required
-                                    >
-                                        <SelectTrigger className="focus:ring-primary/30">
-                                            <SelectValue placeholder="Pilih departemen" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {departments.map((dept) => (
-                                                <SelectItem
-                                                    key={dept.id}
-                                                    value={dept.id.toString()}
-                                                >
-                                                    {dept.name}
+                                                <SelectItem value="tidak_tetap">
+                                                    Tidak Tetap / Kontrak
                                                 </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div className="space-y-2.5">
-                                    <Label
-                                        htmlFor="join_date"
-                                        required
-                                        className="flex items-center gap-1.5 font-medium"
-                                    >
-                                        <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                                        Tanggal Bergabung
-                                    </Label>
-                                    <Input
-                                        id="join_date"
-                                        type="date"
-                                        value={data.join_date}
-                                        onChange={(e) =>
-                                            setData('join_date', e.target.value)
-                                        }
-                                        className="focus-visible:ring-primary/30"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="space-y-2.5">
-                                    <Label
-                                        htmlFor="employee_status"
-                                        required
-                                        className="font-medium"
-                                    >
-                                        Status Pegawai
-                                    </Label>
-                                    <Select
-                                        value={data.employee_status}
-                                        onValueChange={(v) =>
-                                            setData('employee_status', v)
-                                        }
-                                        required
-                                    >
-                                        <SelectTrigger className="focus:ring-primary/30">
-                                            <SelectValue placeholder="Pilih status" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="orientasi">
-                                                Orientasi
-                                            </SelectItem>
-                                            <SelectItem value="tidak_tetap">
-                                                Tidak Tetap / Kontrak
-                                            </SelectItem>
-                                            <SelectItem value="tetap">
-                                                Tetap
-                                            </SelectItem>
-                                            <SelectItem value="keluar">
-                                                Keluar
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div className="space-y-2.5">
-                                    <Label
-                                        htmlFor="leave_quota"
-                                        required
-                                        className="flex items-center gap-1.5 font-medium"
-                                    >
-                                        <PieChart className="h-3.5 w-3.5 text-muted-foreground" />
-                                        Kuota Cuti Tahunan
-                                    </Label>
-                                    <Input
-                                        id="leave_quota"
-                                        type="number"
-                                        value={data.leave_quota}
-                                        onChange={(e) =>
-                                            setData(
-                                                'leave_quota',
-                                                parseInt(e.target.value) || 0,
-                                            )
-                                        }
-                                        className="focus-visible:ring-primary/30"
-                                        required
-                                    />
-                                    {errors.leave_quota && (
-                                        <p className="text-xs font-medium text-destructive">
-                                            {errors.leave_quota}
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div className="space-y-2.5">
-                                    <Label
-                                        htmlFor="role"
-                                        className="flex items-center gap-1.5 font-medium"
-                                    >
-                                        <ShieldCheck className="h-3.5 w-3.5 text-muted-foreground" />
-                                        Peran Sistem
-                                    </Label>
-                                    <Select
-                                        value={data.role}
-                                        onValueChange={(v) =>
-                                            setData('role', v)
-                                        }
-                                    >
-                                        <SelectTrigger className="focus:ring-primary/30">
-                                            <SelectValue placeholder="Pilih peran akses" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {roles.map((role: any) => (
-                                                <SelectItem
-                                                    key={role.id}
-                                                    value={role.name}
-                                                >
-                                                    {role.name}
+                                                <SelectItem value="tetap">
+                                                    Tetap
                                                 </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                                <SelectItem value="keluar">
+                                                    Keluar
+                                                </SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div className="space-y-2.5">
+                                        <Label
+                                            htmlFor="leave_quota"
+                                            required
+                                            className="flex items-center gap-1.5 font-medium"
+                                        >
+                                            <PieChart className="h-3.5 w-3.5 text-muted-foreground" />
+                                            Kuota Cuti Tahunan
+                                        </Label>
+                                        <Input
+                                            id="leave_quota"
+                                            type="number"
+                                            value={data.leave_quota}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'leave_quota',
+                                                    parseInt(e.target.value) ||
+                                                        0,
+                                                )
+                                            }
+                                            className="focus-visible:ring-primary/30"
+                                            required
+                                        />
+                                        {errors.leave_quota && (
+                                            <p className="text-xs font-medium text-destructive">
+                                                {errors.leave_quota}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-2.5">
+                                        <Label
+                                            htmlFor="role"
+                                            className="flex items-center gap-1.5 font-medium"
+                                        >
+                                            <ShieldCheck className="h-3.5 w-3.5 text-muted-foreground" />
+                                            Peran Sistem
+                                        </Label>
+                                        <Select
+                                            value={data.role}
+                                            onValueChange={(v) =>
+                                                setData('role', v)
+                                            }
+                                        >
+                                            <SelectTrigger className="focus:ring-primary/30">
+                                                <SelectValue placeholder="Pilih peran akses" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {roles.map((role: any) => (
+                                                    <SelectItem
+                                                        key={role.id}
+                                                        value={role.name}
+                                                    >
+                                                        {role.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-
+                    )}
                     {/* Form Actions */}
                     <div className="flex items-center justify-end gap-3 border-t pt-6 font-sans">
                         <Link href="/employees">

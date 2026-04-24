@@ -1,4 +1,4 @@
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     Briefcase,
     BuildingIcon,
@@ -43,6 +43,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
+import { editMyProfile } from '@/actions/App/Http/Controllers/EmployeeController';
 
 type DocumentType = {
     id: number;
@@ -105,6 +106,7 @@ export default function Show({
     leaveStats: LeaveStats;
     leaveHistories: LeaveHistory[];
 }) {
+    const { auth } = usePage().props as any;
     const { can } = usePermissions();
 
     // Local states for Document actions
@@ -268,8 +270,16 @@ export default function Show({
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        {can('employee.edit') && (
-                            <Link href={`/employees/${employee.id}/edit`}>
+                        {((can('employee.edit') &&
+                            auth.user.employee?.id === employee.id) ||
+                            can('employee-profile.edit')) && (
+                            <Link
+                                href={
+                                    can('employee.edit')
+                                        ? `/employees/${employee.id}/edit`
+                                        : editMyProfile().url
+                                }
+                            >
                                 <Button variant="outline" size="sm">
                                     Edit Profil
                                 </Button>

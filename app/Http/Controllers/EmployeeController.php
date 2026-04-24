@@ -33,6 +33,45 @@ class EmployeeController extends Controller
         return $this->show($employee);
     }
 
+    public function editMyProfile(Request $request)
+    {
+        $employee = $request->user()->employee;
+        if (!$employee) {
+            abort(404, 'Data Karyawan tidak ditemukan.');
+        }
+        return $this->edit($employee);
+    }
+
+    public function updateMyProfile(Request $request)
+    {
+        $user = $request->user();
+        $employee = $user->employee;
+
+        if (!$employee) {
+            abort(404, 'Data Karyawan tidak ditemukan.');
+        }
+
+        $validated = $request->validate([
+            'full_name' => 'required|string|max:255',
+            'email' => ['required', 'email', \Illuminate\Validation\Rule::unique('users')->ignore($user->id)],
+            'password' => 'nullable|string|min:8',
+            'employee_sip' => 'nullable|string|max:255',
+        ]);
+
+        DB::transaction(function () use ($user, $employee, $validated) {
+            if (!empty($validated['password'])) {
+                $user->update(['password' => Hash::make($validated['password'])]);
+            }
+            $user->update(['email' => $validated['email']]);
+            $employee->update([
+                'full_name' => $validated['full_name'],
+                'employee_sip' => $validated['employee_sip'] ?? null,
+            ]);
+        });
+
+        return redirect()->route('my-profile')->with('success', 'Profil berhasil diperbarui.');
+    }
+
     public function index(Request $request)
     {
         $search = $request->input('search');
