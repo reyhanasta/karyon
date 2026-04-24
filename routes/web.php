@@ -10,6 +10,8 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
+    Route::get('/my-profile', [App\Http\Controllers\EmployeeController::class, 'myProfile'])->name('my-profile');
+
     // Employee management
     Route::get('employees/export', [App\Http\Controllers\EmployeeController::class, 'export'])
         ->name('employees.export')

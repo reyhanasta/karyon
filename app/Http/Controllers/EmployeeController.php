@@ -20,6 +20,19 @@ use Spatie\Permission\Models\Role;
 
 class EmployeeController extends Controller
 {
+    public function myProfile(Request $request)
+    {
+        // Ambil data employee milik user yang sedang login
+        $employee = $request->user()->employee;
+        
+        if (!$employee) {
+            abort(404, 'Data Karyawan tidak ditemukan untuk user ini.');
+        }
+
+        // Reuse fungsi show yang sudah ada untuk me-render halamannya!
+        return $this->show($employee);
+    }
+
     public function index(Request $request)
     {
         $search = $request->input('search');

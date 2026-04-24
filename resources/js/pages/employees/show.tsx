@@ -196,11 +196,13 @@ export default function Show({
 
     const formatDate = (dateStr: string): string => {
         const d = new Date(dateStr);
-        return d.toLocaleDateString('id-ID', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-        }).replace(/\//g, '-');
+        return d
+            .toLocaleDateString('id-ID', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+            })
+            .replace(/\//g, '-');
     };
 
     return (
@@ -218,14 +220,14 @@ export default function Show({
 
             <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 p-4 lg:p-8">
                 {/* Back Button */}
-                <div>
+                {/* <div>
                     <Link href="/employees">
                         <Button variant="ghost" size="sm" className="-ml-2">
                             <ChevronLeft className="mr-1 h-4 w-4" /> Kembali ke
                             Direktori
                         </Button>
                     </Link>
-                </div>
+                </div> */}
 
                 {/* header profile section */}
                 <div className="flex flex-col gap-6 rounded-xl border bg-card p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
@@ -335,7 +337,7 @@ export default function Show({
                                             <p className="text-sm font-medium text-muted-foreground">
                                                 Join Date
                                             </p>
-                                             <p className="text-base font-semibold">
+                                            <p className="text-base font-semibold">
                                                 {formatDate(employee.join_date)}
                                             </p>
                                         </div>
