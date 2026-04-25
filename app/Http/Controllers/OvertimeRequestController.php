@@ -65,9 +65,16 @@ class OvertimeRequestController extends Controller
         $user = Auth::user();
         $canCreateAny = $user->can('overtime.create.any');
 
-        // Admin/HRD creating on behalf of others
         if ($canCreateAny) {
-            $employees = Employee::select('id', 'full_name')->orderBy('full_name')->get();
+            if ($user->hasRole(['super-admin', 'hr-admin'])) {
+                $employees = Employee::select('id', 'full_name')->orderBy('full_name')->get();
+            } else {
+                $employees = Employee::where('department_id', $user->employee->department_id ?? null)
+                    ->where('id', '!=', $user->employee->id ?? 0)
+                    ->select('id', 'full_name')
+                    ->orderBy('full_name')
+                    ->get();
+            }
 
             return Inertia::render('overtime-requests/create', [
                 'employees' => $employees,
@@ -93,7 +100,13 @@ class OvertimeRequestController extends Controller
 
         // Determine which employee this request is for
         if ($user->can('overtime.create.any') && !empty($validated['employee_id'])) {
-            $employee = Employee::findOrFail($validated['employee_id']);
+            if (!$user->hasRole(['super-admin', 'hr-admin'])) {
+                $employee = Employee::where('department_id', $user->employee->department_id ?? null)
+                    ->where('id', '!=', $user->employee->id ?? 0)
+                    ->findOrFail($validated['employee_id']);
+            } else {
+                $employee = Employee::findOrFail($validated['employee_id']);
+            }
         } else {
             $employee = $user->employee;
             if (!$employee) {
@@ -111,22 +124,36 @@ class OvertimeRequestController extends Controller
             ]);
         }
 
+        $initialStatus = 'pending_manager';
+        $notifyRole = 'manager';
+
+        $employeeUser = $employee->user;
+        if ($user->hasRole(['hr-admin', 'super-admin'])) {
+            $initialStatus = 'pending_hrd';
+            $notifyRole = 'hrd';
+        } elseif (($employeeUser && $employeeUser->hasRole(['karu', 'manager'])) || $user->hasRole(['karu', 'manager'])) {
+            $initialStatus = 'pending_hrd';
+            $notifyRole = 'hrd';
+        }
+
         /** @var \App\Models\OvertimeRequest $overtimeRequest */
         $overtimeRequest = null;
-        DB::transaction(function () use ($employee, $validated, &$overtimeRequest) {
+        DB::transaction(function () use ($employee, $validated, $initialStatus, &$overtimeRequest) {
             $overtimeRequest = OvertimeRequest::create([
                 'employee_id' => $employee->id,
                 'date' => $validated['date'],
                 'start_time' => $validated['start_time'],
                 'end_time' => $validated['end_time'],
                 'description' => $validated['description'],
-                'status' => 'pending_hrd',
+                'status' => $initialStatus,
             ]);
         });
 
-        // Notify initial approvers (HRD)
-        $approvers = User::permission('overtime.approve.hrd')->get();
-        Notification::send($approvers, new OvertimeRequestNotification($overtimeRequest, $employee, 'submitted'));
+        // Notify initial approvers
+        $approvers = User::permission("overtime.approve.{$notifyRole}")->get();
+        if ($approvers->isNotEmpty()) {
+            Notification::send($approvers, new OvertimeRequestNotification($overtimeRequest, $employee, 'submitted'));
+        }
 
         return redirect()->route('overtime-requests.index')->with('success', 'Overtime request submitted successfully.');
     }
@@ -139,8 +166,13 @@ class OvertimeRequestController extends Controller
 
         $user = Auth::user();
         $canApprove = false;
-        if ($overtimeRequest->status === 'pending_hrd' && $user->can('overtime.approve.hrd')) $canApprove = true;
         if ($overtimeRequest->status === 'pending_manager' && $user->can('overtime.approve.manager')) $canApprove = true;
+        if ($overtimeRequest->status === 'pending_hrd' && $user->can('overtime.approve.hrd')) $canApprove = true;
+
+        // Bypass: HRD can approve at any pending status
+        if (str_starts_with($overtimeRequest->status, 'pending_') && $user->can('overtime.approve.hrd')) {
+            $canApprove = true;
+        }
 
         return Inertia::render('overtime-requests/show', [
             'overtimeRequest' => $overtimeRequest,
@@ -215,17 +247,24 @@ class OvertimeRequestController extends Controller
         $approveAtColumn = null;
         $rolesToNotify = [];
 
-        if ($overtimeRequest->status === 'pending_hrd') {
+        if ($overtimeRequest->status === 'pending_manager') {
+            if ($user->can('overtime.approve.hrd')) {
+                $nextStatus = 'approved';
+                $approveColumn = 'hrd_approved_by';
+                $approveAtColumn = 'hrd_approved_at';
+            } elseif ($user->can('overtime.approve.manager')) {
+                $nextStatus = 'pending_hrd';
+                $approveColumn = 'manager_approved_by';
+                $approveAtColumn = 'manager_approved_at';
+                $rolesToNotify = ['hrd'];
+            } else {
+                return back()->with('error', 'You do not have permission at this stage.');
+            }
+        } elseif ($overtimeRequest->status === 'pending_hrd') {
             if (!$user->can('overtime.approve.hrd')) return back()->with('error', 'You do not have permission at this stage.');
-            $nextStatus = 'pending_manager';
+            $nextStatus = 'approved';
             $approveColumn = 'hrd_approved_by';
             $approveAtColumn = 'hrd_approved_at';
-            $rolesToNotify = ['manager'];
-        } elseif ($overtimeRequest->status === 'pending_manager') {
-            if (!$user->can('overtime.approve.manager')) return back()->with('error', 'You do not have permission at this stage.');
-            $nextStatus = 'approved';
-            $approveColumn = 'manager_approved_by';
-            $approveAtColumn = 'manager_approved_at';
             $rolesToNotify = [];
         }
 

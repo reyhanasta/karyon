@@ -73,9 +73,16 @@ class LeaveRequestController extends Controller
         $canCreateAny = $user->can('leave.create.any');
         $leaveTypes = LeaveType::active()->orderBy('name')->get();
 
-        // Admin/HRD creating on behalf of others
         if ($canCreateAny) {
-            $employees = Employee::select('id', 'full_name')->orderBy('full_name')->get();
+            if ($user->hasRole(['super-admin', 'hr-admin'])) {
+                $employees = Employee::select('id', 'full_name')->orderBy('full_name')->get();
+            } else {
+                $employees = Employee::where('department_id', $user->employee->department_id ?? null)
+                    ->where('id', '!=', $user->employee->id ?? 0)
+                    ->select('id', 'full_name')
+                    ->orderBy('full_name')
+                    ->get();
+            }
 
             return Inertia::render('leave-requests/create', [
                 'employees' => $employees,
@@ -116,7 +123,13 @@ class LeaveRequestController extends Controller
 
         // Determine which employee this request is for
         if ($user->can('leave.create.any') && !empty($validated['employee_id'])) {
-            $employee = Employee::findOrFail($validated['employee_id']);
+            if (!$user->hasRole(['super-admin', 'hr-admin'])) {
+                $employee = Employee::where('department_id', $user->employee->department_id ?? null)
+                    ->where('id', '!=', $user->employee->id ?? 0)
+                    ->findOrFail($validated['employee_id']);
+            } else {
+                $employee = Employee::findOrFail($validated['employee_id']);
+            }
         } else {
             $employee = $user->employee;
             if (!$employee) {
@@ -173,9 +186,21 @@ class LeaveRequestController extends Controller
             $attachmentPath = $request->file('attachment')->store('leave-attachments', 'public');
         }
 
+        $initialStatus = 'pending_manager';
+        $notifyRole = 'manager';
+
+        $employeeUser = $employee->user;
+        if ($user->hasRole(['hr-admin', 'super-admin'])) {
+            $initialStatus = 'pending_hrd';
+            $notifyRole = 'hrd';
+        } elseif (($employeeUser && $employeeUser->hasRole(['karu', 'manager'])) || $user->hasRole(['karu', 'manager'])) {
+            $initialStatus = 'pending_hrd';
+            $notifyRole = 'hrd';
+        }
+
         /** @var \App\Models\LeaveRequest $leaveRequest */
         $leaveRequest = null;
-        DB::transaction(function () use ($employee, $validated, $leaveType, $attachmentPath, &$leaveRequest) {
+        DB::transaction(function () use ($employee, $validated, $leaveType, $attachmentPath, $initialStatus, &$leaveRequest) {
             $leaveRequest = LeaveRequest::create([
                 'employee_id'   => $employee->id,
                 'leave_type_id' => $leaveType->id,
@@ -183,17 +208,14 @@ class LeaveRequestController extends Controller
                 'end_date'      => $validated['end_date'],
                 'reason'        => $validated['reason'],
                 'attachment_path' => $attachmentPath,
-                'status'        => 'pending_hrd',
+                'status'        => $initialStatus,
             ]);
         });
 
-        // Notify initial approvers (HRD)
-        $approvers = User::permission('leave.approve.hrd')->get();
-        // Jika inputer adalah user yang sama dengan approver, maka tidak perlu mengirim notifikasi
+        // Notify initial approvers
+        $approvers = User::permission("leave.approve.{$notifyRole}")->get();
         if ($approvers->isNotEmpty()) {
-            if ($employee->user_id != $approvers->first()->id) {
-                Notification::send($approvers, new LeaveRequestNotification($leaveRequest, $employee, 'submitted'));
-            }
+            Notification::send($approvers, new LeaveRequestNotification($leaveRequest, $employee, 'submitted'));
         }
 
         return redirect()->route('leave-requests.index')->with('success', 'Pengajuan cuti berhasil dikirim.');
@@ -208,12 +230,12 @@ class LeaveRequestController extends Controller
         $user = Auth::user();
         $canApprove = false;
         
-        if ($leaveRequest->status === 'pending_hrd' && $user->can('leave.approve.hrd')) $canApprove = true;
         if ($leaveRequest->status === 'pending_manager' && $user->can('leave.approve.manager')) $canApprove = true;
+        if ($leaveRequest->status === 'pending_hrd' && $user->can('leave.approve.hrd')) $canApprove = true;
         if ($leaveRequest->status === 'pending_director' && $user->can('leave.approve.director')) $canApprove = true;
 
-        // Bypass: Direktur bisa action di semua status pending
-        if (str_starts_with($leaveRequest->status, 'pending_') && $user->can('leave.approve.director')) {
+        // Bypass: HRD can approve at any pending status
+        if (str_starts_with($leaveRequest->status, 'pending_') && $user->can('leave.approve.hrd')) {
             $canApprove = true;
         }
 
@@ -318,33 +340,32 @@ class LeaveRequestController extends Controller
         $approveAtColumn = null;
         $rolesToNotify = [];
 
-        // Cek Bypass: Jika Direktur menyetujui saat status masih di HRD atau Manager
-        $isDirectorBypass = str_starts_with($leaveRequest->status, 'pending_') && 
-                            $leaveRequest->status !== 'pending_director' && 
-                            $user->can('leave.approve.director');
-
-        if ($isDirectorBypass) {
-            $nextStatus = 'approved';
-            $approveColumn = 'director_approved_by';
-            $approveAtColumn = 'director_approved_at';
-        } else {
-            if ($leaveRequest->status === 'pending_hrd') {
-                if (!$user->can('leave.approve.hrd')) return back()->with('error', 'You do not have permission at this stage.');
-                $nextStatus = 'pending_manager';
+        if ($leaveRequest->status === 'pending_manager') {
+            if ($user->can('leave.approve.hrd')) {
+                $nextStatus = 'approved';
                 $approveColumn = 'hrd_approved_by';
                 $approveAtColumn = 'hrd_approved_at';
-                $rolesToNotify = ['manager'];
-            } elseif ($leaveRequest->status === 'pending_manager') {
-                if (!$user->can('leave.approve.manager')) return back()->with('error', 'You do not have permission at this stage.');
-                $nextStatus = 'pending_director';
+            } elseif ($user->can('leave.approve.manager')) {
+                $nextStatus = 'pending_hrd';
                 $approveColumn = 'manager_approved_by';
                 $approveAtColumn = 'manager_approved_at';
-                $rolesToNotify = ['director'];
-            } elseif ($leaveRequest->status === 'pending_director') {
-                if (!$user->can('leave.approve.director')) return back()->with('error', 'You do not have permission at this stage.');
+                $rolesToNotify = ['hrd'];
+            } else {
+                return back()->with('error', 'You do not have permission at this stage.');
+            }
+        } elseif ($leaveRequest->status === 'pending_hrd') {
+            if (!$user->can('leave.approve.hrd')) return back()->with('error', 'You do not have permission at this stage.');
+            $nextStatus = 'pending_director';
+            $approveColumn = 'hrd_approved_by';
+            $approveAtColumn = 'hrd_approved_at';
+            $rolesToNotify = ['director'];
+        } elseif ($leaveRequest->status === 'pending_director') {
+            if ($user->can('leave.approve.hrd') || $user->can('leave.approve.director')) {
                 $nextStatus = 'approved';
-                $approveColumn = 'director_approved_by';
-                $approveAtColumn = 'director_approved_at';
+                $approveColumn = $user->can('leave.approve.director') ? 'director_approved_by' : 'hrd_approved_by';
+                $approveAtColumn = $user->can('leave.approve.director') ? 'director_approved_at' : 'hrd_approved_at';
+            } else {
+                return back()->with('error', 'You do not have permission at this stage.');
             }
         }
 

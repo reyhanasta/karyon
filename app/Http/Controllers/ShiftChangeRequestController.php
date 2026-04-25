@@ -41,6 +41,15 @@ class ShiftChangeRequestController extends Controller
         $employees = Employee::with(['department', 'position'])->orderBy('full_name')->get();
 
         if ($canCreateAny) {
+            if ($user->hasRole(['super-admin', 'hr-admin'])) {
+                $employees = Employee::with(['department', 'position'])->orderBy('full_name')->get();
+            } else {
+                $employees = Employee::with(['department', 'position'])
+                    ->where('department_id', $user->employee->department_id ?? null)
+                    ->where('id', '!=', $user->employee->id ?? 0)
+                    ->orderBy('full_name')
+                    ->get();
+            }
             return Inertia::render('shift-change-requests/create', [
                 'employees' => $employees,
                 'shifts' => $shifts,
@@ -78,7 +87,13 @@ class ShiftChangeRequestController extends Controller
         ]);
 
         if ($canCreateAny && !empty($validated['requester_id'])) {
-            $requester = Employee::findOrFail($validated['requester_id']);
+            if (!$user->hasRole(['super-admin', 'hr-admin'])) {
+                $requester = Employee::where('department_id', $user->employee->department_id ?? null)
+                    ->where('id', '!=', $user->employee->id ?? 0)
+                    ->findOrFail($validated['requester_id']);
+            } else {
+                $requester = Employee::findOrFail($validated['requester_id']);
+            }
         } else {
             $requester = $user->employee;
             if (!$requester) {
@@ -92,7 +107,7 @@ class ShiftChangeRequestController extends Controller
         $existing = ShiftChangeRequest::where('requester_id', $requester->id)
             ->where('target_id', $targetEmployee->id)
             ->where('request_date', $validated['request_date'])
-            ->whereIn('status', ['pending_target', 'pending_hrd'])
+            ->whereIn('status', ['pending_manager', 'pending_hrd'])
             ->exists();
 
         if ($existing) {
@@ -106,14 +121,14 @@ class ShiftChangeRequestController extends Controller
             'requester_shift_id' => $validated['requester_shift_id'],
             'target_shift_id' => null,
             'reason' => $validated['reason'],
-            'status' => 'pending_target',
+            'status' => 'pending_manager',
         ]);
 
-        // Notify the backup person (target)
-        if ($targetEmployee->user) {
-            /** @var \App\Models\User $targetUser */
-            $targetUser = $targetEmployee->user;
-            $targetUser->notify(new ShiftChangeRequestNotification($changeRequest, 'submitted'));
+        // Notify Manager
+        $managers = \App\Models\User::permission('shift-change.approve.manager')->get();
+        /** @var \App\Models\User $manager */
+        foreach ($managers as $manager) {
+            $manager->notify(new ShiftChangeRequestNotification($changeRequest, 'pending_manager'));
         }
 
         return redirect()->route('shift-change-requests.index')->with('success', 'Permintaan penggantian shift berhasil dikirim.');
@@ -141,31 +156,9 @@ class ShiftChangeRequestController extends Controller
         }
 
         $shift_change_request->update([
-            'status' => 'pending_hrd',
+            'status' => 'pending_manager',
             'target_approved_by' => $user->id,
             'target_approved_at' => now(),
-        ]);
-        
-        // Notify HR Admin
-        $hrAdmins = \App\Models\User::role('hr-admin')->get();
-        /** @var \App\Models\User $hr */
-        foreach ($hrAdmins as $hr) {
-            $hr->notify(new ShiftChangeRequestNotification($shift_change_request, 'target_approved'));
-        }
-
-        return back()->with('success', 'Permintaan tukar shift disetujui, menunggu persetujuan HRD.');
-    }
-
-    public function approveHrd(Request $request, ShiftChangeRequest $shift_change_request)
-    {
-        if (!Auth::user()->hasPermissionTo('shift-change.approve.hrd')) {
-            abort(403);
-        }
-
-        $shift_change_request->update([
-            'status' => 'pending_manager',
-            'hrd_approved_by' => Auth::id(),
-            'hrd_approved_at' => now(),
         ]);
         
         // Notify Manager
@@ -175,21 +168,21 @@ class ShiftChangeRequestController extends Controller
             $manager->notify(new ShiftChangeRequestNotification($shift_change_request, 'pending_manager'));
         }
 
-        return back()->with('success', 'Tukar shift disetujui HRD, menunggu persetujuan Kepala Ruangan.');
+        return back()->with('success', 'Permintaan tukar shift disetujui, menunggu persetujuan Kepala Ruangan.');
     }
 
-    public function approveManager(Request $request, ShiftChangeRequest $shift_change_request)
+    public function approveHrd(Request $request, ShiftChangeRequest $shift_change_request)
     {
-        if (!Auth::user()->hasPermissionTo('shift-change.approve.manager')) {
+        if (!Auth::user()->hasPermissionTo('shift-change.approve.hrd')) {
             abort(403);
         }
 
         $shift_change_request->update([
             'status' => 'approved',
-            'manager_approved_by' => Auth::id(),
-            'manager_approved_at' => now(),
+            'hrd_approved_by' => Auth::id(),
+            'hrd_approved_at' => now(),
         ]);
-
+        
         // Notify both
         if ($shift_change_request->requester->user) {
             /** @var \App\Models\User $requesterUser */
@@ -202,18 +195,39 @@ class ShiftChangeRequestController extends Controller
             $targetUser->notify(new ShiftChangeRequestNotification($shift_change_request, 'approved'));
         }
 
-        return back()->with('success', 'Tukar shift disetujui oleh Kepala Ruangan.');
+        return back()->with('success', 'Tukar shift disetujui oleh HRD.');
+    }
+
+    public function approveManager(Request $request, ShiftChangeRequest $shift_change_request)
+    {
+        if (!Auth::user()->hasPermissionTo('shift-change.approve.manager')) {
+            abort(403);
+        }
+
+        $shift_change_request->update([
+            'status' => 'pending_hrd',
+            'manager_approved_by' => Auth::id(),
+            'manager_approved_at' => now(),
+        ]);
+
+        // Notify HRD
+        $hrAdmins = \App\Models\User::permission('shift-change.approve.hrd')->get();
+        /** @var \App\Models\User $hr */
+        foreach ($hrAdmins as $hr) {
+            $hr->notify(new ShiftChangeRequestNotification($shift_change_request, 'pending_hrd'));
+        }
+
+        return back()->with('success', 'Tukar shift disetujui oleh Kepala Ruangan, menunggu persetujuan HRD.');
     }
 
     public function reject(Request $request, ShiftChangeRequest $shift_change_request)
     {
         $user = Auth::user();
         
-        $isTarget = $shift_change_request->target_id === $user->employee->id;
         $isHrd = $user->hasPermissionTo('shift-change.approve.hrd');
         $isManager = $user->hasPermissionTo('shift-change.approve.manager');
 
-        if (!$isTarget && !$isHrd && !$isManager) {
+        if (!$isHrd && !$isManager) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -232,9 +246,6 @@ class ShiftChangeRequestController extends Controller
         } elseif ($isManager && $shift_change_request->status === 'pending_manager') {
             $updateData['manager_approved_by'] = $user->id;
             $updateData['manager_approved_at'] = now();
-        } elseif ($isTarget && $shift_change_request->status === 'pending_target') {
-            $updateData['target_approved_by'] = $user->id;
-            $updateData['target_approved_at'] = now();
         }
 
         $shift_change_request->update($updateData);

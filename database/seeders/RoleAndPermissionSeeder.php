@@ -71,18 +71,18 @@ class RoleAndPermissionSeeder extends Seeder
         $manager->syncPermissions([
             'employee.view',
             'shift.view', 'shift.manage', 'shift-change.view',
-            'leave.view', 'leave.approve.manager', 'leave.create',
-            'overtime.view', 'overtime.approve.manager','overtime.create',
-            'shift-change.view', 'shift-change.approve.manager','employee-profile.edit'
+            'leave.view', 'leave.approve.manager', 'leave.create', 'leave.create.any',
+            'overtime.view', 'overtime.approve.manager', 'overtime.create', 'overtime.create.any',
+            'shift-change.view', 'shift-change.approve.manager', 'shift-change.create.any', 'employee-profile.edit'
         ]);
 
         $karu = Role::firstOrCreate(['name' => 'karu']);
         $karu->syncPermissions([
             'employee.view',
             'shift.view', 'shift.manage', 'shift-change.view',
-            'leave.view', 'leave.approve.manager','leave.create',
-            'overtime.view', 'overtime.approve.manager','overtime.create',
-            'shift-change.view', 'shift-change.approve.manager','employee-profile.edit'
+            'leave.view', 'leave.approve.manager', 'leave.create', 'leave.create.any',
+            'overtime.view', 'overtime.approve.manager', 'overtime.create', 'overtime.create.any',
+            'shift-change.view', 'shift-change.approve.manager', 'shift-change.create.any', 'employee-profile.edit'
         ]);
 
         $director = Role::firstOrCreate(['name' => 'director']);
