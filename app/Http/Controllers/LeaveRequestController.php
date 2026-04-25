@@ -32,12 +32,12 @@ class LeaveRequestController extends Controller
 
         $query = LeaveRequest::with(['employee', 'leaveType']);
 
-        if ($user->can('leave.approve.manager') && !$user->hasRole(['super-admin', 'hr-admin'])) {
+        if ($user->can('leave.approve.manager') && !$user->hasRole(['super-admin', 'hr-admin', 'director'])) {
             $managedDeptIds = $user->managedDepartments()->pluck('departments.id')->toArray();
             $query->whereHas('employee', function ($q) use ($managedDeptIds) {
                 $q->whereIn('department_id', $managedDeptIds);
             });
-        } elseif ($user->hasRole('employee') && !$user->hasRole(['super-admin', 'hr-admin'])) {
+        } elseif ($user->hasRole('employee') && !$user->hasRole(['super-admin', 'hr-admin', 'director'])) {
             $query->where('employee_id', $user->employee->id ?? 0);
         }
 

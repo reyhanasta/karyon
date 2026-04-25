@@ -19,12 +19,12 @@ class ShiftChangeRequestController extends Controller
             'targetApprovedBy', 'hrdApprovedBy'
         ])->latest();
 
-        if ($user->hasPermissionTo('shift-change.approve.manager') && !$user->hasRole(['super-admin', 'hr-admin'])) {
+        if ($user->hasPermissionTo('shift-change.approve.manager') && !$user->hasRole(['super-admin', 'hr-admin', 'director'])) {
             $managedDeptIds = $user->managedDepartments()->pluck('departments.id')->toArray();
             $query->whereHas('requester', function ($q) use ($managedDeptIds) {
                 $q->whereIn('department_id', $managedDeptIds);
             });
-        } elseif ($user->hasRole('employee') && !$user->hasRole(['super-admin', 'hr-admin'])) {
+        } elseif ($user->hasRole('employee') && !$user->hasRole(['super-admin', 'hr-admin', 'director'])) {
             $query->where(function ($q) use ($user) {
                 $q->where('requester_id', $user->employee->id ?? 0)
                   ->orWhere('target_id', $user->employee->id ?? 0);
