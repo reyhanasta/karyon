@@ -99,7 +99,13 @@ export default function Edit({
                         </p>
                     </div>
 
-                    <Link href="/employees">
+                    <Link
+                        href={
+                            can('employee.edit')
+                                ? `/employees/${employee.id}`
+                                : '/my-profile'
+                        }
+                    >
                         <Button
                             variant="ghost"
                             className="group gap-2 text-muted-foreground hover:text-foreground"
@@ -456,7 +462,13 @@ export default function Edit({
                     )}
                     {/* Form Actions */}
                     <div className="flex items-center justify-end gap-3 border-t pt-6 font-sans">
-                        <Link href="/employees">
+                        <Link
+                            href={
+                                can('employee.edit')
+                                    ? `/employees/${employee.id}`
+                                    : '/my-profile'
+                            }
+                        >
                             <Button
                                 variant="outline"
                                 type="button"
