@@ -271,21 +271,6 @@ export default function Show({
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        {/* {((can('employee.edit') &&
-                            auth.user.employee?.id === employee.id) ||
-                            can('employee-profile.edit')) && (
-                            <Link
-                                href={
-                                    can('employee.edit')
-                                        ? `/employees/${employee.id}/edit`
-                                        : editMyProfile().url
-                                }
-                            >
-                                <Button variant="outline" size="sm">
-                                    Edit Profil
-                                </Button>
-                            </Link>
-                        )} */}
                         <Link
                             href={
                                 can('employee.edit')
