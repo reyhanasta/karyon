@@ -28,7 +28,12 @@ class OvertimeRequestController extends Controller
 
         $query = OvertimeRequest::with('employee');
 
-        if ($user->hasRole('employee')) {
+        if ($user->can('overtime.approve.manager') && !$user->hasRole(['super-admin', 'hr-admin'])) {
+            $managedDeptIds = $user->managedDepartments()->pluck('departments.id')->toArray();
+            $query->whereHas('employee', function ($q) use ($managedDeptIds) {
+                $q->whereIn('department_id', $managedDeptIds);
+            });
+        } elseif ($user->hasRole('employee') && !$user->hasRole(['super-admin', 'hr-admin'])) {
             $query->where('employee_id', $user->employee->id ?? 0);
         }
 
@@ -150,7 +155,12 @@ class OvertimeRequestController extends Controller
         });
 
         // Notify initial approvers
-        $approvers = User::permission("overtime.approve.{$notifyRole}")->get();
+        if ($notifyRole === 'manager') {
+            $approvers = $employee->department ? $employee->department->managers : collect();
+        } else {
+            $approvers = User::permission("overtime.approve.{$notifyRole}")->get();
+        }
+
         if ($approvers->isNotEmpty()) {
             Notification::send($approvers, new OvertimeRequestNotification($overtimeRequest, $employee, 'submitted'));
         }

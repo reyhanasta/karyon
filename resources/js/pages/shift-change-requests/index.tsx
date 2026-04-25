@@ -39,6 +39,8 @@ export default function Index({
 }) {
     const { can } = usePermissions();
 
+    console.log(requests);
+
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'pending_target':

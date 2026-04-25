@@ -14,6 +14,7 @@ class DepartmentController extends Controller
         $search = $request->input('search');
 
         $departments = Department::withCount('employees')
+            ->with('managers')
             ->when($search, function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%");
             })
@@ -21,8 +22,19 @@ class DepartmentController extends Controller
             ->paginate(8)
             ->withQueryString();
 
+        $availableManagers = \App\Models\User::has('employee')
+            ->with('employee:id,user_id,full_name')
+            ->get()
+            ->map(function($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->employee->full_name ?? $user->email,
+                ];
+            });
+
         return Inertia::render('departments/index', [
             'departments' => $departments,
+            'availableManagers' => $availableManagers,
             'filters' => ['search' => $search],
         ]);
     }
@@ -32,10 +44,15 @@ class DepartmentController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:departments,name',
             'description' => 'nullable|string|max:500',
+            'manager_ids' => 'nullable|array',
+            'manager_ids.*' => 'exists:users,id',
         ]);
 
         DB::transaction(function () use ($validated) {
-            Department::create($validated);
+            $department = Department::create($validated);
+            if (isset($validated['manager_ids'])) {
+                $department->managers()->sync($validated['manager_ids']);
+            }
         });
 
         return redirect()->back()->with('success', 'Department created successfully.');
@@ -46,10 +63,15 @@ class DepartmentController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:departments,name,' . $department->id,
             'description' => 'nullable|string|max:500',
+            'manager_ids' => 'nullable|array',
+            'manager_ids.*' => 'exists:users,id',
         ]);
 
         DB::transaction(function () use ($department, $validated) {
             $department->update($validated);
+            if (isset($validated['manager_ids'])) {
+                $department->managers()->sync($validated['manager_ids']);
+            }
         });
 
         return redirect()->back()->with('success', 'Department updated successfully.');

@@ -348,7 +348,10 @@ export default function Show({ request }: { request: ShiftChangeRequest }) {
                             {isHrd &&
                                 (request.status === 'pending_hrd' ||
                                     request.status === 'pending_manager') && (
-                                    <Button onClick={handleApproveHrd}>
+                                    <Button
+                                        className="bg-green-600 hover:bg-green-700"
+                                        onClick={handleApproveHrd}
+                                    >
                                         <CheckCircle2 className="mr-2 h-4 w-4" />
                                         {request.status !== 'pending_hrd'
                                             ? 'Bypass & Setujui (HRD)'

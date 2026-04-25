@@ -32,7 +32,12 @@ class LeaveRequestController extends Controller
 
         $query = LeaveRequest::with(['employee', 'leaveType']);
 
-        if ($user->hasRole('employee')) {
+        if ($user->can('leave.approve.manager') && !$user->hasRole(['super-admin', 'hr-admin'])) {
+            $managedDeptIds = $user->managedDepartments()->pluck('departments.id')->toArray();
+            $query->whereHas('employee', function ($q) use ($managedDeptIds) {
+                $q->whereIn('department_id', $managedDeptIds);
+            });
+        } elseif ($user->hasRole('employee') && !$user->hasRole(['super-admin', 'hr-admin'])) {
             $query->where('employee_id', $user->employee->id ?? 0);
         }
 
@@ -213,7 +218,12 @@ class LeaveRequestController extends Controller
         });
 
         // Notify initial approvers
-        $approvers = User::permission("leave.approve.{$notifyRole}")->get();
+        if ($notifyRole === 'manager') {
+            $approvers = $employee->department ? $employee->department->managers : collect();
+        } else {
+            $approvers = User::permission("leave.approve.{$notifyRole}")->get();
+        }
+
         if ($approvers->isNotEmpty()) {
             Notification::send($approvers, new LeaveRequestNotification($leaveRequest, $employee, 'submitted'));
         }

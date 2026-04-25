@@ -18,9 +18,11 @@ import AppLayout from '@/layouts/app-layout';
 
 export default function Index({
     departments,
+    availableManagers = [],
     filters,
 }: {
     departments: any;
+    availableManagers?: Array<{ id: number; name: string }>;
     filters: { search?: string };
 }) {
     const [search, setSearch] = useState(filters.search ?? '');
@@ -34,6 +36,7 @@ export default function Index({
     const { data, setData, post, put, reset, errors, processing } = useForm({
         name: '',
         description: '',
+        manager_ids: [] as number[],
     });
 
     const handleSearchChange = (value: string) => {
@@ -63,6 +66,7 @@ export default function Index({
         setData({
             name: department.name,
             description: department.description || '',
+            manager_ids: department.managers ? department.managers.map((m: any) => m.id) : [],
         });
     };
 
@@ -173,6 +177,36 @@ export default function Index({
                                             </p>
                                         )}
                                     </div>
+                                    <div className="grid gap-2">
+                                        <Label>Penanggung Jawab (Karu)</Label>
+                                        <div className="grid grid-cols-1 gap-2 rounded-md border p-3 max-h-40 overflow-y-auto">
+                                            {availableManagers.map((manager) => (
+                                                <div key={manager.id} className="flex items-center gap-2">
+                                                    <input
+                                                        type="checkbox"
+                                                        id={`create-manager-${manager.id}`}
+                                                        className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4"
+                                                        checked={data.manager_ids.includes(manager.id)}
+                                                        onChange={(e) => {
+                                                            if (e.target.checked) {
+                                                                setData('manager_ids', [...data.manager_ids, manager.id]);
+                                                            } else {
+                                                                setData('manager_ids', data.manager_ids.filter(id => id !== manager.id));
+                                                            }
+                                                        }}
+                                                    />
+                                                    <Label htmlFor={`create-manager-${manager.id}`} className="text-sm font-normal cursor-pointer">
+                                                        {manager.name}
+                                                    </Label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        {errors.manager_ids && (
+                                            <p className="text-sm text-destructive">
+                                                {errors.manager_ids}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                                 <DialogFooter>
                                     <Button type="submit" disabled={processing}>
@@ -221,6 +255,16 @@ export default function Index({
                                                 'Tidak ada deskripsi.'}
                                         </p>
                                     </div>
+                                </div>
+
+                                {/* Managers display */}
+                                <div className="text-sm text-muted-foreground">
+                                    <span className="font-medium text-foreground">Karu: </span>
+                                    {department.managers && department.managers.length > 0 ? (
+                                        department.managers.map((m: any) => m.employee?.full_name || m.email).join(', ')
+                                    ) : (
+                                        'Belum diset'
+                                    )}
                                 </div>
 
                                 {/* Employee count */}
@@ -299,27 +343,57 @@ export default function Index({
                                         </p>
                                     )}
                                 </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="edit-description">
-                                        Deskripsi
-                                    </Label>
-                                    <Input
-                                        id="edit-description"
-                                        value={data.description}
-                                        onChange={(e) =>
-                                            setData(
-                                                'description',
-                                                e.target.value,
-                                            )
-                                        }
-                                    />
-                                    {errors.description && (
-                                        <p className="text-sm text-destructive">
-                                            {errors.description}
-                                        </p>
-                                    )}
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="edit-description">
+                                            Deskripsi
+                                        </Label>
+                                        <Input
+                                            id="edit-description"
+                                            value={data.description}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'description',
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
+                                        {errors.description && (
+                                            <p className="text-sm text-destructive">
+                                                {errors.description}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label>Penanggung Jawab (Karu)</Label>
+                                        <div className="grid grid-cols-1 gap-2 rounded-md border p-3 max-h-40 overflow-y-auto">
+                                            {availableManagers.map((manager) => (
+                                                <div key={manager.id} className="flex items-center gap-2">
+                                                    <input
+                                                        type="checkbox"
+                                                        id={`edit-manager-${manager.id}`}
+                                                        className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4"
+                                                        checked={data.manager_ids.includes(manager.id)}
+                                                        onChange={(e) => {
+                                                            if (e.target.checked) {
+                                                                setData('manager_ids', [...data.manager_ids, manager.id]);
+                                                            } else {
+                                                                setData('manager_ids', data.manager_ids.filter(id => id !== manager.id));
+                                                            }
+                                                        }}
+                                                    />
+                                                    <Label htmlFor={`edit-manager-${manager.id}`} className="text-sm font-normal cursor-pointer">
+                                                        {manager.name}
+                                                    </Label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        {errors.manager_ids && (
+                                            <p className="text-sm text-destructive">
+                                                {errors.manager_ids}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
                             <DialogFooter>
                                 <Button type="submit" disabled={processing}>
                                     Perbarui

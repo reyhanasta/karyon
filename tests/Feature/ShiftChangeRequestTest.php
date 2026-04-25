@@ -39,6 +39,12 @@ beforeEach(function () {
         'full_name' => 'Employee Beta'
     ]);
     $this->employeeB->user->assignRole('employee');
+
+    // Create a Karu user and assign managed department
+    $this->karu = User::factory()->create(['email' => 'karu@test.com']);
+    $this->karu->assignRole('employee');
+    $this->karu->givePermissionTo('shift-change.approve.manager');
+    $this->karu->managedDepartments()->attach($this->department->id);
 });
 
 test('employee can view shift change requests index', function () {
@@ -61,7 +67,7 @@ test('employee can submit a shift change request to a colleague', function () {
     $this->assertDatabaseHas('shift_change_requests', [
         'requester_id' => $this->employeeA->id,
         'target_id' => $this->employeeB->id,
-        'status' => 'pending_target'
+        'status' => 'pending_manager'
     ]);
 });
 
@@ -80,37 +86,37 @@ test('admin can submit a shift change request on behalf of an employee', functio
     $this->assertDatabaseHas('shift_change_requests', [
         'requester_id' => $this->employeeA->id,
         'target_id' => $this->employeeB->id,
-        'status' => 'pending_target'
+        'status' => 'pending_manager'
     ]);
 });
 
-test('target employee can approve a shift change request', function () {
+test('karu can approve a shift change request', function () {
     $request = ShiftChangeRequest::create([
         'requester_id' => $this->employeeA->id,
         'target_id' => $this->employeeB->id,
         'request_date' => now()->addDay()->format('Y-m-d'),
         'requester_shift_id' => $this->shift->id,
-        'status' => 'pending_target',
+        'status' => 'pending_manager',
         'reason' => 'Test'
     ]);
 
-    actingAs($this->employeeB->user)
-        ->post(route('shift-change-requests.approve-target', $request))
+    actingAs($this->karu)
+        ->post(route('shift-change-requests.approve-manager', $request))
         ->assertRedirect()
         ->assertSessionHas('success');
 
     expect($request->refresh()->status)->toBe('pending_hrd');
 });
 
-test('hr admin can approve a target-approved shift change request', function () {
+test('hr admin can approve a manager-approved shift change request', function () {
     $request = ShiftChangeRequest::create([
         'requester_id' => $this->employeeA->id,
         'target_id' => $this->employeeB->id,
         'request_date' => now()->addDay()->format('Y-m-d'),
         'requester_shift_id' => $this->shift->id,
         'status' => 'pending_hrd',
-        'target_approved_by' => $this->employeeB->user_id,
-        'target_approved_at' => now(),
+        'manager_approved_by' => $this->karu->id,
+        'manager_approved_at' => now(),
         'reason' => 'Test'
     ]);
 
@@ -119,5 +125,5 @@ test('hr admin can approve a target-approved shift change request', function () 
         ->assertRedirect()
         ->assertSessionHas('success');
 
-    expect($request->refresh()->status)->toBe('pending_manager');
+    expect($request->refresh()->status)->toBe('approved');
 });

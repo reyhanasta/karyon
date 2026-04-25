@@ -39,7 +39,7 @@ test('employee can submit leave request', function () {
     $this->assertDatabaseHas('leave_requests', [
         'employee_id' => $this->employee->id,
         'leave_type_id' => $this->leaveType->id,
-        'status' => 'pending_hrd'
+        'status' => 'pending_manager'
     ]);
 });
 

@@ -56,4 +56,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(Employee::class);
     }
+
+    public function managedDepartments()
+    {
+        return $this->belongsToMany(Department::class, 'department_managers');
+    }
 }
