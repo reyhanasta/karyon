@@ -51,10 +51,7 @@ class ShiftChangeRequestController extends Controller
                 $employees = Employee::with(['department', 'position'])->orderBy('full_name')->get();
             } else {
                 $managedDeptIds = $user->managedDepartments()->pluck('departments.id')->toArray();
-                $ownDeptId = $user->employee->department_id ?? null;
-                if ($ownDeptId && !in_array($ownDeptId, $managedDeptIds)) {
-                    $managedDeptIds[] = $ownDeptId;
-                }
+
 
                 $employees = Employee::with(['department', 'position'])
                     ->whereIn('department_id', $managedDeptIds)
@@ -101,10 +98,7 @@ class ShiftChangeRequestController extends Controller
         if ($canCreateAny && !empty($validated['requester_id'])) {
             if (!$user->hasRole(['super-admin', 'hr-admin'])) {
                 $managedDeptIds = $user->managedDepartments()->pluck('departments.id')->toArray();
-                $ownDeptId = $user->employee->department_id ?? null;
-                if ($ownDeptId && !in_array($ownDeptId, $managedDeptIds)) {
-                    $managedDeptIds[] = $ownDeptId;
-                }
+
 
                 $requester = Employee::whereIn('department_id', $managedDeptIds)
                     ->where('id', '!=', $user->employee->id ?? 0)

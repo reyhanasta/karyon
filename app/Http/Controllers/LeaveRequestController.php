@@ -84,10 +84,7 @@ class LeaveRequestController extends Controller
                 $employees = Employee::select('id', 'full_name')->orderBy('full_name','asc')->get();
             } else {
                 $managedDeptIds = $user->managedDepartments()->pluck('departments.id')->toArray();
-                $ownDeptId = $user->employee->department_id ?? null;
-                if ($ownDeptId && !in_array($ownDeptId, $managedDeptIds)) {
-                    $managedDeptIds[] = $ownDeptId;
-                }
+
 
                 $employees = Employee::whereIn('department_id', $managedDeptIds)
                     ->where('id', '!=', $user->employee->id ?? 0)
@@ -137,11 +134,6 @@ class LeaveRequestController extends Controller
         if ($user->can('leave.create.any') && !empty($validated['employee_id'])) {
             if (!$user->hasRole(['super-admin', 'hr-admin'])) {
                 $managedDeptIds = $user->managedDepartments()->pluck('departments.id')->toArray();
-                $ownDeptId = $user->employee->department_id ?? null;
-                if ($ownDeptId && !in_array($ownDeptId, $managedDeptIds)) {
-                    $managedDeptIds[] = $ownDeptId;
-                }
-
                 $employee = Employee::whereIn('department_id', $managedDeptIds)
                     ->where('id', '!=', $user->employee->id ?? 0)
                     ->findOrFail($validated['employee_id']);
