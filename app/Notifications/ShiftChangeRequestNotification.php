@@ -29,11 +29,11 @@ class ShiftChangeRequestNotification extends Notification implements ShouldQueue
         $date = \Carbon\Carbon::parse($this->shiftChangeRequest->request_date)->format('d/m/Y');
 
         $messages = [
-            'submitted' => "{$requesterName} mengajukan tukar shift dengan Anda pada tanggal {$date}.",
-            'target_approved' => "Tukar shift {$requesterName} & {$targetName} tgl {$date} dikonfirmasi, menunggu persetujuan HRD.",
-            'pending_manager' => "Tukar shift {$requesterName} & {$targetName} tgl {$date} disetujui HRD, menunggu Kepala Ruangan.",
-            'approved'  => "Tukar shift antara {$requesterName} & {$targetName} tgl {$date} telah disetujui oleh Kepala Ruangan.",
-            'rejected'  => "Pengajuan tukar shift Anda tgl {$date} telah ditolak.",
+            'submitted' => "{$requesterName} mengajukan tukar shift dengan {$targetName} pada tanggal {$date}.",
+            'pending_manager' => "Tukar shift {$requesterName} & {$targetName} tgl {$date} menunggu persetujuan Kepala Ruangan.",
+            'pending_hrd' => "Tukar shift {$requesterName} & {$targetName} tgl {$date} menunggu persetujuan HRD.",
+            'approved'  => "Tukar shift antara {$requesterName} & {$targetName} tgl {$date} telah disetujui.",
+            'rejected'  => "Pengajuan tukar shift {$requesterName} & {$targetName} tgl {$date} telah ditolak.",
         ];
 
         return [
