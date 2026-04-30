@@ -28,12 +28,12 @@ class OvertimeRequestController extends Controller
 
         $query = OvertimeRequest::with('employee');
 
-        if ($user->can('overtime.approve.manager') && !$user->hasRole(['super-admin', 'hr-admin', 'director'])) {
+        if ($user->can('overtime.approve.manager') && !$user->hasAnyRole(['super-admin', 'hr-admin', 'director', 'karu', 'manager'])) {
             $managedDeptIds = $user->managedDepartments()->pluck('departments.id')->toArray();
             $query->whereHas('employee', function ($q) use ($managedDeptIds) {
                 $q->whereIn('department_id', $managedDeptIds);
             });
-        } elseif ($user->hasRole('employee') && !$user->hasRole(['super-admin', 'hr-admin', 'director'])) {
+        } elseif ($user->hasRole('employee') && !$user->hasAnyRole(['super-admin', 'hr-admin', 'director', 'karu', 'manager'])) {
             $query->where('employee_id', $user->employee->id ?? 0);
         }
 

@@ -19,7 +19,7 @@ class ShiftChangeRequestController extends Controller
             'targetApprovedBy', 'hrdApprovedBy'
         ])->latest();
 
-        if ($user->hasPermissionTo('shift-change.approve.manager') && !$user->hasRole(['super-admin', 'hr-admin', 'director'])) {
+        if ($user->hasPermissionTo('shift-change.approve.manager') && !$user->hasAnyRole(['super-admin', 'hr-admin', 'director', 'karu', 'manager'])) {
             $managedDeptIds = $user->managedDepartments()->pluck('departments.id')->toArray();
             $query->whereHas('requester', function ($q) use ($managedDeptIds) {
                 $q->whereIn('department_id', $managedDeptIds);
@@ -222,7 +222,7 @@ class ShiftChangeRequestController extends Controller
         }
 
         $requester = $shift_change_request->requester;
-        if ($requester && !$user->managedDepartments()->where('departments.id', $requester->department_id)->exists()) {
+        if ($requester && !$user->hasAnyRole(['karu', 'manager']) && !$user->managedDepartments()->where('departments.id', $requester->department_id)->exists()) {
             abort(403, 'Anda bukan penanggung jawab departemen ini.');
         }
 

@@ -139,6 +139,8 @@ export default function Index({
         return `/leave-requests/export?${params.toString()}`;
     };
 
+    console.log(leaveRequests);
+
     return (
         <AppLayout
             breadcrumbs={[

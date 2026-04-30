@@ -14,15 +14,8 @@ class LeaveRequestPolicy
 
     public function view(User $user, LeaveRequest $leaveRequest): bool
     {
-        if ($user->can('leave.approve.hrd') || $user->can('leave.approve.director')) {
+        if ($user->can('leave.approve.hrd') || $user->can('leave.approve.director') || $user->hasAnyRole(['karu', 'manager'])) {
             return true;
-        }
-
-        if ($user->can('leave.approve.manager')) {
-            $emp = $leaveRequest->employee;
-            if ($emp && $user->managedDepartments()->where('departments.id', $emp->department_id)->exists()) {
-                return true;
-            }
         }
 
         return $user->employee && $user->employee->id === $leaveRequest->employee_id;
@@ -40,13 +33,8 @@ class LeaveRequestPolicy
 
     public function updateStatus(User $user, LeaveRequest $leaveRequest): bool
     {
-        if ($user->can('leave.approve.hrd') || $user->can('leave.approve.director')) {
+        if ($user->can('leave.approve.hrd') || $user->can('leave.approve.director') || $user->hasAnyRole(['karu', 'manager'])) {
             return true;
-        }
-
-        if ($user->can('leave.approve.manager')) {
-            $emp = $leaveRequest->employee;
-            return $emp && $user->managedDepartments()->where('departments.id', $emp->department_id)->exists();
         }
 
         return false;

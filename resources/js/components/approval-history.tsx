@@ -1,5 +1,6 @@
 import { Check, Clock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import leaveRequests from '@/routes/leave-requests';
 
 interface Approver {
     employee?: { full_name: string };
@@ -81,28 +82,48 @@ export function ApprovalHistory({
 
     // Determine step status for each approver level
     const getKaruStatus = (): StepStatus => {
-        const approver = request.kepala_ruangan_approver ?? request.manager_approver;
+        const approver =
+            request.manager_approver ?? request.kepala_ruangan_approver;
         if (approver) {
-            const isRejected = request.status === 'rejected' && !request.hrd_approver && !request.director_approver;
+            const isRejected =
+                request.status === 'rejected' &&
+                !request.hrd_approver &&
+                !request.director_approver;
             return isRejected ? 'rejected' : 'done';
         }
-        if (request.status === 'pending_manager' || request.status === 'pending_kepala_ruangan') return 'current';
-        if (request.status === 'pending_hrd' || request.status === 'pending_director' || request.status === 'approved') return 'done';
+        if (
+            request.status === 'pending_manager' ||
+            request.status === 'pending_kepala_ruangan'
+        )
+            return 'current';
+        if (
+            request.status === 'pending_hrd' ||
+            request.status === 'pending_director' ||
+            request.status === 'approved'
+        )
+            return 'done';
         return 'waiting';
     };
 
+    console.log(request.status);
     const getHrdStatus = (): StepStatus => {
         if (request.hrd_approver) {
-            const isRejected = request.status === 'rejected' && !request.director_approver;
+            const isRejected =
+                request.status === 'rejected' && !request.director_approver;
             return isRejected ? 'rejected' : 'done';
         }
         if (request.status === 'pending_hrd') return 'current';
-        if (request.status === 'pending_director' || request.status === 'approved') return 'done';
+        if (
+            request.status === 'pending_director' ||
+            request.status === 'approved'
+        )
+            return 'done';
         return 'waiting';
     };
 
     const getDirectorStatus = (): StepStatus => {
-        const isRejected = request.status === 'rejected' && !!request.director_approver;
+        const isRejected =
+            request.status === 'rejected' && !!request.director_approver;
         if (isRejected) return 'rejected';
         if (request.director_approver) return 'done';
         if (request.status === 'pending_director') return 'current';
@@ -139,10 +160,12 @@ export function ApprovalHistory({
                                   !request.director_approver
                                     ? `Ditolak oleh ${karuApprover.employee?.full_name ?? 'Kepala Ruangan'}`
                                     : `Disetujui oleh ${karuApprover.employee?.full_name ?? 'Kepala Ruangan'}`
-                                : request.status === 'approved' || request.director_approver
+                                : request.status === 'approved' ||
+                                    request.director_approver
                                   ? 'Dilewati (Bypass)'
                                   : request.status === 'pending_manager' ||
-                                      request.status === 'pending_kepala_ruangan'
+                                      request.status ===
+                                          'pending_kepala_ruangan'
                                     ? 'Sedang diproses…'
                                     : 'Menunggu…'
                         }
@@ -158,7 +181,8 @@ export function ApprovalHistory({
                                   !request.director_approver
                                     ? `Ditolak oleh ${request.hrd_approver.employee?.full_name ?? 'HRD'}`
                                     : `Disetujui oleh ${request.hrd_approver.employee?.full_name ?? 'HRD'}`
-                                : request.status === 'approved' || request.director_approver
+                                : request.status === 'approved' ||
+                                    request.director_approver
                                   ? 'Dilewati (Bypass)'
                                   : request.status === 'pending_hrd'
                                     ? 'Sedang diproses…'

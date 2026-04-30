@@ -32,12 +32,12 @@ class LeaveRequestController extends Controller
 
         $query = LeaveRequest::with(['employee', 'leaveType']);
 
-        if ($user->can('leave.approve.manager') && !$user->hasRole(['super-admin', 'hr-admin', 'director'])) {
+        if ($user->can('leave.approve.manager') && !$user->hasAnyRole(['super-admin', 'hr-admin', 'director', 'karu', 'manager'])) {
             $managedDeptIds = $user->managedDepartments()->pluck('departments.id')->toArray();
             $query->whereHas('employee', function ($q) use ($managedDeptIds) {
                 $q->whereIn('department_id', $managedDeptIds);
             });
-        } elseif ($user->hasRole('employee') && !$user->hasRole(['super-admin', 'hr-admin', 'director'])) {
+        } elseif ($user->hasRole('employee') && !$user->hasAnyRole(['super-admin', 'hr-admin', 'director', 'karu', 'manager'])) {
             $query->where('employee_id', $user->employee->id ?? 0);
         }
 
@@ -58,10 +58,11 @@ class LeaveRequestController extends Controller
         $query->when($dateTo, fn ($q) => $q->where('end_date', '<=', $dateTo));
 
         $leaveRequests = $query->latest()->paginate(10)->withQueryString();
+        
 
         return Inertia::render('leave-requests/index', [
             'leaveRequests' => $leaveRequests,
-            'leaveTypes' => LeaveType::orderBy('name')->get(['id', 'name']),
+            'leaveTypes' => LeaveType::orderBy('name', 'desc')->get(['id', 'name']),
             'filters' => [
                 'status' => $status,
                 'search' => $search,
@@ -76,11 +77,11 @@ class LeaveRequestController extends Controller
     {
         $user = Auth::user();
         $canCreateAny = $user->can('leave.create.any');
-        $leaveTypes = LeaveType::active()->orderBy('name')->get();
+        $leaveTypes = LeaveType::active()->orderBy('name','asc')->get();
 
         if ($canCreateAny) {
             if ($user->hasRole(['super-admin', 'hr-admin'])) {
-                $employees = Employee::select('id', 'full_name')->orderBy('full_name')->get();
+                $employees = Employee::select('id', 'full_name')->orderBy('full_name','asc')->get();
             } else {
                 $managedDeptIds = $user->managedDepartments()->pluck('departments.id')->toArray();
                 $ownDeptId = $user->employee->department_id ?? null;
@@ -91,7 +92,7 @@ class LeaveRequestController extends Controller
                 $employees = Employee::whereIn('department_id', $managedDeptIds)
                     ->where('id', '!=', $user->employee->id ?? 0)
                     ->select('id', 'full_name')
-                    ->orderBy('full_name')
+                    ->orderBy('full_name','asc')
                     ->get();
             }
 
@@ -205,6 +206,10 @@ class LeaveRequestController extends Controller
 
         $initialStatus = 'pending_manager';
         $notifyRole = 'manager';
+        $hrdApprovedBy = null;
+        $hrdApprovedAt = null;
+        $managerApprovedBy = null;
+        $managerApprovedAt = null;
 
         $employeeUser = $employee->user;
         if ($user->hasRole(['hr-admin', 'super-admin'])) {
@@ -213,11 +218,12 @@ class LeaveRequestController extends Controller
         } elseif (($employeeUser && $employeeUser->hasRole(['karu', 'manager'])) || $user->hasRole(['karu', 'manager'])) {
             $initialStatus = 'pending_hrd';
             $notifyRole = 'hrd';
+            $managerApprovedAt = Carbon::now();
+            $managerApprovedBy = $user->id;
         }
 
-        /** @var \App\Models\LeaveRequest $leaveRequest */
         $leaveRequest = null;
-        DB::transaction(function () use ($employee, $validated, $leaveType, $attachmentPath, $initialStatus, &$leaveRequest) {
+        DB::transaction(function () use ($employee, $hrdApprovedAt, $hrdApprovedBy, $managerApprovedAt, $managerApprovedBy, $validated, $leaveType, $attachmentPath, $initialStatus, &$leaveRequest) {
             $leaveRequest = LeaveRequest::create([
                 'employee_id'   => $employee->id,
                 'leave_type_id' => $leaveType->id,
@@ -226,6 +232,10 @@ class LeaveRequestController extends Controller
                 'reason'        => $validated['reason'],
                 'attachment_path' => $attachmentPath,
                 'status'        => $initialStatus,
+                'manager_approved_by'    => $managerApprovedBy,
+                'manager_approved_at' => $managerApprovedAt,
+                'hrd_approved_by'     => $hrdApprovedBy,
+                'hrd_approved_at'   => $hrdApprovedAt,
             ]);
         });
 
