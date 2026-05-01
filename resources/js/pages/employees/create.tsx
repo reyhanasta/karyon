@@ -298,8 +298,9 @@ export default function Create({
                                         <SelectTrigger
                                             id="position_id"
                                             className="focus:ring-primary/30 w-full"
+                                            disabled={!data.department_id}
                                         >
-                                            <SelectValue placeholder="Pilih jabatan" />
+                                            <SelectValue placeholder={!data.department_id ? "Pilih departemen terlebih dahulu" : "Pilih jabatan"} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {positions

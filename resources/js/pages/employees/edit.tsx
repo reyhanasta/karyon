@@ -333,8 +333,11 @@ export default function Edit({
                                             }
                                             required
                                         >
-                                            <SelectTrigger className="focus:ring-primary/30 w-full">
-                                                <SelectValue placeholder="Pilih jabatan" />
+                                            <SelectTrigger 
+                                                className="focus:ring-primary/30 w-full"
+                                                disabled={!data.department_id}
+                                            >
+                                                <SelectValue placeholder={!data.department_id ? "Pilih departemen terlebih dahulu" : "Pilih jabatan"} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {positions
