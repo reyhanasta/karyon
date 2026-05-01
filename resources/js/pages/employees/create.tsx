@@ -1,6 +1,5 @@
 import { Head, Link, useForm as useInertiaForm } from '@inertiajs/react';
 import {
-    UserPlus,
     ArrowLeft,
     Save,
     User,
@@ -10,6 +9,8 @@ import {
     Fingerprint,
     ShieldCheck,
     Stethoscope,
+    Building2,
+    UserCheck,
 } from 'lucide-react';
 import React from 'react';
 import { Button } from '@/components/ui/button';
@@ -62,225 +63,158 @@ export default function Create({
         >
             <Head title="Tambah Karyawan" />
 
-            <div className="mx-auto w-full max-w-4xl p-4 lg:p-8">
-                {/* Header Section */}
-                <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
-                    <div className="space-y-1">
-                        <div className="flex items-center gap-3">
-                            <div className="rounded-xl bg-primary/10 p-2.5 text-primary">
-                                <UserPlus className="h-6 w-6" />
-                            </div>
-                            <h2 className="bg-linear-to-r from-foreground to-foreground/70 bg-clip-text text-3xl font-bold tracking-tight">
+            <div className="mx-auto w-full max-w-3xl p-4 lg:p-8">
+                <div className="rounded-2xl border bg-card p-6 md:p-8 shadow-sm">
+                    {/* Header */}
+                    <div className="mb-8 relative flex flex-col items-center">
+                        <Link href="/employees" className="absolute left-0 top-0 hidden md:block">
+                            <button type="button" className="flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                                <ArrowLeft className="h-4 w-4" />
+                                Kembali
+                            </button>
+                        </Link>
+                        
+                        <div className="mt-8 md:mt-2 text-center space-y-2">
+                            <h2 className="text-2xl font-bold tracking-tight">
                                 Tambah Karyawan
                             </h2>
+                            <p className="text-sm text-muted-foreground">
+                                Lengkapi data di bawah untuk mendaftarkan anggota tim baru ke dalam sistem.
+                            </p>
                         </div>
-                        <p className="ml-12 text-sm text-muted-foreground">
-                            Lengkapi data di bawah untuk mendaftarkan anggota
-                            tim baru ke dalam sistem.
-                        </p>
                     </div>
 
-                    <Link href="/employees">
-                        <Button
-                            variant="ghost"
-                            className="group gap-2 text-muted-foreground hover:text-foreground"
-                        >
-                            <ArrowLeft className="h-4 w-4" />
-                            Kembali
-                        </Button>
-                    </Link>
-                </div>
-
-                <form onSubmit={submit} className="space-y-8">
-                    {/* Section 1: Informasi Dasar */}
-                    <div className="relative">
-                        <div className="relative overflow-hidden rounded-2xl border bg-card p-6 shadow-sm">
-                            <div className="mb-6 flex items-center gap-2 border-b pb-4">
-                                <User className="h-5 w-5 text-primary" />
-                                <h3 className="text-lg font-semibold">
-                                    Informasi Identitas
-                                </h3>
-                            </div>
-
+                    <form onSubmit={submit} className="space-y-8">
+                        {/* Section 1: Informasi Identitas */}
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-semibold border-b pb-3">Informasi Identitas</h3>
+                            
                             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div className="space-y-2.5">
-                                    <Label
-                                        htmlFor="full_name"
-                                        required
-                                        className="flex items-center gap-1.5 font-medium"
-                                    >
+                                    <Label htmlFor="full_name" required>
                                         Nama Lengkap
                                     </Label>
                                     <div className="relative">
+                                        <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                         <Input
                                             id="full_name"
                                             value={data.full_name}
-                                            onChange={(e) =>
-                                                setData(
-                                                    'full_name',
-                                                    e.target.value,
-                                                )
-                                            }
+                                            onChange={(e) => setData('full_name', e.target.value)}
                                             placeholder="Masukkan nama lengkap"
                                             className={cn(
-                                                'pl-3 focus-visible:ring-primary/30',
-                                                errors.full_name &&
-                                                    'border-destructive',
+                                                'pl-9 focus-visible:ring-primary/30',
+                                                errors.full_name && 'border-destructive'
                                             )}
                                             required
                                         />
                                     </div>
                                     {errors.full_name && (
-                                        <p className="text-xs font-medium text-destructive">
-                                            {errors.full_name}
-                                        </p>
+                                        <p className="text-xs font-medium text-destructive">{errors.full_name}</p>
                                     )}
                                 </div>
 
                                 <div className="space-y-2.5">
-                                    <Label
-                                        htmlFor="email"
-                                        required
-                                        className="flex items-center gap-1.5 font-medium"
-                                    >
-                                        <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                                    <Label htmlFor="email" required>
                                         Email Perusahaan
                                     </Label>
-                                    <Input
-                                        id="email"
-                                        type="email"
-                                        value={data.email}
-                                        onChange={(e) =>
-                                            setData('email', e.target.value)
-                                        }
-                                        placeholder="nama@karyaone.id"
-                                        className={cn(
-                                            'focus-visible:ring-primary/30',
-                                            errors.email &&
-                                                'border-destructive',
-                                        )}
-                                        required
-                                    />
+                                    <div className="relative">
+                                        <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                        <Input
+                                            id="email"
+                                            type="email"
+                                            value={data.email}
+                                            onChange={(e) => setData('email', e.target.value)}
+                                            placeholder="nama@karyaone.id"
+                                            className={cn(
+                                                'pl-9 focus-visible:ring-primary/30',
+                                                errors.email && 'border-destructive'
+                                            )}
+                                            required
+                                        />
+                                    </div>
                                     {errors.email && (
-                                        <p className="text-xs font-medium text-destructive">
-                                            {errors.email}
-                                        </p>
+                                        <p className="text-xs font-medium text-destructive">{errors.email}</p>
                                     )}
                                 </div>
 
                                 <div className="space-y-2.5">
-                                    <Label
-                                        htmlFor="nip"
-                                        className="flex items-center gap-1.5 font-medium"
-                                    >
-                                        <Fingerprint className="h-3.5 w-3.5 text-muted-foreground" />
+                                    <Label htmlFor="nip">
                                         NIP / Nomor Induk
                                     </Label>
-                                    <Input
-                                        id="nip"
-                                        value={data.nip}
-                                        onChange={(e) =>
-                                            setData('nip', e.target.value)
-                                        }
-                                        placeholder="Contoh: 2024001"
-                                        className="focus-visible:ring-primary/30"
-                                    />
+                                    <div className="relative">
+                                        <Fingerprint className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                        <Input
+                                            id="nip"
+                                            value={data.nip}
+                                            onChange={(e) => setData('nip', e.target.value)}
+                                            placeholder="Contoh: 2024001"
+                                            className="pl-9 focus-visible:ring-primary/30"
+                                        />
+                                    </div>
                                     {errors.nip && (
-                                        <p className="text-xs font-medium text-destructive">
-                                            {errors.nip}
-                                        </p>
+                                        <p className="text-xs font-medium text-destructive">{errors.nip}</p>
                                     )}
                                 </div>
 
                                 <div className="space-y-2.5">
-                                    <Label
-                                        htmlFor="employee_sip"
-                                        className="flex items-center gap-1.5 font-medium"
-                                    >
-                                        <Stethoscope className="h-3.5 w-3.5 text-muted-foreground" />
+                                    <Label htmlFor="employee_sip">
                                         Nomor SIP (Jika Ada)
                                     </Label>
-                                    <Input
-                                        id="employee_sip"
-                                        value={data.employee_sip}
-                                        onChange={(e) =>
-                                            setData(
-                                                'employee_sip',
-                                                e.target.value,
-                                            )
-                                        }
-                                        placeholder="Masukkan nomor SIP"
-                                        className="focus-visible:ring-primary/30"
-                                    />
+                                    <div className="relative">
+                                        <Stethoscope className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                        <Input
+                                            id="employee_sip"
+                                            value={data.employee_sip}
+                                            onChange={(e) => setData('employee_sip', e.target.value)}
+                                            placeholder="Masukkan nomor SIP"
+                                            className="pl-9 focus-visible:ring-primary/30"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Section 2: Informasi Pekerjaan */}
-                    <div className="relative">
-                        <div className="relative overflow-hidden rounded-2xl border bg-card p-6 shadow-sm">
-                            <div className="mb-6 flex items-center gap-2 border-b pb-4">
-                                <Briefcase className="h-5 w-5 text-primary" />
-                                <h3 className="text-lg font-semibold">
-                                    Detail Pekerjaan
-                                </h3>
-                            </div>
-
+                        {/* Section 2: Detail Pekerjaan */}
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-semibold border-b pb-3">Detail Pekerjaan</h3>
+                            
                             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div className="space-y-2.5">
-                                    <Label
-                                        htmlFor="position_id"
-                                        required
-                                        className="font-medium"
-                                    >
+                                    <Label htmlFor="position_id" required>
                                         Jabatan
                                     </Label>
                                     <Select
                                         value={data.position_id}
-                                        onValueChange={(v) =>
-                                            setData('position_id', v)
-                                        }
+                                        onValueChange={(v) => setData('position_id', v)}
                                         required
                                     >
-                                        <SelectTrigger
-                                            id="position_id"
-                                            className="focus:ring-primary/30"
-                                        >
-                                            <SelectValue placeholder="Pilih jabatan" />
+                                        <SelectTrigger id="position_id" className="focus:ring-primary/30">
+                                            <div className="flex items-center gap-2">
+                                                <Briefcase className="h-4 w-4 text-muted-foreground" />
+                                                <SelectValue placeholder="Pilih jabatan" />
+                                            </div>
                                         </SelectTrigger>
                                         <SelectContent>
-                                             {positions
-                                                 .filter(
-                                                     (pos) =>
-                                                         pos.department_id ===
-                                                         parseInt(
-                                                             data.department_id,
-                                                         ),
-                                                 )
-                                                 .map((pos) => (
-                                                     <SelectItem
-                                                         key={pos.id}
-                                                         value={pos.id.toString()}
-                                                     >
-                                                         {pos.name}
-                                                     </SelectItem>
-                                                 ))}
-                                         </SelectContent>
+                                            {positions
+                                                .filter(
+                                                    (pos) =>
+                                                        pos.department_id ===
+                                                        parseInt(data.department_id)
+                                                )
+                                                .map((pos) => (
+                                                    <SelectItem key={pos.id} value={pos.id.toString()}>
+                                                        {pos.name}
+                                                    </SelectItem>
+                                                ))}
+                                        </SelectContent>
                                     </Select>
                                     {errors.position_id && (
-                                        <p className="text-xs font-medium text-destructive">
-                                            {errors.position_id}
-                                        </p>
+                                        <p className="text-xs font-medium text-destructive">{errors.position_id}</p>
                                     )}
                                 </div>
 
                                 <div className="space-y-2.5">
-                                    <Label
-                                        htmlFor="department_id"
-                                        required
-                                        className="font-medium"
-                                    >
+                                    <Label htmlFor="department_id" required>
                                         Departemen
                                     </Label>
                                     <Select
@@ -294,157 +228,129 @@ export default function Create({
                                         }}
                                         required
                                     >
-                                        <SelectTrigger
-                                            id="department_id"
-                                            className="focus:ring-primary/30"
-                                        >
-                                            <SelectValue placeholder="Pilih departemen" />
+                                        <SelectTrigger id="department_id" className="focus:ring-primary/30">
+                                            <div className="flex items-center gap-2">
+                                                <Building2 className="h-4 w-4 text-muted-foreground" />
+                                                <SelectValue placeholder="Pilih departemen" />
+                                            </div>
                                         </SelectTrigger>
                                         <SelectContent>
                                             {departments.map((dept) => (
-                                                <SelectItem
-                                                    key={dept.id}
-                                                    value={dept.id.toString()}
-                                                >
+                                                <SelectItem key={dept.id} value={dept.id.toString()}>
                                                     {dept.name}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
                                     {errors.department_id && (
-                                        <p className="text-xs font-medium text-destructive">
-                                            {errors.department_id}
-                                        </p>
+                                        <p className="text-xs font-medium text-destructive">{errors.department_id}</p>
                                     )}
                                 </div>
 
                                 <div className="space-y-2.5">
-                                    <Label
-                                        htmlFor="join_date"
-                                        required
-                                        className="flex items-center gap-1.5 font-medium"
-                                    >
-                                        <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                                    <Label htmlFor="join_date" required>
                                         Tanggal Bergabung
                                     </Label>
-                                    <Input
-                                        id="join_date"
-                                        type="date"
-                                        value={data.join_date}
-                                        onChange={(e) =>
-                                            setData('join_date', e.target.value)
-                                        }
-                                        className="focus-visible:ring-primary/30"
-                                        required
-                                    />
+                                    <div className="relative">
+                                        <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                                        <Input
+                                            id="join_date"
+                                            type="date"
+                                            value={data.join_date}
+                                            onChange={(e) => setData('join_date', e.target.value)}
+                                            className={cn(
+                                                'pl-9 focus-visible:ring-primary/30 [&::-webkit-calendar-picker-indicator]:ml-2',
+                                                errors.join_date && 'border-destructive'
+                                            )}
+                                            required
+                                        />
+                                    </div>
                                     {errors.join_date && (
-                                        <p className="text-xs font-medium text-destructive">
-                                            {errors.join_date}
-                                        </p>
+                                        <p className="text-xs font-medium text-destructive">{errors.join_date}</p>
                                     )}
                                 </div>
 
                                 <div className="space-y-2.5">
-                                    <Label
-                                        htmlFor="employee_status"
-                                        required
-                                        className="font-medium"
-                                    >
+                                    <Label htmlFor="employee_status" required>
                                         Status Pegawai
                                     </Label>
                                     <Select
                                         value={data.employee_status}
-                                        onValueChange={(v) =>
-                                            setData('employee_status', v)
-                                        }
+                                        onValueChange={(v) => setData('employee_status', v)}
                                         required
                                     >
-                                        <SelectTrigger
-                                            id="employee_status"
-                                            className="focus:ring-primary/30"
-                                        >
-                                            <SelectValue placeholder="Pilih status" />
+                                        <SelectTrigger id="employee_status" className="focus:ring-primary/30">
+                                            <div className="flex items-center gap-2">
+                                                <UserCheck className="h-4 w-4 text-muted-foreground" />
+                                                <SelectValue placeholder="Pilih status" />
+                                            </div>
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="orientasi">
-                                                Orientasi
-                                            </SelectItem>
-                                            <SelectItem value="tidak_tetap">
-                                                Tidak Tetap / Kontrak
-                                            </SelectItem>
-                                            <SelectItem value="tetap">
-                                                Tetap
-                                            </SelectItem>
-                                            <SelectItem value="keluar">
-                                                Keluar
-                                            </SelectItem>
+                                            <SelectItem value="orientasi">Orientasi</SelectItem>
+                                            <SelectItem value="tidak_tetap">Tidak Tetap / Kontrak</SelectItem>
+                                            <SelectItem value="tetap">Tetap</SelectItem>
+                                            <SelectItem value="keluar">Keluar</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
 
                                 <div className="space-y-2.5 md:col-span-2">
-                                    <Label
-                                        htmlFor="role"
-                                        className="flex items-center gap-1.5 font-medium"
-                                    >
-                                        <ShieldCheck className="h-3.5 w-3.5 text-muted-foreground" />
+                                    <Label htmlFor="role">
                                         Peran Sistem
                                     </Label>
                                     <Select
                                         value={data.role}
-                                        onValueChange={(v) =>
-                                            setData('role', v)
-                                        }
+                                        onValueChange={(v) => setData('role', v)}
                                     >
                                         <SelectTrigger className="focus:ring-primary/30">
-                                            <SelectValue placeholder="Pilih peran akses" />
+                                            <div className="flex items-center gap-2">
+                                                <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+                                                <SelectValue placeholder="Pilih peran akses" />
+                                            </div>
                                         </SelectTrigger>
                                         <SelectContent>
                                             {roles.map((role: any) => (
-                                                <SelectItem
-                                                    key={role.id}
-                                                    value={role.name}
-                                                >
+                                                <SelectItem key={role.id} value={role.name}>
                                                     {role.name}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <p className="text-[11px] text-muted-foreground">
-                                        Menentukan tingkat akses pengguna di
-                                        dalam dashboard.
+                                    <p className="text-xs text-muted-foreground">
+                                        Menentukan tingkat akses pengguna di dalam dashboard.
                                     </p>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Form Actions */}
-                    <div className="flex items-center justify-end gap-3 border-t pt-6 font-sans">
-                        <Link href="/employees">
+                        {/* Form Actions */}
+                        <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
                             <Button
-                                variant="outline"
+                                variant="secondary"
                                 type="button"
-                                className="px-6"
+                                className="w-full sm:w-1/2 bg-secondary/50 hover:bg-secondary"
+                                asChild
                             >
-                                Batal
+                                <Link href="/employees">Batal</Link>
                             </Button>
-                        </Link>
-                        <Button
-                            type="submit"
-                            disabled={processing}
-                            className="gap-2 bg-primary px-8 shadow-md shadow-primary/20"
-                        >
-                            {processing ? (
-                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                            ) : (
-                                <Save className="h-4 w-4" />
-                            )}
-                            Simpan Data Karyawan
-                        </Button>
-                    </div>
-                </form>
+                            
+                            <Button
+                                type="submit"
+                                disabled={processing}
+                                className="w-full sm:w-1/2 gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+                            >
+                                {processing ? (
+                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                ) : (
+                                    <Save className="h-4 w-4" />
+                                )}
+                                Simpan Data Karyawan
+                            </Button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </AppLayout>
     );
 }
+
