@@ -13,6 +13,11 @@ class StoreEmployeeRequest extends FormRequest
 
     public function rules(): array
     {
+        $roleRule = 'required|exists:roles,name';
+        if (!$this->user()->hasRole('super-admin')) {
+            $roleRule .= '|in:employee,director,karu';
+        }
+
         return [
             'nip'          => 'nullable|string|unique:users,nip',
             'email'        => 'required|email|unique:users,email',
@@ -23,7 +28,7 @@ class StoreEmployeeRequest extends FormRequest
             'employee_sip' => 'nullable|string|max:255',
             'employee_status' => 'required|string|in:orientasi,tidak_tetap,tetap,keluar',
             'join_date'    => 'required|date',
-            'role'         => 'required|exists:roles,name',
+            'role'         => $roleRule,
             'leave_quota'  => 'required|integer|min:0',
         ];
     }

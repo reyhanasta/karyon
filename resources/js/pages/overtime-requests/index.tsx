@@ -149,7 +149,7 @@ export default function Index({
             ]}
         >
             <Head title="Pengajuan Lembur" />
-            <div className="mx-auto flex h-full w-full max-w-7xl flex-1 flex-col gap-4 p-4 lg:p-8">
+            <div className="mx-auto flex h-full w-full flex-1 flex-col gap-4 p-4 lg:p-8">
                 <div className="flex items-center justify-between">
                     <div>
                         <h2 className="text-2xl font-bold tracking-tight">
@@ -321,30 +321,30 @@ export default function Index({
                                                     ? 'default'
                                                     : request.status ===
                                                         'rejected'
-                                                      ? 'destructive'
-                                                      : 'secondary'
+                                                        ? 'destructive'
+                                                        : 'secondary'
                                             }
                                             className={
                                                 request.status === 'approved'
                                                     ? 'border-green-600 bg-green-600 text-white hover:bg-green-700'
                                                     : request.status.startsWith(
-                                                            'pending',
-                                                        )
-                                                      ? 'border-yellow-200 bg-yellow-100 text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900/40 dark:text-yellow-500'
-                                                      : ''
+                                                        'pending',
+                                                    )
+                                                        ? 'border-yellow-200 bg-yellow-100 text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900/40 dark:text-yellow-500'
+                                                        : ''
                                             }
                                         >
                                             {request.status === 'approved'
                                                 ? 'Disetujui'
                                                 : request.status === 'rejected'
-                                                  ? 'Ditolak'
-                                                  : request.status ===
-                                                      'pending_hrd'
-                                                    ? 'Menunggu HRD'
+                                                    ? 'Ditolak'
                                                     : request.status ===
-                                                        'pending_manager'
-                                                      ? 'Menunggu Karu'
-                                                      : 'Menunggu'}
+                                                        'pending_hrd'
+                                                        ? 'Menunggu HRD'
+                                                        : request.status ===
+                                                            'pending_manager'
+                                                            ? 'Menunggu Karu'
+                                                            : 'Menunggu'}
                                         </Badge>
                                     </TableCell>
                                     {showActions && (
@@ -363,7 +363,7 @@ export default function Index({
                                                 </Link>
                                                 {canEdit &&
                                                     request.status ===
-                                                        'pending' && (
+                                                    'pending' && (
                                                         <Link
                                                             href={`/overtime-requests/${request.id}/edit`}
                                                         >
@@ -383,37 +383,37 @@ export default function Index({
                                                     (request.status ===
                                                         'pending_manager' &&
                                                         canApproveManager)) && (
-                                                    <>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() =>
-                                                                handleStatusUpdate(
-                                                                    request.id,
-                                                                    'approved',
-                                                                )
-                                                            }
-                                                            className="text-green-600 hover:text-green-700"
-                                                        >
-                                                            <Check className="mr-1 h-3 w-3" />{' '}
-                                                            Setujui
-                                                        </Button>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() =>
-                                                                handleStatusUpdate(
-                                                                    request.id,
-                                                                    'rejected',
-                                                                )
-                                                            }
-                                                            className="text-destructive hover:text-destructive"
-                                                        >
-                                                            <X className="mr-1 h-3 w-3" />{' '}
-                                                            Tolak
-                                                        </Button>
-                                                    </>
-                                                )}
+                                                        <>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() =>
+                                                                    handleStatusUpdate(
+                                                                        request.id,
+                                                                        'approved',
+                                                                    )
+                                                                }
+                                                                className="text-green-600 hover:text-green-700"
+                                                            >
+                                                                <Check className="mr-1 h-3 w-3" />{' '}
+                                                                Setujui
+                                                            </Button>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() =>
+                                                                    handleStatusUpdate(
+                                                                        request.id,
+                                                                        'rejected',
+                                                                    )
+                                                                }
+                                                                className="text-destructive hover:text-destructive"
+                                                            >
+                                                                <X className="mr-1 h-3 w-3" />{' '}
+                                                                Tolak
+                                                            </Button>
+                                                        </>
+                                                    )}
                                             </div>
                                         </TableCell>
                                     )}

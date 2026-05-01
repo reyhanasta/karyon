@@ -96,16 +96,12 @@ export function ApprovalHistory({
             request.status === 'pending_kepala_ruangan'
         )
             return 'current';
-        if (
-            request.status === 'pending_hrd' ||
-            request.status === 'pending_director' ||
-            request.status === 'approved'
-        )
+        if (request.status === 'approved' && request.manager_approver)
             return 'done';
         return 'waiting';
     };
 
-    console.log(request.status);
+    console.log(request);
     const getHrdStatus = (): StepStatus => {
         if (request.hrd_approver) {
             const isRejected =
@@ -115,7 +111,7 @@ export function ApprovalHistory({
         if (request.status === 'pending_hrd') return 'current';
         if (
             request.status === 'pending_director' ||
-            request.status === 'approved'
+            (request.status === 'approved' && request.hrd_approver)
         )
             return 'done';
         return 'waiting';
@@ -129,6 +125,7 @@ export function ApprovalHistory({
         if (request.status === 'pending_director') return 'current';
         return 'waiting';
     };
+    console.log(request.status);
 
     const karuApprover =
         request.kepala_ruangan_approver ?? request.manager_approver;

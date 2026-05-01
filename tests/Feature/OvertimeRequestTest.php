@@ -246,3 +246,53 @@ test('cannot update status if already processed', function () {
         'status' => 'rejected',
     ]);
 });
+
+test('overtime request can only be updated if pending', function () {
+    $overtime = OvertimeRequest::create([
+        'employee_id' => $this->employee->id,
+        'date' => now()->toDateString(),
+        'start_time' => '17:00',
+        'end_time' => '19:00',
+        'description' => 'Pending task',
+        'status' => 'approved'
+    ]);
+
+    $this->employeeUser->givePermissionTo('overtime.edit');
+
+    $response = $this->actingAs($this->employeeUser)->put(route('overtime-requests.update', $overtime), [
+        'employee_id' => $this->employee->id,
+        'date' => now()->toDateString(),
+        'start_time' => '18:00',
+        'end_time' => '20:00',
+        'description' => 'Updated task',
+    ]);
+
+    $response->assertSessionHas('error');
+});
+
+test('HR admin can approve overtime request', function () {
+    $hrAdmin = User::factory()->create();
+    $hrAdmin->assignRole('hr-admin');
+    Permission::firstOrCreate(['name' => 'overtime.approve.hrd']);
+    $hrAdmin->givePermissionTo('overtime.approve.hrd');
+
+    $overtime = OvertimeRequest::create([
+        'employee_id' => $this->employee->id,
+        'date' => now()->toDateString(),
+        'start_time' => '17:00',
+        'end_time' => '19:00',
+        'description' => 'Test',
+        'status' => 'pending_manager'
+    ]);
+
+    $this->actingAs($hrAdmin)->post(route('overtime-requests.status', $overtime), [
+        'status' => 'approved'
+    ]);
+
+    expect($overtime->refresh()->status)->toBe('approved');
+});
+
+test('authorized user can export overtime requests', function () {
+    $response = $this->actingAs($this->managerUser)->get(route('overtime-requests.export'));
+    $response->assertStatus(200);
+});

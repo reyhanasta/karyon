@@ -72,17 +72,19 @@ class OvertimeRequestController extends Controller
 
         if ($canCreateAny) {
             if ($user->hasRole(['super-admin', 'hr-admin'])) {
-                $employees = Employee::select('id', 'full_name')->orderBy('full_name')->get();
+                // $employees = Employee::select('id', 'full_name','department_id')->orderBy('full_name')->get();
+                $employees = Employee::with(['department', 'position'])->orderBy('full_name')->get();
+
             } else {
                 $managedDeptIds = $user->managedDepartments()->pluck('departments.id')->toArray();
 
-
                 $employees = Employee::whereIn('department_id', $managedDeptIds)
                     ->where('id', '!=', $user->employee->id ?? 0)
-                    ->select('id', 'full_name')
-                    ->orderBy('full_name')
+                    ->select('id', 'full_name','department_id')
+                    ->orderBy('full_name','asc')
                     ->get();
             }
+
 
             return Inertia::render('overtime-requests/create', [
                 'employees' => $employees,
@@ -150,14 +152,23 @@ class OvertimeRequestController extends Controller
         /** @var \App\Models\OvertimeRequest $overtimeRequest */
         $overtimeRequest = null;
         DB::transaction(function () use ($employee, $validated, $initialStatus, &$overtimeRequest) {
-            $overtimeRequest = OvertimeRequest::create([
+            $data = [
                 'employee_id' => $employee->id,
                 'date' => $validated['date'],
                 'start_time' => $validated['start_time'],
                 'end_time' => $validated['end_time'],
                 'description' => $validated['description'],
                 'status' => $initialStatus,
-            ]);
+            ];
+
+            // If the status is pending_hrd (meaning it bypassed manager approval level),
+            // record the current user as the one who approved it at manager level.
+            if ($initialStatus === 'pending_hrd') {
+                $data['manager_approved_by'] = Auth::id();
+                $data['manager_approved_at'] = now();
+            }
+
+            $overtimeRequest = OvertimeRequest::create($data);
         });
 
         // Notify initial approvers

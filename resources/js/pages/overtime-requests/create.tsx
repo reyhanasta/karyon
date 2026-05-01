@@ -60,6 +60,8 @@ export default function Create({
         (emp) => String(emp.id) === data.employee_id,
     );
 
+    console.log(employees);
+
     return (
         <AppLayout
             breadcrumbs={[
@@ -89,9 +91,9 @@ export default function Create({
                         <Tabs
                             defaultValue={
                                 typeof window !== 'undefined' &&
-                                new URLSearchParams(window.location.search).get(
-                                    'tab',
-                                ) === 'other'
+                                    new URLSearchParams(window.location.search).get(
+                                        'tab',
+                                    ) === 'other'
                                     ? 'other'
                                     : 'self'
                             }
@@ -186,7 +188,7 @@ export default function Create({
                                             ) : (
                                                 <div className="group relative">
                                                     {!data.employee_id ||
-                                                    !selectedEmployeeObj ? (
+                                                        !selectedEmployeeObj ? (
                                                         <EmployeeCombobox
                                                             employees={
                                                                 employees
@@ -206,7 +208,7 @@ export default function Create({
                                                             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-500/15 text-sm font-semibold text-blue-600 dark:text-blue-400">
                                                                 {getInitials(
                                                                     selectedEmployeeObj?.full_name ??
-                                                                        '',
+                                                                    '',
                                                                 )}
                                                             </div>
                                                             <div className="flex-1 overflow-hidden">

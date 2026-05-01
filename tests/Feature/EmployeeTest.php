@@ -30,6 +30,8 @@ beforeEach(function () {
     $this->hrUser = User::factory()->create();
     $this->hrUser->assignRole('hr-admin');
 
+    Role::firstOrCreate(['name' => 'super-admin']);
+
     $this->unauthorizedUser = User::factory()->create();
 
     $this->department = Department::firstOrCreate(['name' => 'IT Department']);
@@ -144,6 +146,8 @@ test('can update an employee', function () {
         'join_date' => now()->toDateString(),
         'leave_quota' => 10,
     ]);
+
+    $this->hrUser->assignRole('super-admin');
 
     $response = $this->actingAs($this->hrUser)->put(route('employees.update', $employee), [
         'full_name' => 'Updated Name',

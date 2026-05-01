@@ -60,3 +60,116 @@ test('admin can submit leave request for employee', function () {
         'status' => 'pending_hrd'
     ]);
 });
+
+test('employee cannot submit leave request if quota is insufficient', function () {
+    $this->employee->update(['leave_quota' => 1]);
+
+    actingAs($this->employee->user)
+        ->post(route('leave-requests.store'), [
+            'leave_type_id' => $this->leaveType->id,
+            'start_date' => now()->addDays(5)->format('Y-m-d'),
+            'end_date' => now()->addDays(7)->format('Y-m-d'), // 3 days
+            'reason' => 'Liburan',
+        ])
+        ->assertSessionHasErrors('end_date');
+});
+
+test('leave request approval workflow', function () {
+    $leaveRequest = \App\Models\LeaveRequest::create([
+        'employee_id' => $this->employee->id,
+        'leave_type_id' => $this->leaveType->id,
+        'start_date' => now()->addDays(1)->format('Y-m-d'),
+        'end_date' => now()->addDays(2)->format('Y-m-d'),
+        'reason' => 'Test',
+        'status' => 'pending_manager'
+    ]);
+
+    // Manager approval
+    $manager = User::factory()->create();
+    $manager->assignRole('manager');
+    $this->department->managers()->attach($manager->id);
+
+    actingAs($manager)
+        ->post(route('leave-requests.status', $leaveRequest), ['status' => 'approved'])
+        ->assertRedirect();
+
+    expect($leaveRequest->refresh()->status)->toBe('pending_hrd');
+
+    // HRD approval
+    actingAs($this->admin)
+        ->post(route('leave-requests.status', $leaveRequest), ['status' => 'approved'])
+        ->assertRedirect();
+
+    expect($leaveRequest->refresh()->status)->toBe('pending_director');
+
+    // Director approval
+    $director = User::factory()->create();
+    $director->assignRole('director');
+
+    actingAs($director)
+        ->post(route('leave-requests.status', $leaveRequest), ['status' => 'approved'])
+        ->assertRedirect();
+
+    expect($leaveRequest->refresh()->status)->toBe('approved');
+});
+
+test('leave quota is deducted after final approval', function () {
+    $initialQuota = $this->employee->leave_quota;
+    $leaveRequest = \App\Models\LeaveRequest::create([
+        'employee_id' => $this->employee->id,
+        'leave_type_id' => $this->leaveType->id,
+        'start_date' => now()->addDays(1)->format('Y-m-d'),
+        'end_date' => now()->addDays(1)->format('Y-m-d'), // 1 day
+        'reason' => 'Test',
+        'status' => 'pending_director'
+    ]);
+
+    $director = User::factory()->create();
+    $director->assignRole('director');
+
+    actingAs($director)
+        ->post(route('leave-requests.status', $leaveRequest), ['status' => 'approved'])
+        ->assertRedirect();
+
+    expect($this->employee->refresh()->leave_quota)->toBe($initialQuota - 1);
+});
+
+test('leave request can be rejected', function () {
+    $leaveRequest = \App\Models\LeaveRequest::create([
+        'employee_id' => $this->employee->id,
+        'leave_type_id' => $this->leaveType->id,
+        'start_date' => now()->addDays(1)->format('Y-m-d'),
+        'end_date' => now()->addDays(1)->format('Y-m-d'),
+        'reason' => 'Test',
+        'status' => 'pending_manager'
+    ]);
+
+    actingAs($this->admin)
+        ->post(route('leave-requests.status', $leaveRequest), ['status' => 'rejected'])
+        ->assertRedirect();
+
+    expect($leaveRequest->refresh()->status)->toBe('rejected');
+});
+
+test('leave request can only be updated if pending', function () {
+    $leaveRequest = \App\Models\LeaveRequest::create([
+        'employee_id' => $this->employee->id,
+        'leave_type_id' => $this->leaveType->id,
+        'start_date' => now()->addDays(1)->format('Y-m-d'),
+        'end_date' => now()->addDays(1)->format('Y-m-d'),
+        'reason' => 'Test',
+        'status' => 'approved'
+    ]);
+
+    $this->employee->user->givePermissionTo('leave.edit');
+
+    actingAs($this->employee->user)
+        ->put(route('leave-requests.update', $leaveRequest), [
+            'employee_id' => $this->employee->id,
+            'leave_type_id' => $this->leaveType->id,
+            'start_date' => now()->addDays(2)->format('Y-m-d'),
+            'end_date' => now()->addDays(2)->format('Y-m-d'),
+            'reason' => 'Updated',
+        ])
+        ->assertSessionHas('error');
+});
