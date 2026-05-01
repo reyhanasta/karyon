@@ -81,10 +81,11 @@ class LeaveRequestController extends Controller
 
         if ($canCreateAny) {
             if ($user->hasRole(['super-admin', 'hr-admin'])) {
-                $employees = Employee::select('id', 'full_name')->orderBy('full_name','asc')->get();
+                // $employees = Employee::select('id', 'full_name')->orderBy('full_name','asc')->get();
+                $employees = Employee::with(['department', 'position'])->orderBy('full_name')->get();
+
             } else {
                 $managedDeptIds = $user->managedDepartments()->pluck('departments.id')->toArray();
-
 
                 $employees = Employee::whereIn('department_id', $managedDeptIds)
                     ->where('id', '!=', $user->employee->id ?? 0)
@@ -92,6 +93,7 @@ class LeaveRequestController extends Controller
                     ->orderBy('full_name','asc')
                     ->get();
             }
+
 
             return Inertia::render('leave-requests/create', [
                 'employees' => $employees,

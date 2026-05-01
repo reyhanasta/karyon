@@ -183,6 +183,8 @@ class ShiftChangeRequestController extends Controller
 
     public function show(ShiftChangeRequest $shift_change_request)
     {
+        $this->authorize('view', $shift_change_request);
+
         $shift_change_request->load([
             'requester.position', 'target.position', 
             'requesterShift', 'targetShift', 

@@ -86,7 +86,7 @@ test('admin can submit a shift change request on behalf of an employee', functio
     $this->assertDatabaseHas('shift_change_requests', [
         'requester_id' => $this->employeeA->id,
         'target_id' => $this->employeeB->id,
-        'status' => 'pending_manager'
+        'status' => 'pending_hrd'
     ]);
 });
 
@@ -126,4 +126,62 @@ test('hr admin can approve a manager-approved shift change request', function ()
         ->assertSessionHas('success');
 
     expect($request->refresh()->status)->toBe('approved');
+});
+
+test('duplicate shift change request is prevented', function () {
+    ShiftChangeRequest::create([
+        'requester_id' => $this->employeeA->id,
+        'target_id' => $this->employeeB->id,
+        'request_date' => now()->addDay()->format('Y-m-d'),
+        'requester_shift_id' => $this->shift->id,
+        'status' => 'pending_manager',
+        'reason' => 'Existing'
+    ]);
+
+    actingAs($this->employeeA->user)
+        ->post(route('shift-change-requests.store'), [
+            'request_date' => now()->addDay()->format('Y-m-d'),
+            'requester_shift_id' => $this->shift->id,
+            'target_id' => $this->employeeB->id,
+            'reason' => 'Duplicate'
+        ])
+        ->assertSessionHas('error');
+});
+
+test('shift change request can be rejected', function () {
+    $request = ShiftChangeRequest::create([
+        'requester_id' => $this->employeeA->id,
+        'target_id' => $this->employeeB->id,
+        'request_date' => now()->addDay()->format('Y-m-d'),
+        'requester_shift_id' => $this->shift->id,
+        'status' => 'pending_manager',
+        'reason' => 'Test'
+    ]);
+
+    actingAs($this->karu)
+        ->post(route('shift-change-requests.reject', $request), [
+            'notes' => 'Not allowed'
+        ])
+        ->assertRedirect();
+
+    expect($request->refresh()->status)->toBe('rejected');
+    expect($request->refresh()->notes)->toBe('Not allowed');
+});
+
+test('unauthorized user cannot view shift change request', function () {
+    $request = ShiftChangeRequest::create([
+        'requester_id' => $this->employeeA->id,
+        'target_id' => $this->employeeB->id,
+        'request_date' => now()->addDay()->format('Y-m-d'),
+        'requester_shift_id' => $this->shift->id,
+        'status' => 'pending_manager',
+        'reason' => 'Secret'
+    ]);
+
+    $otherUser = User::factory()->create();
+    $otherUser->assignRole('employee');
+
+    actingAs($otherUser)
+        ->get(route('shift-change-requests.show', $request))
+        ->assertForbidden();
 });
