@@ -12,6 +12,9 @@ import {
     Lock,
     PieChart,
     UserCog,
+    Users2,
+    Building2,
+    Info,
 } from 'lucide-react';
 import React from 'react';
 import { Button } from '@/components/ui/button';
@@ -146,7 +149,7 @@ export default function Edit({
                                         className={cn(
                                             'focus-visible:ring-primary/30',
                                             errors.full_name &&
-                                                'border-destructive',
+                                            'border-destructive',
                                         )}
                                         required
                                     />
@@ -176,7 +179,7 @@ export default function Edit({
                                         className={cn(
                                             'focus-visible:ring-primary/30',
                                             errors.email &&
-                                                'border-destructive',
+                                            'border-destructive',
                                         )}
                                         required
                                     />
@@ -276,12 +279,51 @@ export default function Edit({
                                 </div>
 
                                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+
+
+                                    <div className="space-y-2.5">
+                                        <Label
+                                            htmlFor="department_id"
+                                            required
+                                            className="font-medium"
+                                        >
+                                            <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+
+                                            Departemen
+                                        </Label>
+                                        <Select
+                                            value={data.department_id}
+                                            onValueChange={(v) => {
+                                                setData((prev) => ({
+                                                    ...prev,
+                                                    department_id: v,
+                                                    position_id: '',
+                                                }));
+                                            }}
+                                            required
+                                        >
+                                            <SelectTrigger className="focus:ring-primary/30 w-full">
+                                                <SelectValue placeholder="Pilih departemen" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {departments.map((dept) => (
+                                                    <SelectItem
+                                                        key={dept.id}
+                                                        value={dept.id.toString()}
+                                                    >
+                                                        {dept.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                     <div className="space-y-2.5">
                                         <Label
                                             htmlFor="position_id"
                                             required
                                             className="font-medium"
                                         >
+                                            <Users2 className="h-3.5 w-3.5 text-muted-foreground" />
                                             Jabatan
                                         </Label>
                                         <Select
@@ -291,7 +333,7 @@ export default function Edit({
                                             }
                                             required
                                         >
-                                            <SelectTrigger className="focus:ring-primary/30">
+                                            <SelectTrigger className="focus:ring-primary/30 w-full">
                                                 <SelectValue placeholder="Pilih jabatan" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -311,41 +353,6 @@ export default function Edit({
                                                             {pos.name}
                                                         </SelectItem>
                                                     ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div className="space-y-2.5">
-                                        <Label
-                                            htmlFor="department_id"
-                                            required
-                                            className="font-medium"
-                                        >
-                                            Departemen
-                                        </Label>
-                                        <Select
-                                            value={data.department_id}
-                                            onValueChange={(v) => {
-                                                setData((prev) => ({
-                                                    ...prev,
-                                                    department_id: v,
-                                                    position_id: '',
-                                                }));
-                                            }}
-                                            required
-                                        >
-                                            <SelectTrigger className="focus:ring-primary/30">
-                                                <SelectValue placeholder="Pilih departemen" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {departments.map((dept) => (
-                                                    <SelectItem
-                                                        key={dept.id}
-                                                        value={dept.id.toString()}
-                                                    >
-                                                        {dept.name}
-                                                    </SelectItem>
-                                                ))}
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -380,6 +387,8 @@ export default function Edit({
                                             required
                                             className="font-medium"
                                         >
+                                            <Info className="h-3.5 w-3.5 text-muted-foreground" />
+
                                             Status Pegawai
                                         </Label>
                                         <Select
@@ -389,7 +398,7 @@ export default function Edit({
                                             }
                                             required
                                         >
-                                            <SelectTrigger className="focus:ring-primary/30">
+                                            <SelectTrigger className="focus:ring-primary/30 w-full">
                                                 <SelectValue placeholder="Pilih status" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -426,10 +435,10 @@ export default function Edit({
                                                 setData(
                                                     'leave_quota',
                                                     parseInt(e.target.value) ||
-                                                        0,
+                                                    0,
                                                 )
                                             }
-                                            className="focus-visible:ring-primary/30"
+                                            className="focus-visible:ring-primary/30 w-full"
                                             required
                                         />
                                         {errors.leave_quota && (
@@ -453,7 +462,7 @@ export default function Edit({
                                                 setData('role', v)
                                             }
                                         >
-                                            <SelectTrigger className="focus:ring-primary/30">
+                                            <SelectTrigger className="focus:ring-primary/30 w-full">
                                                 <SelectValue placeholder="Pilih peran akses" />
                                             </SelectTrigger>
                                             <SelectContent>
