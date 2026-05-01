@@ -22,7 +22,8 @@ class DepartmentController extends Controller
             ->paginate(8)
             ->withQueryString();
 
-        $availableManagers = \App\Models\User::has('employee')
+        $availableManagers = \App\Models\User::role('karu')
+            ->has('employee')
             ->with('employee:id,user_id,full_name')
             ->get()
             ->map(function($user) {
