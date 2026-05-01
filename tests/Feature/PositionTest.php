@@ -76,9 +76,7 @@ test('can delete a position without employees', function () {
     $response = $this->actingAs($this->authorizedUser)->delete(route('positions.destroy', $position));
 
     $response->assertSessionHas('success');
-    $this->assertDatabaseMissing('positions', [
-        'id' => $position->id,
-    ]);
+    $this->assertSoftDeleted($position);
 });
 
 test('cannot delete a position with employees', function () {

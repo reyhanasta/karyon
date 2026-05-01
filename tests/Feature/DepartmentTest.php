@@ -60,7 +60,7 @@ test('admin can delete a department without employees', function () {
         ->assertRedirect()
         ->assertSessionHas('success');
 
-    $this->assertDatabaseMissing('departments', ['id' => $department->id]);
+    $this->assertSoftDeleted($department);
 });
 
 test('admin cannot delete a department with active employees', function () {
