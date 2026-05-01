@@ -3,14 +3,15 @@ import { format, parseISO } from 'date-fns';
 import { id } from 'date-fns/locale';
 import {
     ArrowLeft,
+    ArrowLeftRight,
     Calendar,
-    CalendarDays,
-    CheckCircle,
+    Check,
     CheckCircle2,
     Clock,
     FileText,
-    User2,
+    User,
     UserCheck,
+    X,
     XCircle,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -28,6 +29,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
+import { cn } from '@/lib/utils';
 
 type Shift = { id: number; name: string; start_time: string; end_time: string };
 type Employee = {
@@ -42,14 +44,15 @@ type ShiftChangeRequest = {
     requester: Employee;
     target: Employee;
     request_date: string;
-    requesterShift: Shift;
+    requester_shift: Shift;
+    targetShift?: Shift;
     reason: string;
     status:
-        | 'pending_target'
-        | 'pending_hrd'
-        | 'pending_manager'
-        | 'approved'
-        | 'rejected';
+    | 'pending_target'
+    | 'pending_hrd'
+    | 'pending_manager'
+    | 'approved'
+    | 'rejected';
     target_approved_at: string | null;
     targetApprovedBy?: { name: string };
     hrd_approved_at: string | null;
@@ -64,6 +67,8 @@ export default function Show({ request }: { request: ShiftChangeRequest }) {
     const { can } = usePermissions();
     const { auth } = usePage().props as any;
     const currentUser = auth.user;
+
+    console.log(request);
 
     const isHrd = can('shift-change.approve.hrd');
     const isManager = can('shift-change.approve.manager');
@@ -98,20 +103,6 @@ export default function Show({ request }: { request: ShiftChangeRequest }) {
         });
     };
 
-    const statusColor =
-        {
-            pending_target:
-                'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500 border-yellow-200 dark:border-yellow-800/40',
-            pending_hrd:
-                'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-500 border-blue-200 dark:border-blue-800/40',
-            pending_manager:
-                'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-500 border-purple-200 dark:border-purple-800/40',
-            approved:
-                'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500 border-green-200 dark:border-green-800/40',
-            rejected:
-                'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-500 border-red-200 dark:border-red-800/40',
-        }[request.status] || 'bg-gray-100 text-gray-800 border-gray-200';
-
     const statusLabel =
         {
             pending_target: 'Menunggu Pengganti',
@@ -120,26 +111,6 @@ export default function Show({ request }: { request: ShiftChangeRequest }) {
             approved: 'Disetujui',
             rejected: 'Ditolak',
         }[request.status] || request.status;
-
-    const statusIcon = request.status.startsWith('pending') ? (
-        <Clock className="h-6 w-6" />
-    ) : request.status === 'approved' ? (
-        <CheckCircle className="h-6 w-6" />
-    ) : (
-        <XCircle className="h-6 w-6" />
-    );
-
-    const formatDatetime = (dateStr?: string) => {
-        if (!dateStr) return '-';
-        const d = new Date(dateStr);
-        return d.toLocaleDateString('id-ID', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    };
 
     const getInitials = (name?: string) => {
         if (!name) return '??';
@@ -150,6 +121,53 @@ export default function Show({ request }: { request: ShiftChangeRequest }) {
             .toUpperCase()
             .substring(0, 2);
     };
+
+    const UserCard = ({
+        employee,
+        label,
+        isActive = false,
+        status
+    }: {
+        employee: Employee,
+        label: string,
+        isActive?: boolean,
+        status?: string
+    }) => (
+        <div className={cn(
+            "relative flex flex-1 items-center gap-4 rounded-3xl p-6 transition-all duration-300",
+            isActive
+                ? "bg-blue-600/10 border border-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.15)]"
+                : "bg-zinc-900/40 border border-white/5"
+        )}>
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-2xl font-bold text-zinc-400">
+                {getInitials(employee.full_name)}
+            </div>
+            <div className="flex flex-col gap-0.5">
+                <p className="text-[10px] font-bold tracking-widest text-zinc-500 uppercase">
+                    {label}
+                </p>
+                <h3 className="text-lg font-bold text-white">
+                    {employee.full_name}
+                </h3>
+                <p className="text-xs text-zinc-400">
+                    {employee.position?.name ?? 'Apoteker'}
+                </p>
+                <p className="text-xs text-zinc-500">
+                    {employee.department?.name ?? 'Departemen tidak tersedia'}
+                </p>
+                {status && (
+                    <div className="mt-2">
+                        <Badge className={cn(
+                            "px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                            status === 'DIAJUKAN' ? "bg-blue-600 hover:bg-blue-600" : "bg-zinc-700 hover:bg-zinc-700"
+                        )}>
+                            {status}
+                        </Badge>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
 
     return (
         <AppLayout
@@ -163,394 +181,246 @@ export default function Show({ request }: { request: ShiftChangeRequest }) {
             ]}
         >
             <Head title="Detail Penggantian Shift" />
-            <div className="mx-auto flex h-full w-full max-w-5xl flex-1 flex-col gap-6 p-4 lg:p-8">
-                {/* Header Actions */}
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                        <Link href="/shift-change-requests">
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-9 w-9"
-                            >
-                                <ArrowLeft className="h-4 w-4" />
-                            </Button>
-                        </Link>
-                        <div id="title">
-                            <h2 className="text-2xl font-bold tracking-tight">
-                                Detail Penggantian Shift
-                            </h2>
-                            <p className="text-sm text-muted-foreground">
-                                Kelola dan tinjau rincian pengajuan.
-                            </p>
-                        </div>
-                    </div>
 
-                    {/* Status Badge in Header */}
-                    <div
-                        className={`inline-flex items-center gap-3 rounded-full border px-4 py-2 ${statusColor} bg-opacity-10 shadow-sm`}
-                    >
-                        <div className="opacity-80">{statusIcon}</div>
-                        <div>
-                            <p className="text-xs font-bold tracking-wider uppercase opacity-70">
-                                Status
-                            </p>
-                            <p className="text-sm font-extrabold uppercase">
-                                {statusLabel}
-                            </p>
-                        </div>
-                    </div>
+            <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-6 lg:p-10">
+                {/* Back Button & Title (Minimalist) */}
+                <div className="flex items-center gap-4">
+                    <Link href="/shift-change-requests">
+                        <Button variant="ghost" size="icon" className="rounded-full hover:bg-zinc-800">
+                            <ArrowLeft className="h-5 w-5 text-zinc-400" />
+                        </Button>
+                    </Link>
+                    <h1 className="text-xl font-semibold text-white">Detail Pengajuan Shift</h1>
                 </div>
 
-                {/* Grid Layout */}
-                <div className="grid grid-cols-1 gap-4 pt-2 md:grid-cols-12">
-                    {/* Left Column: Sidebar Cards */}
-                    <div className="space-y-4 md:col-span-4">
-                        {/* Requester Card */}
-                        <div className="space-y-4 overflow-hidden rounded-xl border bg-card shadow-sm">
-                            <div className="border-b bg-muted/30 px-6 py-2">
-                                <h3 className="text-xs font-bold tracking-widest text-muted-foreground uppercase">
-                                    Pemohon
-                                </h3>
-                            </div>
-                            <div className="p-6">
-                                <div className="flex flex-col items-center gap-4 text-center">
-                                    <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-background bg-primary/10 text-2xl font-bold text-primary shadow-sm">
-                                        {getInitials(request.requester.full_name)}
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-lg font-bold">
-                                            {request.requester.full_name}
-                                        </p>
-                                        <div className="flex flex-col items-center gap-1">
-                                            <Badge
-                                                variant="outline"
-                                                className="font-medium"
-                                            >
-                                                {request.requester.position?.name ??
-                                                    'Posisi tidak diketahui'}
-                                            </Badge>
-                                            <p className="text-xs text-muted-foreground">
-                                                {request.requester.department?.name ??
-                                                    'Departemen tidak diketahui'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                {/* Top Section: Requester & Substitute */}
+                <div className="flex flex-col items-center gap-4 md:flex-row">
+                    <UserCard
+                        employee={request.requester}
+                        label="PEMOHON"
+                        isActive={true}
+                        status="DIAJUKAN"
+                    />
 
-                        {/* Target Card */}
-                        <div className="space-y-4 overflow-hidden rounded-xl border bg-card shadow-sm">
-                            <div className="border-b bg-muted/30 px-6 py-2">
-                                <h3 className="text-xs font-bold tracking-widest text-muted-foreground uppercase">
-                                    Pengganti
-                                </h3>
-                            </div>
-                            <div className="p-6">
-                                <div className="flex flex-col items-center gap-4 text-center">
-                                    <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-background bg-secondary/10 text-2xl font-bold text-secondary-foreground shadow-sm">
-                                        {getInitials(request.target.full_name)}
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-lg font-bold">
-                                            {request.target.full_name}
-                                        </p>
-                                        <div className="flex flex-col items-center gap-1">
-                                            <Badge
-                                                variant="outline"
-                                                className="font-medium"
-                                            >
-                                                {request.target.position?.name ??
-                                                    'Posisi tidak diketahui'}
-                                            </Badge>
-                                            <p className="text-xs text-muted-foreground">
-                                                {request.target.department?.name ??
-                                                    'Departemen tidak diketahui'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Approval History */}
-                        <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
-                            <div className="border-b bg-muted/30 px-6 py-4">
-                                <h3 className="text-xs font-bold tracking-widest text-muted-foreground uppercase">
-                                    Riwayat Persetujuan
-                                </h3>
-                            </div>
-                            <div className="p-6">
-                                <ol className="relative ms-3 space-y-6 border-s border-muted-foreground/20">
-                                    {/* Step 1 */}
-                                    <li className="ms-6">
-                                        <span className="absolute -inset-s-3 flex h-6 w-6 items-center justify-center rounded-full bg-green-100 text-green-600 ring-4 ring-background">
-                                            <CheckCircle2 className="h-3.5 w-3.5" />
-                                        </span>
-                                        <h3 className="text-sm font-medium">
-                                            Pengajuan dibuat
-                                        </h3>
-                                        <p className="text-xs text-muted-foreground">
-                                            {request.requester.full_name} ·{' '}
-                                            {format(
-                                                parseISO(request.created_at),
-                                                'dd MMM yyyy, HH:mm',
-                                                { locale: id },
-                                            )}
-                                        </p>
-                                    </li>
-
-                                    {/* Step 2: Karu / Manager */}
-                                    <li className="ms-6">
-                                        <span
-                                            className={`absolute -inset-s-3 flex h-6 w-6 items-center justify-center rounded-full ring-4 ring-background ${request.manager_approved_at ? 'bg-green-100 text-green-600' : request.status === 'rejected' && !!request.managerApprovedBy ? 'bg-red-100 text-red-600' : 'bg-muted text-muted-foreground'}`}
-                                        >
-                                            {request.manager_approved_at ? (
-                                                <CheckCircle2 className="h-3.5 w-3.5" />
-                                            ) : request.status === 'rejected' &&
-                                              !!request.managerApprovedBy ? (
-                                                <XCircle className="h-3.5 w-3.5" />
-                                            ) : (
-                                                <CheckCircle2 className="h-3.5 w-3.5" />
-                                            )}
-                                        </span>
-                                        <h3 className="text-sm font-medium">
-                                            Persetujuan Kepala Ruangan
-                                        </h3>
-                                        <p className="text-xs text-muted-foreground">
-                                            {request.manager_approved_at
-                                                ? `Disetujui oleh ${request.managerApprovedBy?.name ?? 'Kepala Ruangan'} · ${format(parseISO(request.manager_approved_at), 'dd MMM yyyy, HH:mm', { locale: id })}`
-                                                : request.status === 'rejected' &&
-                                                    !!request.managerApprovedBy
-                                                  ? 'Ditolak oleh Kepala Ruangan'
-                                                  : request.status === 'pending_manager'
-                                                    ? 'Sedang diproses…'
-                                                    : 'Menunggu…'}
-                                        </p>
-                                    </li>
-
-                                    {/* Step 3: HRD */}
-                                    <li className="ms-6">
-                                        <span
-                                            className={`absolute -inset-s-3 flex h-6 w-6 items-center justify-center rounded-full ring-4 ring-background ${request.hrd_approved_at || request.status === 'approved' ? 'bg-green-100 text-green-600' : request.status === 'rejected' && !!request.hrdApprovedBy ? 'bg-red-100 text-red-600' : 'bg-muted text-muted-foreground'}`}
-                                        >
-                                            {request.hrd_approved_at ||
-                                            request.status === 'approved' ? (
-                                                <CheckCircle2 className="h-3.5 w-3.5" />
-                                            ) : request.status === 'rejected' &&
-                                              !!request.hrdApprovedBy ? (
-                                                <XCircle className="h-3.5 w-3.5" />
-                                            ) : (
-                                                <CheckCircle2 className="h-3.5 w-3.5" />
-                                            )}
-                                        </span>
-                                        <h3 className="text-sm font-medium">
-                                            Persetujuan HRD
-                                        </h3>
-                                        <p className="text-xs text-muted-foreground">
-                                            {request.hrd_approved_at ||
-                                            request.status === 'approved'
-                                                ? `Disetujui oleh ${request.hrdApprovedBy?.name ?? 'HRD'} · ${request.hrd_approved_at ? format(parseISO(request.hrd_approved_at), 'dd MMM yyyy, HH:mm', { locale: id }) : '-'}`
-                                                : request.status === 'rejected' &&
-                                                    !!request.hrdApprovedBy
-                                                  ? 'Ditolak oleh HRD'
-                                                  : request.status === 'pending_hrd'
-                                                    ? 'Sedang diproses…'
-                                                    : 'Menunggu…'}
-                                        </p>
-                                    </li>
-                                </ol>
-                            </div>
-                        </div>
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-zinc-900/50">
+                        <ArrowLeftRight className="h-5 w-5 text-zinc-500" />
                     </div>
 
-                    {/* Right Column: Detail Content */}
-                    <div className="space-y-8 pb-10 md:col-span-8">
-                        {/* Summary Details */}
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            {/* Date Info */}
-                            <div className="flex items-center justify-between rounded-xl border bg-card p-6 shadow-sm">
-                                <div className="space-y-1.5">
-                                    <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase">
-                                        Tanggal Penggantian
-                                    </p>
-                                    <p className="text-lg font-bold">
-                                        {format(
-                                            parseISO(request.request_date),
-                                            'dd MMMM yyyy',
-                                            { locale: id },
-                                        )}
-                                    </p>
-                                </div>
-                                <div className="rounded-xl border border-primary/10 bg-primary/5 p-3">
-                                    <CalendarDays className="h-6 w-6 text-primary" />
-                                </div>
-                            </div>
+                    <UserCard
+                        employee={request.target}
+                        label="PENGGANTI"
+                        status={request.target_approved_at ? "DISETUJUI" : "STATUS"}
+                    />
+                </div>
 
-                            {/* Shift Info */}
-                            <div className="flex items-center justify-between rounded-xl border bg-card p-6 shadow-sm">
-                                <div className="space-y-1.5">
-                                    <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase">
-                                        Shift
-                                    </p>
-                                    <p className="text-lg font-bold">
-                                        {request.requesterShift?.name ?? '-'}
-                                        {request.requesterShift && (
-                                            <span className="ml-2 text-sm font-normal text-muted-foreground">
-                                                ({request.requesterShift.start_time?.slice(0, 5)} – {request.requesterShift.end_time?.slice(0, 5)})
-                                            </span>
-                                        )}
-                                    </p>
-                                </div>
-                                <div className="rounded-xl border border-primary/10 bg-primary/5 p-3">
-                                    <Clock className="h-6 w-6 text-primary" />
-                                </div>
-                            </div>
-                        </div>
+                {/* Middle Content Grid */}
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+                    {/* Details Column */}
+                    <div className="space-y-6 md:col-span-7">
+                        <div className="rounded-3xl border border-white/5 bg-zinc-900/40 p-8">
+                            <h2 className="mb-6 text-sm font-bold tracking-widest text-white uppercase">
+                                DETAIL PENGGANTIAN
+                            </h2>
 
-                        {/* Main Detail Card */}
-                        <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
-                            <div className="border-b bg-muted/30 px-6 py-4">
-                                <h3 className="text-xs font-bold tracking-widest text-muted-foreground uppercase">
-                                    Alasan & Catatan
-                                </h3>
-                            </div>
-                            <div className="space-y-10 p-8">
-                                {/* Reason Section */}
-                                <div className="space-y-4">
-                                    <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-muted-foreground/80 uppercase">
-                                        <FileText className="h-3.5 w-3.5" />
-                                        Alasan Pengajuan
+                            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                <div className="flex gap-4">
+                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-blue-500/20 bg-blue-500/10">
+                                        <Calendar className="h-6 w-6 text-blue-500" />
                                     </div>
-                                    <div className="relative overflow-hidden rounded-xl border border-primary/10 bg-primary/2 p-6">
-                                        <div className="absolute top-0 left-0 h-full w-1.5 bg-primary/40"></div>
-                                        <p className="text-base leading-relaxed font-medium text-foreground/90 italic">
-                                            &quot;
-                                            {request.reason ||
-                                                'Tidak ada alasan yang diberikan.'}
-                                            &quot;
+                                    <div className="flex flex-col">
+                                        <p className="text-[10px] font-bold tracking-widest text-zinc-500 uppercase">
+                                            TANGGAL PENGGANTIAN
+                                        </p>
+                                        <p className="text-sm font-bold text-white">
+                                            {format(parseISO(request.request_date), 'dd MMMM yyyy', { locale: id })}
                                         </p>
                                     </div>
                                 </div>
 
-                                {/* Notes Section (if rejected) */}
+                                <div className="flex gap-4">
+                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-zinc-500/20 bg-zinc-500/10">
+                                        <Clock className="h-6 w-6 text-zinc-500" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <p className="text-[10px] font-bold tracking-widest text-zinc-500 uppercase">
+                                            SHIFT
+                                        </p>
+                                        <p className="text-sm font-bold text-white">
+                                            {request.requester_shift?.name ?? '-'}
+                                            {request.requester_shift && ` (${request.requester_shift.start_time.slice(0, 5)} - ${request.requester_shift.end_time.slice(0, 5)})`}
+                                            {request.targetShift && (
+                                                <span className="mx-2 text-zinc-500 font-normal">⇄</span>
+                                            )}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-8">
+                                <h2 className="mb-4 text-sm font-bold tracking-widest text-white uppercase">
+                                    ALASAN & CATATAN
+                                </h2>
+                                <div className="rounded-2xl bg-zinc-800/50 p-6">
+                                    <p className="mb-4 text-sm font-medium text-zinc-300 italic">
+                                        &quot;{request.reason || 'Tidak ada alasan yang diberikan.'}&quot;
+                                    </p>
+                                    <div className="flex items-center gap-2 text-[10px] text-zinc-500">
+                                        <div className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-700">
+                                            <User className="h-3 w-3" />
+                                        </div>
+                                        <span>
+                                            Diajukan pada {format(parseISO(request.created_at), 'd MMMM yyyy', { locale: id })} pukul {format(parseISO(request.created_at), 'HH.mm')}
+                                        </span>
+                                    </div>
+                                </div>
+
                                 {request.notes && (
-                                    <div className="space-y-4">
-                                        <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-destructive/80 uppercase">
-                                            <XCircle className="h-3.5 w-3.5 text-destructive" />
-                                            Catatan Penolakan
-                                        </div>
-                                        <div className="relative overflow-hidden rounded-xl border border-destructive/10 bg-destructive/5 p-6">
-                                            <div className="absolute top-0 left-0 h-full w-1.5 bg-destructive/40"></div>
-                                            <p className="text-base leading-relaxed font-medium text-destructive italic">
-                                                &quot;{request.notes}&quot;
-                                            </p>
-                                        </div>
+                                    <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/5 p-6">
+                                        <p className="text-xs font-bold tracking-widest text-red-500 uppercase mb-2">CATATAN PENOLAKAN</p>
+                                        <p className="text-sm font-medium text-red-400/90 italic">
+                                            &quot;{request.notes}&quot;
+                                        </p>
                                     </div>
                                 )}
+                            </div>
+                        </div>
+                    </div>
 
-                                <div className="flex items-center gap-2 border-t border-dashed pt-4 text-xs text-muted-foreground">
-                                    <Clock className="h-3 w-3" />
-                                    <span>
-                                        Diajukan pada{' '}
-                                        {formatDatetime(request.created_at)}
-                                    </span>
+                    {/* Timeline Column */}
+                    <div className="md:col-span-5">
+                        <div className="h-full rounded-3xl border border-white/5 bg-zinc-900/40 p-8">
+                            <h2 className="mb-8 text-sm font-bold tracking-widest text-zinc-500 uppercase">
+                                RIWAYAT PERSETUJUAN
+                            </h2>
+
+                            <div className="relative space-y-8">
+                                {/* Vertical Line */}
+                                <div className="absolute left-3 top-3 h-[calc(100%-24px)] w-0.5 bg-zinc-800"></div>
+
+                                {/* Step 1: Created */}
+                                <div className="relative flex items-center gap-6">
+                                    <div className="z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-500 text-zinc-900">
+                                        <Check className="h-4 w-4" />
+                                    </div>
+                                    <p className="text-sm font-medium text-white">Pengajuan dibuat</p>
+                                </div>
+
+                                {/* Step 2: Manager */}
+                                <div className="relative flex items-center gap-6">
+                                    <div className={cn(
+                                        "z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-full",
+                                        request.manager_approved_at ? "bg-green-500 text-zinc-900" : "bg-zinc-800 text-zinc-500"
+                                    )}>
+                                        {request.manager_approved_at ? <Check className="h-4 w-4" /> : <div className="h-2 w-2 rounded-full bg-current" />}
+                                    </div>
+                                    <p className={cn(
+                                        "text-sm font-medium",
+                                        request.manager_approved_at ? "text-white" : "text-zinc-500"
+                                    )}>
+                                        Persetujuan Kepala Ruangan
+                                    </p>
+                                </div>
+
+                                {/* Step 3: HRD */}
+                                <div className="relative flex items-center gap-6">
+                                    <div className={cn(
+                                        "z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-full",
+                                        request.hrd_approved_at || request.status === 'approved' ? "bg-green-500 text-zinc-900" :
+                                            request.status === 'pending_hrd' ? "bg-orange-500 text-zinc-900" : "bg-zinc-800 text-zinc-500"
+                                    )}>
+                                        {request.hrd_approved_at || request.status === 'approved' ? <Check className="h-4 w-4" /> :
+                                            request.status === 'pending_hrd' ? <Clock className="h-4 w-4" /> : <div className="h-2 w-2 rounded-full bg-current" />}
+                                    </div>
+                                    <p className={cn(
+                                        "text-sm font-medium",
+                                        request.hrd_approved_at || request.status === 'approved' || request.status === 'pending_hrd' ? "text-white" : "text-zinc-500"
+                                    )}>
+                                        {request.status === 'pending_hrd' ? "Menunggu Persetujuan HRD" : "Persetujuan HRD"}
+                                    </p>
                                 </div>
                             </div>
                         </div>
-
-                        {/* Action buttons */}
-                        {request.status !== 'approved' &&
-                            request.status !== 'rejected' && (
-                                <div className="flex justify-end gap-3 pt-4">
-                                    {/* Reject: bisa dilakukan Karu (saat pending_manager) atau HRD */}
-                                    {isHrd ||
-                                    (isManager &&
-                                        request.status === 'pending_manager') ? (
-                                        <Button
-                                            variant="destructive"
-                                            onClick={() => setConfirmAction({ type: 'reject', notes: '' })}
-                                        >
-                                            <XCircle className="mr-2 h-4 w-4" /> Tolak
-                                        </Button>
-                                    ) : null}
-
-                                    {/* HRD approve (dengan bypass) */}
-                                    {isHrd &&
-                                        (request.status === 'pending_hrd' ||
-                                            request.status === 'pending_manager') && (
-                                            <Button
-                                                className="bg-green-600 hover:bg-green-700"
-                                                onClick={() => setConfirmAction({ type: 'approve_hrd' })}
-                                            >
-                                                <CheckCircle2 className="mr-2 h-4 w-4" />
-                                                {request.status !== 'pending_hrd'
-                                                    ? 'Bypass & Setujui (HRD)'
-                                                    : 'Setujui (HRD)'}
-                                            </Button>
-                                        )}
-
-                                    {/* Manager approve */}
-                                    {isManager &&
-                                        request.status === 'pending_manager' && (
-                                            <Button
-                                                className="bg-green-600 hover:bg-green-700"
-                                                onClick={() => setConfirmAction({ type: 'approve_manager' })}
-                                            >
-                                                <CheckCircle2 className="mr-2 h-4 w-4" />
-                                                Setujui (Karu)
-                                            </Button>
-                                        )}
-                                </div>
-                            )}
                     </div>
                 </div>
+
+                {/* Bottom Actions */}
+                {request.status !== 'approved' && request.status !== 'rejected' && (
+                    <div className="mt-4 flex gap-4">
+                        {/* Reject Button */}
+                        {(isHrd || (isManager && request.status === 'pending_manager')) && (
+                            <Button
+                                variant="destructive"
+                                onClick={() => setConfirmAction({ type: 'reject', notes: '' })}
+                                className="h-14 flex-1 rounded-2xl text-lg font-bold bg-red-600 hover:bg-red-700"
+                            >
+                                <X className="mr-2 h-6 w-6" /> Tolak
+                            </Button>
+                        )}
+
+                        {/* Approve Buttons */}
+                        {isHrd && (request.status === 'pending_hrd' || request.status === 'pending_manager') && (
+                            <Button
+                                onClick={() => setConfirmAction({ type: 'approve_hrd' })}
+                                className="h-14 flex-1 rounded-2xl text-lg font-bold bg-green-600 hover:bg-green-700 text-white"
+                            >
+                                <UserCheck className="mr-2 h-6 w-6" />
+                                {request.status !== 'pending_hrd' ? 'Bypass & Setujui (HRD)' : 'Setujui (HRD)'}
+                            </Button>
+                        )}
+
+                        {isManager && request.status === 'pending_manager' && !isHrd && (
+                            <Button
+                                onClick={() => setConfirmAction({ type: 'approve_manager' })}
+                                className="h-14 flex-1 rounded-2xl text-lg font-bold bg-green-600 hover:bg-green-700 text-white"
+                            >
+                                <UserCheck className="mr-2 h-6 w-6" /> Setujui (Karu)
+                            </Button>
+                        )}
+                    </div>
+                )}
             </div>
 
-            {/* Confirmation Dialog */}
-            <Dialog
-                open={!!confirmAction}
-                onOpenChange={(o) => !o && setConfirmAction(null)}
-            >
-                <DialogContent className="sm:max-w-106.25">
+            {/* Confirmation Dialogs remain largely the same in logic but styled to match */}
+            <Dialog open={!!confirmAction} onOpenChange={(o) => !o && setConfirmAction(null)}>
+                <DialogContent className="border-white/5 bg-zinc-900 text-white sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle className="text-xl font-bold">
                             {confirmAction?.type === 'reject' ? 'Konfirmasi Penolakan' : 'Konfirmasi Persetujuan'}
                         </DialogTitle>
-                        <DialogDescription className="pt-2 text-sm">
+                        <DialogDescription className="pt-2 text-sm text-zinc-400">
                             {confirmAction?.type === 'reject' ? (
                                 <>
                                     Apakah Anda yakin ingin menolak pengajuan ini? Tindakan ini tidak dapat dibatalkan.
                                     <div className="mt-4 space-y-2">
-                                        <Label htmlFor="notes">Alasan Penolakan</Label>
+                                        <Label htmlFor="notes" className="text-white">Alasan Penolakan</Label>
                                         <Textarea
                                             id="notes"
                                             placeholder="Masukkan alasan penolakan..."
                                             value={confirmAction.notes}
                                             onChange={(e) => setConfirmAction({ ...confirmAction, notes: e.target.value })}
-                                            className="min-h-20"
+                                            className="min-h-20 bg-zinc-800 border-white/10 text-white"
                                         />
                                     </div>
                                 </>
                             ) : (
-                                <>
-                                    Apakah Anda yakin ingin menyetujui pengajuan ini? Tindakan ini tidak dapat dibatalkan.
-                                </>
+                                "Apakah Anda yakin ingin menyetujui pengajuan ini? Tindakan ini tidak dapat dibatalkan."
                             )}
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="mt-6 gap-2">
                         <Button
                             variant="outline"
-                            className="flex-1"
+                            className="flex-1 border-white/10 hover:bg-zinc-800 text-white"
                             onClick={() => setConfirmAction(null)}
                         >
                             Batal
                         </Button>
                         <Button
                             variant={confirmAction?.type === 'reject' ? 'destructive' : 'default'}
-                            className={`flex-1 ${confirmAction?.type !== 'reject' ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                            className={cn(
+                                "flex-1",
+                                confirmAction?.type !== 'reject' ? 'bg-green-600 hover:bg-green-700 text-white' : ''
+                            )}
                             onClick={executeAction}
                         >
                             Ya, Lanjutkan

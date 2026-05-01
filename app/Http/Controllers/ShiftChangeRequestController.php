@@ -186,10 +186,12 @@ class ShiftChangeRequestController extends Controller
         $this->authorize('view', $shift_change_request);
 
         $shift_change_request->load([
-            'requester.position', 'target.position', 
+            'requester.position', 'requester.department',
+            'target.position', 'target.department',
             'requesterShift', 'targetShift', 
             'targetApprovedBy.employee', 'hrdApprovedBy.employee', 'managerApprovedBy.employee'
         ]);
+
 
         return Inertia::render('shift-change-requests/show', [
             'request' => $shift_change_request
