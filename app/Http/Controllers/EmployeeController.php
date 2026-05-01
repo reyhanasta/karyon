@@ -121,7 +121,11 @@ class EmployeeController extends Controller
 
     public function create()
     {
-        $roles = Role::all();
+        $user = auth()->user();
+        $roles = $user->hasRole('admin') 
+            ? Role::all() 
+            : Role::whereIn('name', ['employee', 'director', 'karu'])->get();
+            
         $positions = Position::all();
         $departments = Department::all();
         return Inertia::render('employees/create', [
@@ -244,7 +248,12 @@ class EmployeeController extends Controller
     public function edit(Employee $employee)
     {
         $employee->load('user.roles');
-        $roles = Role::all();
+        
+        $user = auth()->user();
+        $roles = $user->hasRole('admin') 
+            ? Role::all() 
+            : Role::whereIn('name', ['employee', 'director', 'karu'])->get();
+            
         $positions = Position::all();
         $departments = Department::all();
         

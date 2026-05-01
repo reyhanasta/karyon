@@ -29,17 +29,20 @@ type Employee = {
     id: number;
     full_name: string;
     department_id?: number;
+    position_id?: number;
     department?: { name: string };
     position?: { name: string };
 };
 
 export default function Create({
     shifts,
+    myShifts = [],
     targetEmployees = [],
     employees = [],
     canCreateAny = false,
 }: {
     shifts: Shift[];
+    myShifts?: Shift[];
     targetEmployees?: Employee[];
     employees?: Employee[];
     canCreateAny?: boolean;
@@ -70,7 +73,7 @@ export default function Create({
         if (!canCreateAny) return targetEmployees;
         if (!selectedRequesterObj) return [];
         return employees.filter(e => 
-            e.department_id === selectedRequesterObj.department_id && 
+            e.position_id === selectedRequesterObj.position_id && 
             String(e.id) !== data.requester_id
         );
     }, [canCreateAny, targetEmployees, employees, selectedRequesterObj, data.requester_id]);
@@ -151,7 +154,7 @@ export default function Create({
                                 data={data} 
                                 setData={setData} 
                                 errors={errors} 
-                                shifts={shifts} 
+                                shifts={myShifts} 
                                 targetEmployees={targetEmployees} 
                                 processing={processing}
                                 submit={submit}
@@ -208,7 +211,7 @@ export default function Create({
                                         <div className="flex items-center gap-2 rounded-md border border-blue-500/20 bg-blue-500/10 p-3 text-sm text-blue-600 dark:text-blue-400">
                                             <Info className="h-4 w-4" />
                                             <span>
-                                                Opsi Shift dan Pengganti akan difilter berdasarkan departemen <strong>{selectedRequesterObj?.department?.name}</strong>.
+                                                Shift akan difilter berdasarkan departemen <strong>{selectedRequesterObj?.department?.name}</strong> dan calon pengganti akan difilter berdasarkan jabatan <strong>{selectedRequesterObj?.position?.name}</strong>.
                                             </span>
                                         </div>
                                     )}
@@ -237,7 +240,7 @@ export default function Create({
                         data={data} 
                         setData={setData} 
                         errors={errors} 
-                        shifts={shifts} 
+                        shifts={myShifts} 
                         targetEmployees={targetEmployees} 
                         processing={processing}
                         submit={submit}

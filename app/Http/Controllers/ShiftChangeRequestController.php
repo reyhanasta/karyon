@@ -47,38 +47,48 @@ class ShiftChangeRequestController extends Controller
         $shifts = \App\Models\Shift::where('is_active', true)->get();
         $employees = Employee::with(['department', 'position'])->orderBy('full_name')->get();
 
+        $employee = $user->employee;
+        $myFilteredShifts = collect();
+        $myTargetEmployees = collect();
+
+        if ($employee) {
+            $myFilteredShifts = $shifts->where('department_id', $employee->department_id)->values();
+            $myTargetEmployees = Employee::with(['department', 'position'])
+                ->where('position_id', $employee->position_id)
+                ->where('id', '!=', $employee->id)
+                ->get();
+        }
+
         if ($canCreateAny) {
             if ($user->hasRole(['super-admin', 'hr-admin'])) {
-                $employees = Employee::with(['department', 'position'])->orderBy('full_name')->get();
+                $assignableEmployees = Employee::with(['department', 'position'])->orderBy('full_name')->get();
             } else {
                 $managedDeptIds = $user->managedDepartments()->pluck('departments.id')->toArray();
 
-
-                $employees = Employee::with(['department', 'position'])
+                $assignableEmployees = Employee::with(['department', 'position'])
                     ->whereIn('department_id', $managedDeptIds)
                     ->where('id', '!=', $user->employee->id ?? 0)
                     ->orderBy('full_name')
                     ->get();
             }
+
             return Inertia::render('shift-change-requests/create', [
-                'employees' => $employees,
+                'employees' => $assignableEmployees,
                 'shifts' => $shifts,
+                'myShifts' => $myFilteredShifts,
+                'targetEmployees' => $myTargetEmployees->values(),
                 'canCreateAny' => true,
             ]);
         }
 
-        $employee = $user->employee;
         if (!$employee) {
             return redirect()->route('shift-change-requests.index')->with('error', 'Hanya karyawan yang dapat mengajukan tukar shift.');
         }
 
-        $filteredShifts = $shifts->where('department_id', $employee->department_id);
-        $targetEmployees = $employees->where('department_id', $employee->department_id)
-            ->where('id', '!=', $employee->id);
-
         return Inertia::render('shift-change-requests/create', [
-            'shifts' => $filteredShifts->values(),
-            'targetEmployees' => $targetEmployees->values(),
+            'shifts' => $myFilteredShifts,
+            'myShifts' => $myFilteredShifts,
+            'targetEmployees' => $myTargetEmployees->values(),
             'canCreateAny' => false,
         ]);
     }
@@ -89,7 +99,7 @@ class ShiftChangeRequestController extends Controller
         $canCreateAny = $user->can('shift-change.create.any');
 
         $validated = $request->validate([
-            'requester_id' => $canCreateAny ? 'required|exists:employees,id' : 'nullable',
+            'requester_id' => 'nullable|exists:employees,id',
             'request_date' => 'required|date',
             'requester_shift_id' => 'required|exists:shifts,id',
             'target_id' => 'required|exists:employees,id',
