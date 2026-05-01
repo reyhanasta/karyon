@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
+
 class Department extends Model
 {
     use HasFactory, SoftDeletes;
@@ -18,9 +20,35 @@ class Department extends Model
         'description',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+            'deleted_at' => 'datetime',
+        ];
+    }
+
+    protected function name(): Attribute
+    {
+        return Attribute::make(
+            get: fn (string $value) => ucwords($value),
+        );
+    }
+
     public function employees(): HasMany
     {
         return $this->hasMany(Employee::class);
+    }
+
+    public function activeEmployees(): HasMany
+    {
+        return $this->employees()->where('employee_status', '!=', 'keluar');
+    }
+
+    public function positions(): HasMany
+    {
+        return $this->hasMany(Position::class);
     }
 
     public function managers(): BelongsToMany

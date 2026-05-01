@@ -61,3 +61,26 @@ test('department forSelect scope returns ordered id and name only', function () 
     $first = $results->first()->toArray();
     expect(array_keys($first))->toEqualCanonicalizing(['id', 'name']);
 });
+
+test('department name is returned in title case', function () {
+    $department = Department::create(['name' => 'it department']);
+    
+    expect($department->name)->toBe('It Department');
+});
+
+test('department activeEmployees relationship excludes resigned employees', function () {
+    $department = Department::create(['name' => 'IT']);
+    
+    Employee::factory()->create([
+        'department_id' => $department->id,
+        'employee_status' => 'tetap'
+    ]);
+    
+    Employee::factory()->create([
+        'department_id' => $department->id,
+        'employee_status' => 'keluar'
+    ]);
+    
+    expect($department->employees()->count())->toBe(2);
+    expect($department->activeEmployees()->count())->toBe(1);
+});

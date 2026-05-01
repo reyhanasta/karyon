@@ -32,46 +32,57 @@ test('authorized users can view positions', function () {
 });
 
 test('can create a position', function () {
+    $department = Department::create(['name' => 'IT']);
     $response = $this->actingAs($this->authorizedUser)->post(route('positions.store'), [
         'name' => 'Manager',
         'description' => 'Department head',
+        'department_id' => $department->id,
     ]);
 
     $response->assertSessionHas('success');
     $this->assertDatabaseHas('positions', [
         'name' => 'Manager',
         'description' => 'Department head',
+        'department_id' => $department->id,
     ]);
 });
 
-test('cannot create duplicate position', function () {
-    Position::create(['name' => 'Supervisor']);
+test('cannot create duplicate position in same department', function () {
+    $department = Department::create(['name' => 'IT']);
+    Position::create(['name' => 'Supervisor', 'department_id' => $department->id]);
+    
+    // Allowed in different dept
+    Position::create(['name' => 'Supervisor', 'department_id' => Department::create(['name' => 'HR'])->id]); 
 
     $response = $this->actingAs($this->authorizedUser)->post(route('positions.store'), [
         'name' => 'Supervisor',
+        'department_id' => $department->id,
     ]);
 
     $response->assertSessionHasErrors('name');
 });
 
 test('can update a position', function () {
-    $position = Position::create(['name' => 'Old Name']);
+    $department = Department::create(['name' => 'IT']);
+    $position = Position::create(['name' => 'Old Name', 'department_id' => $department->id]);
 
     $response = $this->actingAs($this->authorizedUser)->put(route('positions.update', $position), [
         'name' => 'New Name',
         'description' => 'New Description',
+        'department_id' => $department->id,
     ]);
 
     $response->assertSessionHas('success');
     $this->assertDatabaseHas('positions', [
         'id' => $position->id,
         'name' => 'New Name',
-        'description' => 'New Description',
+        'department_id' => $department->id,
     ]);
 });
 
 test('can delete a position without employees', function () {
-    $position = Position::create(['name' => 'To Delete']);
+    $department = Department::create(['name' => 'IT']);
+    $position = Position::create(['name' => 'To Delete', 'department_id' => $department->id]);
 
     $response = $this->actingAs($this->authorizedUser)->delete(route('positions.destroy', $position));
 
@@ -81,7 +92,7 @@ test('can delete a position without employees', function () {
 
 test('cannot delete a position with employees', function () {
     $department = Department::firstOrCreate(['name' => 'IT Department']);
-    $position = Position::create(['name' => 'Has Employees']);
+    $position = Position::create(['name' => 'Has Employees', 'department_id' => $department->id]);
     
     $user = User::factory()->create();
     Employee::create([

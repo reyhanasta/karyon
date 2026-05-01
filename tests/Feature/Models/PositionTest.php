@@ -47,3 +47,9 @@ test('position forSelect scope returns ordered id and name only', function () {
     $first = $results->first()->toArray();
     expect(array_keys($first))->toEqualCanonicalizing(['id', 'name']);
 });
+
+test('position name is returned in title case', function () {
+    $position = Position::create(['name' => 'manager level 1']);
+    
+    expect($position->name)->toBe('Manager Level 1');
+});

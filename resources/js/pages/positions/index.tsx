@@ -14,13 +14,22 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 
 export default function Index({
     positions,
+    departments,
     filters,
 }: {
     positions: any;
+    departments: any[];
     filters: { search?: string };
 }) {
     const [search, setSearch] = useState(filters.search ?? '');
@@ -34,6 +43,7 @@ export default function Index({
     const { data, setData, post, put, reset, errors, processing } = useForm({
         name: '',
         description: '',
+        department_id: '',
     });
 
     const handleSearchChange = (value: string) => {
@@ -63,6 +73,7 @@ export default function Index({
         setData({
             name: position.name,
             description: position.description || '',
+            department_id: position.department_id?.toString() || '',
         });
     };
 
@@ -153,6 +164,37 @@ export default function Index({
                                         )}
                                     </div>
                                     <div className="grid gap-2">
+                                        <Label htmlFor="department_id" required>
+                                            Departemen
+                                        </Label>
+                                        <Select
+                                            value={data.department_id}
+                                            onValueChange={(v) =>
+                                                setData('department_id', v)
+                                            }
+                                            required
+                                        >
+                                            <SelectTrigger id="department_id" className="w-full">
+                                                <SelectValue placeholder="Pilih departemen" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {departments.map((dept) => (
+                                                    <SelectItem
+                                                        key={dept.id}
+                                                        value={dept.id.toString()}
+                                                    >
+                                                        {dept.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {errors.department_id && (
+                                            <p className="text-sm text-destructive">
+                                                {errors.department_id}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="grid gap-2">
                                         <Label htmlFor="description">
                                             Deskripsi
                                         </Label>
@@ -216,8 +258,7 @@ export default function Index({
                                             {position.name}
                                         </p>
                                         <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">
-                                            {position.description ||
-                                                'Tidak ada deskripsi.'}
+                                            {position.department?.name || 'No Department'} • {position.description || 'Tidak ada deskripsi.'}
                                         </p>
                                     </div>
                                 </div>
@@ -293,6 +334,37 @@ export default function Index({
                                     {errors.name && (
                                         <p className="text-sm text-destructive">
                                             {errors.name}
+                                        </p>
+                                    )}
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="edit-department_id" required>
+                                        Departemen
+                                    </Label>
+                                    <Select
+                                        value={data.department_id}
+                                        onValueChange={(v) =>
+                                            setData('department_id', v)
+                                        }
+                                        required
+                                    >
+                                        <SelectTrigger id="edit-department_id" className="w-full">
+                                            <SelectValue placeholder="Pilih departemen" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {departments.map((dept) => (
+                                                <SelectItem
+                                                    key={dept.id}
+                                                    value={dept.id.toString()}
+                                                >
+                                                    {dept.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.department_id && (
+                                        <p className="text-sm text-destructive">
+                                            {errors.department_id}
                                         </p>
                                     )}
                                 </div>

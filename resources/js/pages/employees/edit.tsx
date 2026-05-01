@@ -295,14 +295,22 @@ export default function Edit({
                                                 <SelectValue placeholder="Pilih jabatan" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {positions.map((pos) => (
-                                                    <SelectItem
-                                                        key={pos.id}
-                                                        value={pos.id.toString()}
-                                                    >
-                                                        {pos.name}
-                                                    </SelectItem>
-                                                ))}
+                                                {positions
+                                                    .filter(
+                                                        (pos) =>
+                                                            pos.department_id ===
+                                                            parseInt(
+                                                                data.department_id,
+                                                            ),
+                                                    )
+                                                    .map((pos) => (
+                                                        <SelectItem
+                                                            key={pos.id}
+                                                            value={pos.id.toString()}
+                                                        >
+                                                            {pos.name}
+                                                        </SelectItem>
+                                                    ))}
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -317,9 +325,13 @@ export default function Edit({
                                         </Label>
                                         <Select
                                             value={data.department_id}
-                                            onValueChange={(v) =>
-                                                setData('department_id', v)
-                                            }
+                                            onValueChange={(v) => {
+                                                setData((prev) => ({
+                                                    ...prev,
+                                                    department_id: v,
+                                                    position_id: '',
+                                                }));
+                                            }}
                                             required
                                         >
                                             <SelectTrigger className="focus:ring-primary/30">

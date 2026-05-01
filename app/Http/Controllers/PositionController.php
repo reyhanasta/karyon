@@ -7,13 +7,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
+use App\Models\Department;
+use Illuminate\Validation\Rule;
+
 class PositionController extends Controller
 {
     public function index(Request $request)
     {
         $search = $request->input('search');
 
-        $positions = Position::withCount('employees')
+        $positions = Position::with(['department'])
+            ->withCount('employees')
             ->when($search, function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%");
             })
@@ -21,8 +25,11 @@ class PositionController extends Controller
             ->paginate(8)
             ->withQueryString();
 
+        $departments = Department::orderBy('name')->get(['id', 'name']);
+
         return Inertia::render('positions/index', [
             'positions' => $positions,
+            'departments' => $departments,
             'filters' => ['search' => $search],
         ]);
     }
@@ -30,8 +37,14 @@ class PositionController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:positions,name',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('positions')->where('department_id', $request->department_id),
+            ],
             'description' => 'nullable|string|max:500',
+            'department_id' => 'required|exists:departments,id',
         ]);
 
         DB::transaction(function () use ($validated) {
@@ -44,8 +57,14 @@ class PositionController extends Controller
     public function update(Request $request, Position $position)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:positions,name,' . $position->id,
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('positions')->where('department_id', $request->department_id)->ignore($position->id),
+            ],
             'description' => 'nullable|string|max:500',
+            'department_id' => 'required|exists:departments,id',
         ]);
 
         DB::transaction(function () use ($position, $validated) {
