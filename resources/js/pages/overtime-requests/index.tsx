@@ -377,7 +377,7 @@ export default function Index({
                                                             </Button>
                                                         </Link>
                                                     )}
-                                                {((request.status ===
+                                                {/* {((request.status ===
                                                     'pending_hrd' &&
                                                     canApproveHRD) ||
                                                     (request.status ===
@@ -413,7 +413,7 @@ export default function Index({
                                                                 Tolak
                                                             </Button>
                                                         </>
-                                                    )}
+                                                    )} */}
                                             </div>
                                         </TableCell>
                                     )}

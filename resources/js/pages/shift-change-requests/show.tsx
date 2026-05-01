@@ -338,46 +338,51 @@ export default function Show({ request }: { request: ShiftChangeRequest }) {
                                         {request.status === 'pending_hrd' ? "Menunggu Persetujuan HRD" : "Persetujuan HRD"}
                                     </p>
                                 </div>
+
                             </div>
+
+                            {request.status !== 'approved' && request.status !== 'rejected' && (
+                                <div className="mt-6 flex flex-row items-end justify-start flex-row  gap-2 p-2">
+                                    {/* Reject Button */}
+                                    {(isHrd || (isManager && request.status === 'pending_manager')) && (
+                                        <Button
+                                            variant="destructive"
+                                            onClick={() => setConfirmAction({ type: 'reject', notes: '' })}
+                                            className=" rounded-2xl text-sm font-bold bg-red-600 hover:bg-red-700 cursor-pointer"
+                                        >
+                                            <X className="mr-2 h-6 w-6" /> Tolak
+                                        </Button>
+                                    )}
+
+                                    {/* Approve Buttons */}
+                                    {isHrd && (request.status === 'pending_hrd' || request.status === 'pending_manager') && (
+                                        <Button
+                                            onClick={() => setConfirmAction({ type: 'approve_hrd' })}
+                                            className=" rounded-2xl text-sm font-bold bg-green-600 hover:bg-green-700 text-white cursor-pointer"
+                                        >
+                                            <UserCheck className="mr-2 h-6 w-6" />
+                                            {request.status !== 'pending_hrd' ? 'Bypass & Setujui (HRD)' : 'Setujui (HRD)'}
+                                        </Button>
+                                    )}
+
+                                    {isManager && request.status === 'pending_manager' && !isHrd && (
+                                        <Button
+                                            onClick={() => setConfirmAction({ type: 'approve_manager' })}
+                                            className="rounded-2xl text-sm font-bold bg-green-600 hover:bg-green-700 text-white cursor-pointer"
+                                        >
+                                            <UserCheck className="mr-2 h-6 w-6" /> Setujui (Karu)
+                                        </Button>
+                                    )}
+                                </div>
+                            )}
                         </div>
+
                     </div>
+
                 </div>
 
                 {/* Bottom Actions */}
-                {request.status !== 'approved' && request.status !== 'rejected' && (
-                    <div className="mt-4 flex gap-4">
-                        {/* Reject Button */}
-                        {(isHrd || (isManager && request.status === 'pending_manager')) && (
-                            <Button
-                                variant="destructive"
-                                onClick={() => setConfirmAction({ type: 'reject', notes: '' })}
-                                className="h-14 flex-1 rounded-2xl text-lg font-bold bg-red-600 hover:bg-red-700"
-                            >
-                                <X className="mr-2 h-6 w-6" /> Tolak
-                            </Button>
-                        )}
 
-                        {/* Approve Buttons */}
-                        {isHrd && (request.status === 'pending_hrd' || request.status === 'pending_manager') && (
-                            <Button
-                                onClick={() => setConfirmAction({ type: 'approve_hrd' })}
-                                className="h-14 flex-1 rounded-2xl text-lg font-bold bg-green-600 hover:bg-green-700 text-white"
-                            >
-                                <UserCheck className="mr-2 h-6 w-6" />
-                                {request.status !== 'pending_hrd' ? 'Bypass & Setujui (HRD)' : 'Setujui (HRD)'}
-                            </Button>
-                        )}
-
-                        {isManager && request.status === 'pending_manager' && !isHrd && (
-                            <Button
-                                onClick={() => setConfirmAction({ type: 'approve_manager' })}
-                                className="h-14 flex-1 rounded-2xl text-lg font-bold bg-green-600 hover:bg-green-700 text-white"
-                            >
-                                <UserCheck className="mr-2 h-6 w-6" /> Setujui (Karu)
-                            </Button>
-                        )}
-                    </div>
-                )}
             </div>
 
             {/* Confirmation Dialogs remain largely the same in logic but styled to match */}
