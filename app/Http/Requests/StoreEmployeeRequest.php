@@ -14,7 +14,7 @@ class StoreEmployeeRequest extends FormRequest
     public function rules(): array
     {
         $roleRule = 'required|exists:roles,name';
-        if (!$this->user()->hasRole('admin')) {
+        if (!$this->user()->hasRole('super-admin')) {
             $roleRule .= '|in:employee,director,karu';
         }
 

@@ -17,7 +17,7 @@ class UpdateEmployeeRequest extends FormRequest
         $userId = $this->route('employee')->user_id;
 
         $roleRule = 'required|exists:roles,name';
-        if (!$this->user()->hasRole('admin')) {
+        if (!$this->user()->hasRole('super-admin')) {
             $roleRule .= '|in:employee,director,karu';
         }
 
