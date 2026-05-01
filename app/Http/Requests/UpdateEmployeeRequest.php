@@ -16,6 +16,11 @@ class UpdateEmployeeRequest extends FormRequest
     {
         $userId = $this->route('employee')->user_id;
 
+        $roleRule = 'required|exists:roles,name';
+        if (!$this->user()->hasRole('admin')) {
+            $roleRule .= '|in:employee,director,karu';
+        }
+
         return [
             'nip'          => ['nullable', 'string', Rule::unique('users')->ignore($userId)],
             'email'        => ['required', 'email', Rule::unique('users')->ignore($userId)],
@@ -26,7 +31,7 @@ class UpdateEmployeeRequest extends FormRequest
             'employee_sip' => 'nullable|string|max:255',
             'employee_status' => 'required|string|in:orientasi,tidak_tetap,tetap,keluar',
             'join_date'    => 'required|date',
-            'role'         => 'required|exists:roles,name',
+            'role'         => $roleRule,
             'leave_quota'  => 'required|integer|min:0',
         ];
     }
