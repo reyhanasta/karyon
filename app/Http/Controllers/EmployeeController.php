@@ -122,7 +122,7 @@ class EmployeeController extends Controller
     public function create()
     {
         $user = auth()->user();
-        $roles = $user->hasRole('admin') 
+        $roles = $user->hasRole('super-admin') 
             ? Role::all() 
             : Role::whereIn('name', ['employee', 'director', 'karu'])->get();
             
@@ -250,7 +250,7 @@ class EmployeeController extends Controller
         $employee->load('user.roles');
         
         $user = auth()->user();
-        $roles = $user->hasRole('admin') 
+        $roles = $user->hasRole('super-admin') 
             ? Role::all() 
             : Role::whereIn('name', ['employee', 'director', 'karu'])->get();
             
