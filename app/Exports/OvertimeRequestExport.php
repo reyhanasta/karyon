@@ -54,16 +54,16 @@ class OvertimeRequestExport implements FromQuery, WithHeadings, WithMapping, Wit
     public function headings(): array
     {
         return [
-            'Employee Name',
+            'Nama Pegawai',
             'NIP',
-            'Department',
-            'Date',
-            'Start Time',
-            'End Time',
-            'Total Hours',
+            'Departemen',
+            'Tanggal',
+            'Waktu Mulai',
+            'Waktu Selesai',
+            'Total Jam',
             'Status',
-            'Description',
-            'Requested At',
+            'Deskripsi',
+            'Tanggal Pengajuan',
         ];
     }
 

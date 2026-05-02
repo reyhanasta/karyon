@@ -34,7 +34,7 @@ class ShiftChangeRequestsExport implements FromCollection, WithHeadings, WithMap
             'Shift',
             'Alasan',
             'Status',
-            'Diajukan',
+            'Tanggal Pengajuan',
         ];
     }
 

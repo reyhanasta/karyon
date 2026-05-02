@@ -41,8 +41,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:employee.view');
 
     // Leave requests
-    Route::get('leave-requests/export', [App\Http\Controllers\LeaveRequestController::class, 'export'])
-        ->name('leave-requests.export')
+    Route::get('leave-requests/export/excel', [App\Http\Controllers\LeaveRequestController::class, 'exportExcel'])
+        ->name('leave-requests.export.excel')
+        ->middleware('permission:leave.view');
+    Route::get('leave-requests/export/pdf', [App\Http\Controllers\LeaveRequestController::class, 'exportPdf'])
+        ->name('leave-requests.export.pdf')
         ->middleware('permission:leave.view');
     Route::resource('leave-requests', App\Http\Controllers\LeaveRequestController::class)
         ->middleware('permission:leave.view');
@@ -51,8 +54,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:leave.approve.hrd|leave.approve.manager|leave.approve.director');
 
     // Overtime requests
-    Route::get('overtime-requests/export', [App\Http\Controllers\OvertimeRequestController::class, 'export'])
-        ->name('overtime-requests.export')
+    Route::get('overtime-requests/export/excel', [App\Http\Controllers\OvertimeRequestController::class, 'exportExcel'])
+        ->name('overtime-requests.export.excel')
+        ->middleware('permission:overtime.view');
+    Route::get('overtime-requests/export/pdf', [App\Http\Controllers\OvertimeRequestController::class, 'exportPdf'])
+        ->name('overtime-requests.export.pdf')
         ->middleware('permission:overtime.view');
     Route::resource('overtime-requests', App\Http\Controllers\OvertimeRequestController::class)
         ->middleware('permission:overtime.view');

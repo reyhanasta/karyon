@@ -15,17 +15,33 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class OvertimeRequestController extends Controller
 {
     public function index(Request $request)
     {
-        $user = Auth::user();
         $status = $request->input('status');
         $search = $request->input('search');
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
 
+        $query = $this->getBaseQuery($status, $search, $dateFrom, $dateTo);
+
+        return Inertia::render('overtime-requests/index', [
+            'overtimeRequests' => $query->orderBy('date', 'desc')->paginate(10)->withQueryString(),
+            'filters' => [
+                'status' => $status,
+                'search' => $search,
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
+            ],
+        ]);
+    }
+
+    private function getBaseQuery($status = null, $search = null, $dateFrom = null, $dateTo = null)
+    {
+        $user = Auth::user();
         $query = OvertimeRequest::with('employee');
 
         if ($user->can('overtime.approve.manager') && !$user->hasAnyRole(['super-admin', 'hr-admin', 'director', 'karu', 'manager'])) {
@@ -52,17 +68,7 @@ class OvertimeRequestController extends Controller
         $query->when($dateFrom, fn ($q) => $q->where('date', '>=', $dateFrom));
         $query->when($dateTo, fn ($q) => $q->where('date', '<=', $dateTo));
 
-        $overtimeRequests = $query->orderBy('date', 'desc')->paginate(10)->withQueryString();
-        
-        return Inertia::render('overtime-requests/index', [
-            'overtimeRequests' => $overtimeRequests,
-            'filters' => [
-                'status' => $status,
-                'search' => $search,
-                'date_from' => $dateFrom,
-                'date_to' => $dateTo,
-            ],
-        ]);
+        return $query;
     }
 
     public function create()
@@ -334,17 +340,23 @@ class OvertimeRequestController extends Controller
         return redirect()->back()->with('success', 'Overtime request status updated.');
     }
 
-    public function export(Request $request)
+    public function exportExcel(Request $request)
     {
-        $format = $request->input('format', 'xlsx');
-        $filename = 'overtime_requests_' . now()->format('Y-m-d');
-
+        $filename = 'overtime_requests_' . now()->format('Y-m-d') . '.xlsx';
         $filters = $request->only(['status', 'search', 'date_from', 'date_to']);
+        return Excel::download(new OvertimeRequestExport($filters), $filename);
+    }
 
-        if ($format === 'csv') {
-            return Excel::download(new OvertimeRequestExport($filters), $filename . '.csv', \Maatwebsite\Excel\Excel::CSV);
-        }
+    public function exportPdf(Request $request)
+    {
+        $requests = $this->getBaseQuery(
+            $request->status,
+            $request->search,
+            $request->date_from,
+            $request->date_to
+        )->orderBy('date', 'desc')->get();
 
-        return Excel::download(new OvertimeRequestExport($filters), $filename . '.xlsx');
+        $pdf = Pdf::loadView('exports.overtime-requests', compact('requests'));
+        return $pdf->download('overtime_requests_' . now()->format('Y-m-d') . '.pdf');
     }
 }

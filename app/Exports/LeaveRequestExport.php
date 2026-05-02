@@ -57,16 +57,16 @@ class LeaveRequestExport implements FromQuery, WithHeadings, WithMapping, WithSt
     public function headings(): array
     {
         return [
-            'Employee Name',
+            'Nama Pegawai',
             'NIP',
-            'Department',
-            'Leave Type',
-            'Start Date',
-            'End Date',
-            'Total Days',
+            'Departemen',
+            'Jenis Cuti',
+            'Tanggal Mulai',
+            'Tanggal Selesai',
+            'Total Hari',
             'Status',
-            'Reason',
-            'Requested At',
+            'Alasan',
+            'Tanggal Pengajuan',
         ];
     }
 

@@ -1,9 +1,9 @@
 import { Head, Link, router } from '@inertiajs/react';
 import {
     Check,
-    Download,
     Eye,
     FileSpreadsheet,
+    FileDown,
     Pencil,
     Plus,
     Search,
@@ -21,12 +21,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import {
     Select,
@@ -126,9 +120,8 @@ export default function Index({
 
     const showActions = true; // Everyone can at least view details
 
-    const getExportUrl = (format: 'xlsx' | 'csv') => {
+    const getExportUrl = (format: 'excel' | 'pdf') => {
         const params = new URLSearchParams();
-        params.append('format', format);
         if (search) params.append('search', search);
         if (filters.status) params.append('status', filters.status);
         if (filters.leave_type_id)
@@ -136,7 +129,7 @@ export default function Index({
         if (filters.date_from) params.append('date_from', filters.date_from);
         if (filters.date_to) params.append('date_to', filters.date_to);
 
-        return `/leave-requests/export?${params.toString()}`;
+        return `/leave-requests/export/${format}?${params.toString()}`;
     };
 
     console.log(leaveRequests);
@@ -163,28 +156,19 @@ export default function Index({
                     </div>
                     <div className="flex items-center gap-2">
                         {can('leave.view') && (
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline">
-                                        <Download className="mr-2 h-4 w-4" />{' '}
-                                        Ekspor
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem asChild>
-                                        <a href={getExportUrl('xlsx')}>
-                                            <FileSpreadsheet className="mr-2 h-4 w-4" />{' '}
-                                            Ekspor sebagai .xlsx
-                                        </a>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                        <a href={getExportUrl('csv')}>
-                                            <FileSpreadsheet className="mr-2 h-4 w-4" />{' '}
-                                            Ekspor sebagai .csv
-                                        </a>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                            <>
+                                <Button variant="outline" asChild>
+                                    <a href={getExportUrl('excel')}>
+                                        <FileSpreadsheet className="mr-2 h-4 w-4" />{' '}
+                                        Excel
+                                    </a>
+                                </Button>
+                                <Button variant="outline" asChild>
+                                    <a href={getExportUrl('pdf')}>
+                                        <FileDown className="mr-2 h-4 w-4" /> PDF
+                                    </a>
+                                </Button>
+                            </>
                         )}
                         {canCreate && (
                             <Link href="/leave-requests/create">

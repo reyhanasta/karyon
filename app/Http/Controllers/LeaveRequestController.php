@@ -18,18 +18,36 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class LeaveRequestController extends Controller
 {
     public function index(Request $request)
     {
-        $user = Auth::user();
         $status = $request->input('status');
         $search = $request->input('search');
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
         $leaveTypeId = $request->input('leave_type_id');
 
+        $query = $this->getBaseQuery($status, $search, $dateFrom, $dateTo, $leaveTypeId);
+
+        return Inertia::render('leave-requests/index', [
+            'leaveRequests' => $query->latest()->paginate(10)->withQueryString(),
+            'leaveTypes' => LeaveType::orderBy('name', 'desc')->get(['id', 'name']),
+            'filters' => [
+                'status' => $status,
+                'search' => $search,
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
+                'leave_type_id' => $leaveTypeId,
+            ],
+        ]);
+    }
+
+    private function getBaseQuery($status = null, $search = null, $dateFrom = null, $dateTo = null, $leaveTypeId = null)
+    {
+        $user = Auth::user();
         $query = LeaveRequest::with(['employee', 'leaveType']);
 
         if ($user->can('leave.approve.manager') && !$user->hasAnyRole(['super-admin', 'hr-admin', 'director', 'karu', 'manager'])) {
@@ -48,6 +66,7 @@ class LeaveRequestController extends Controller
                 $q->where('status', $status);
             }
         });
+
         $query->when($leaveTypeId, fn ($q) => $q->where('leave_type_id', $leaveTypeId));
 
         $query->when($search, function ($q) use ($search) {
@@ -57,20 +76,7 @@ class LeaveRequestController extends Controller
         $query->when($dateFrom, fn ($q) => $q->where('start_date', '>=', $dateFrom));
         $query->when($dateTo, fn ($q) => $q->where('end_date', '<=', $dateTo));
 
-        $leaveRequests = $query->latest()->paginate(10)->withQueryString();
-        
-
-        return Inertia::render('leave-requests/index', [
-            'leaveRequests' => $leaveRequests,
-            'leaveTypes' => LeaveType::orderBy('name', 'desc')->get(['id', 'name']),
-            'filters' => [
-                'status' => $status,
-                'search' => $search,
-                'date_from' => $dateFrom,
-                'date_to' => $dateTo,
-                'leave_type_id' => $leaveTypeId,
-            ],
-        ]);
+        return $query;
     }
 
     public function create()
@@ -496,17 +502,24 @@ class LeaveRequestController extends Controller
         return $usage;
     }
 
-    public function export(Request $request)
+    public function exportExcel(Request $request)
     {
-        $format = $request->input('format', 'xlsx');
-        $filename = 'leave_requests_' . now()->format('Y-m-d');
-
+        $filename = 'leave_requests_' . now()->format('Y-m-d') . '.xlsx';
         $filters = $request->only(['status', 'search', 'date_from', 'date_to', 'leave_type_id']);
+        return Excel::download(new LeaveRequestExport($filters), $filename);
+    }
 
-        if ($format === 'csv') {
-            return Excel::download(new LeaveRequestExport($filters), $filename . '.csv', \Maatwebsite\Excel\Excel::CSV);
-        }
+    public function exportPdf(Request $request)
+    {
+        $requests = $this->getBaseQuery(
+            $request->status,
+            $request->search,
+            $request->date_from,
+            $request->date_to,
+            $request->leave_type_id
+        )->latest()->get();
 
-        return Excel::download(new LeaveRequestExport($filters), $filename . '.xlsx');
+        $pdf = Pdf::loadView('exports.leave-requests', compact('requests'));
+        return $pdf->download('leave_requests_' . now()->format('Y-m-d') . '.pdf');
     }
 }
