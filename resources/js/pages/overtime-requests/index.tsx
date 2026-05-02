@@ -346,8 +346,7 @@ export default function Index({
                                                     </Button>
                                                 </Link>
                                                 {canEdit &&
-                                                    request.status ===
-                                                    'pending' && (
+                                                    request.status.startsWith('pending') && (
                                                         <Link
                                                             href={`/overtime-requests/${request.id}/edit`}
                                                         >

@@ -49,6 +49,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:leave.view');
     Route::resource('leave-requests', App\Http\Controllers\LeaveRequestController::class)
         ->middleware('permission:leave.view');
+    Route::post('leave-requests/{leaveRequest}/cancel', [App\Http\Controllers\LeaveRequestController::class, 'cancel'])
+        ->name('leave-requests.cancel');
     Route::post('leave-requests/{leaveRequest}/status', [App\Http\Controllers\LeaveRequestController::class, 'updateStatus'])
         ->name('leave-requests.status')
         ->middleware('permission:leave.approve.hrd|leave.approve.manager|leave.approve.director');
@@ -62,6 +64,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:overtime.view');
     Route::resource('overtime-requests', App\Http\Controllers\OvertimeRequestController::class)
         ->middleware('permission:overtime.view');
+    Route::post('overtime-requests/{overtimeRequest}/cancel', [App\Http\Controllers\OvertimeRequestController::class, 'cancel'])
+        ->name('overtime-requests.cancel');
     Route::post('overtime-requests/{overtimeRequest}/status', [App\Http\Controllers\OvertimeRequestController::class, 'updateStatus'])
         ->name('overtime-requests.status')
         ->middleware('permission:overtime.approve.hrd|overtime.approve.manager');
@@ -109,8 +113,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('shift-change-requests/export/pdf', [App\Http\Controllers\ShiftChangeRequestController::class, 'exportPdf'])
         ->name('shift-change-requests.export.pdf')
         ->middleware('permission:shift-change.view');
+    Route::post('shift-change-requests/{shift_change_request}/cancel', [App\Http\Controllers\ShiftChangeRequestController::class, 'cancel'])
+        ->name('shift-change-requests.cancel');
     Route::resource('shift-change-requests', App\Http\Controllers\ShiftChangeRequestController::class)
-        ->only(['index', 'create', 'store', 'show'])
+        ->only(['index', 'create', 'store', 'show', 'edit', 'update'])
         ->middleware('permission:shift-change.view');
 });
 

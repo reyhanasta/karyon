@@ -71,34 +71,15 @@ export default function Edit({
                 <div className="rounded-md border bg-card p-6 text-card-foreground shadow-sm">
                     <form onSubmit={submit} className="space-y-6">
                         <div className="space-y-2">
-                            <Label htmlFor="employee_id" required>
-                                Karyawan
-                            </Label>
-                            <Select
-                                value={data.employee_id}
-                                onValueChange={(val) =>
-                                    setData('employee_id', val)
-                                }
-                            >
-                                <SelectTrigger id="employee_id">
-                                    <SelectValue placeholder="Pilih karyawan" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {employees.map((emp) => (
-                                        <SelectItem
-                                            key={emp.id}
-                                            value={String(emp.id)}
-                                        >
-                                            {emp.full_name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.employee_id && (
-                                <p className="text-sm font-medium text-destructive">
-                                    {errors.employee_id}
-                                </p>
-                            )}
+                            <Label>Karyawan</Label>
+                            <Input
+                                value={overtimeRequest.employee?.full_name || ''}
+                                disabled
+                                className="bg-muted/50"
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                Nama karyawan pemohon tidak dapat diubah.
+                            </p>
                         </div>
 
                         <div className="space-y-2">

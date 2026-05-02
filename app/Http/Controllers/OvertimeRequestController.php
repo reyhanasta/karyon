@@ -210,6 +210,7 @@ class OvertimeRequestController extends Controller
         return Inertia::render('overtime-requests/show', [
             'overtimeRequest' => $overtimeRequest,
             'canApprove' => $canApprove,
+            'canEdit' => $user->can('overtime.edit'),
         ]);
     }
 
@@ -251,7 +252,6 @@ class OvertimeRequestController extends Controller
 
         DB::transaction(function () use ($overtimeRequest, $validated) {
             $overtimeRequest->update([
-                'employee_id' => $validated['employee_id'],
                 'date'        => $validated['date'],
                 'start_time'  => $validated['start_time'],
                 'end_time'    => $validated['end_time'],
@@ -358,5 +358,20 @@ class OvertimeRequestController extends Controller
 
         $pdf = Pdf::loadView('exports.overtime-requests', compact('requests'));
         return $pdf->download('overtime_requests_' . now()->format('Y-m-d') . '.pdf');
+    }
+    public function cancel(OvertimeRequest $overtimeRequest)
+    {
+        $user = Auth::user();
+        if ($user->employee->id !== $overtimeRequest->employee_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if (!str_starts_with($overtimeRequest->status, 'pending')) {
+            return back()->with('error', 'Only pending requests can be cancelled.');
+        }
+
+        $overtimeRequest->update(['status' => 'cancelled']);
+
+        return redirect()->route('overtime-requests.index')->with('success', 'Overtime request cancelled.');
     }
 }

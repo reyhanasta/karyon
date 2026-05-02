@@ -1,4 +1,4 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     ArrowLeft,
     Calendar,
@@ -7,6 +7,9 @@ import {
     FileText,
     Hourglass,
     XCircle,
+    Edit,
+    Trash2,
+    X,
 } from 'lucide-react';
 import { useState } from 'react';
 import { ApprovalHistory } from '@/components/approval-history';
@@ -45,10 +48,14 @@ type OvertimeRequestData = {
 export default function Show({
     overtimeRequest,
     canApprove,
+    canEdit,
 }: {
     overtimeRequest: OvertimeRequestData;
     canApprove: boolean;
+    canEdit?: boolean;
 }) {
+    const { auth } = usePage().props as any;
+    const currentUser = auth.user;
     const statusColor =
         {
             pending_hrd:
@@ -61,6 +68,8 @@ export default function Show({
                 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500 border-green-200 dark:border-green-800/40',
             rejected:
                 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-500 border-red-200 dark:border-red-800/40',
+            cancelled:
+                'bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-500 border-gray-200 dark:border-gray-700/40',
         }[overtimeRequest.status] ||
         'bg-gray-100 text-gray-800 border-gray-200';
 
@@ -71,6 +80,7 @@ export default function Show({
             pending_manager: 'Menunggu Karu',
             approved: 'Disetujui',
             rejected: 'Ditolak',
+            cancelled: 'Dibatalkan',
         }[overtimeRequest.status] || overtimeRequest.status;
 
     const statusIcon = overtimeRequest.status.startsWith('pending') ? (
@@ -162,6 +172,12 @@ export default function Show({
         );
     };
 
+    const handleCancel = () => {
+        if (confirm('Apakah Anda yakin ingin membatalkan pengajuan ini?')) {
+            router.post(`/overtime-requests/${overtimeRequest.id}/cancel`);
+        }
+    };
+
     return (
         <AppLayout
             breadcrumbs={[
@@ -177,40 +193,63 @@ export default function Show({
             <div className="mx-auto flex h-full w-full max-w-5xl flex-1 flex-col gap-6 p-4 lg:p-8">
                 {/* Header Actions */}
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Link href="/overtime-requests">
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-9 w-9"
-                            >
-                                <ArrowLeft className="h-4 w-4" />
-                            </Button>
-                        </Link>
-                        <div id="title">
-                            <h2 className="text-2xl font-bold tracking-tight">
-                                Detail Pengajuan Lembur
-                            </h2>
-                            <p className="text-sm text-muted-foreground">
-                                Informasi lengkap rincian lembur karyawan.
-                            </p>
+                    <div className="flex flex-row items-center justify-between gap-2">
+                        <div className="flex items-center gap-4">
+                            <Link href="/overtime-requests">
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-9 w-9"
+                                >
+                                    <ArrowLeft className="h-4 w-4" />
+                                </Button>
+                            </Link>
+                            <div id="title">
+                                <h2 className="text-2xl font-bold tracking-tight">
+                                    Detail Pengajuan Lembur
+                                </h2>
+                                <p className="text-sm text-muted-foreground">
+                                    Informasi lengkap rincian lembur karyawan.
+                                </p>
+                            </div>
                         </div>
+                        <div
+                            className={`inline-flex items-center gap-3 rounded-sm border px-4 py-2 ${statusColor} bg-opacity-10 shadow-sm`}
+                        >
+                            <div className="opacity-80">{statusIcon}</div>
+                            <div>
+                                <p className="text-sm font-extrabold uppercase">
+                                    {statusLabel}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex gap-2">
+                        {overtimeRequest.status.startsWith('pending') &&
+                            (overtimeRequest.employee_id ===
+                                currentUser.employee?.id ||
+                                canEdit) && (
+                                <>
+                                    <Link
+                                        href={`/overtime-requests/${overtimeRequest.id}/edit`}
+                                    >
+                                        <Button variant="outline" size="lg">
+                                            <Edit className="h-4 w-4" /> Edit
+                                        </Button>
+                                    </Link>
+                                    <Button
+                                        variant="outline"
+                                        size="lg"
+                                        className="border-red-500/20 bg-red-500/10 text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/20"
+                                        onClick={handleCancel}
+                                    >
+                                        <X className="h-4 w-4" /> Batalkan
+                                    </Button>
+                                </>
+                            )}
                     </div>
 
                     {/* Status Badge in Header */}
-                    <div
-                        className={`inline-flex items-center gap-3 rounded-full border px-4 py-2 ${statusColor} bg-opacity-10 shadow-sm`}
-                    >
-                        <div className="opacity-80">{statusIcon}</div>
-                        <div>
-                            <p className="text-xs font-bold tracking-wider uppercase opacity-70">
-                                Status
-                            </p>
-                            <p className="text-sm font-extrabold uppercase">
-                                {statusLabel}
-                            </p>
-                        </div>
-                    </div>
                 </div>
 
                 {/* Main Content Grid */}

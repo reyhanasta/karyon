@@ -20,4 +20,18 @@ class ShiftChangeRequestPolicy
         return $user->employee->id === $shiftChangeRequest->requester_id || 
                $user->employee->id === $shiftChangeRequest->target_id;
     }
+    public function update(User $user, ShiftChangeRequest $shiftChangeRequest): bool
+    {
+        if ($user->can('shift-change.edit')) {
+            return true;
+        }
+        return $user->employee->id === $shiftChangeRequest->requester_id;
+    }
+    public function cancel(User $user, ShiftChangeRequest $shiftChangeRequest): bool
+    {
+        if ($user->can('shift-change.edit')) {
+            return true;
+        }
+        return $user->employee->id === $shiftChangeRequest->requester_id;
+    }
 }

@@ -237,7 +237,8 @@ class ShiftChangeRequestController extends Controller
 
 
         return Inertia::render('shift-change-requests/show', [
-            'request' => $shift_change_request
+            'request' => $shift_change_request,
+            'canEdit' => Auth::user()->can('shift-change.edit')
         ]);
     }
 
@@ -247,11 +248,13 @@ class ShiftChangeRequestController extends Controller
             abort(403);
         }
 
-        $shift_change_request->update([
+        $data = [
             'status' => 'approved',
             'hrd_approved_by' => Auth::id(),
             'hrd_approved_at' => now(),
-        ]);
+        ];
+
+        $shift_change_request->update($data);
         
         // Notify both
         if ($shift_change_request->requester->user) {
@@ -287,7 +290,7 @@ class ShiftChangeRequestController extends Controller
         ]);
 
         // Notify HRD
-        $hrAdmins = \App\Models\User::permission('shift-change.approve.hrd')->get();
+        $hrAdmins = User::permission('shift-change.approve.hrd')->get();
         /** @var \App\Models\User $hr */
         foreach ($hrAdmins as $hr) {
             $hr->notify(new ShiftChangeRequestNotification($shift_change_request, 'pending_hrd'));
@@ -334,5 +337,73 @@ class ShiftChangeRequestController extends Controller
         }
 
         return back()->with('success', 'Permintaan tukar shift ditolak.');
+    }
+    public function edit(ShiftChangeRequest $shift_change_request)
+    {
+        $this->authorize('update', $shift_change_request);
+
+        if (!str_starts_with($shift_change_request->status, 'pending')) {
+            return redirect()->route('shift-change-requests.show', $shift_change_request)->with('error', 'Hanya permintaan pending yang dapat diedit.');
+        }
+
+        $shifts = \App\Models\Shift::where('is_active', true)->get();
+        $employees = Employee::with(['department', 'position'])->orderBy('full_name')->get();
+
+        $user = Auth::user();
+        $canCreateAny = $user->can('shift-change.create.any');
+
+        return Inertia::render('shift-change-requests/edit', [
+            'request' => $shift_change_request->load(['requester', 'target', 'requesterShift']),
+            'employees' => $employees,
+            'shifts' => $shifts,
+            'canCreateAny' => $canCreateAny,
+        ]);
+    }
+
+    public function update(Request $request, ShiftChangeRequest $shift_change_request)
+    {
+        $this->authorize('update', $shift_change_request);
+
+        if (!str_starts_with($shift_change_request->status, 'pending')) {
+            return back()->with('error', 'Hanya permintaan pending yang dapat diubah.');
+        }
+
+        $validated = $request->validate([
+            'requester_id' => 'nullable|exists:employees,id',
+            'request_date' => 'required|date',
+            'requester_shift_id' => 'required|exists:shifts,id',
+            'target_id' => 'required|exists:employees,id',
+            'reason' => 'required|string|max:500',
+        ]);
+
+        $shift_change_request->update([
+            'requester_id' => $validated['requester_id'] ?? $shift_change_request->requester_id,
+            'request_date' => $validated['request_date'],
+            'requester_shift_id' => $validated['requester_shift_id'],
+            'target_id' => $validated['target_id'],
+            'reason' => $validated['reason'],
+        ]);
+
+        return redirect()->route('shift-change-requests.index')->with('success', 'Permintaan tukar shift berhasil diperbarui.');
+    }
+
+    public function cancel(ShiftChangeRequest $shift_change_request)
+    {
+        $user = Auth::user();
+        
+        // Ensure user is the owner (requester)
+        if ($user->employee->id !== $shift_change_request->requester_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if (!str_starts_with($shift_change_request->status, 'pending')) {
+            return back()->with('error', 'Hanya permintaan pending yang dapat dibatalkan.');
+        }
+
+        $shift_change_request->update([
+            'status' => 'cancelled'
+        ]);
+
+        return redirect()->route('shift-change-requests.index')->with('success', 'Permintaan tukar shift telah dibatalkan.');
     }
 }

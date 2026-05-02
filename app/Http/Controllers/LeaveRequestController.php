@@ -274,6 +274,7 @@ class LeaveRequestController extends Controller
         return Inertia::render('leave-requests/show', [
             'leaveRequest' => $leaveRequest,
             'canApprove' => $canApprove,
+            'canEdit' => $user->can('leave.edit'),
         ]);
     }
 
@@ -342,7 +343,6 @@ class LeaveRequestController extends Controller
 
         DB::transaction(function () use ($leaveRequest, $validated, $leaveType, $attachmentPath) {
             $leaveRequest->update([
-                'employee_id'   => $validated['employee_id'],
                 'leave_type_id' => $leaveType->id,
                 'start_date'    => $validated['start_date'],
                 'end_date'      => $validated['end_date'],
@@ -521,5 +521,20 @@ class LeaveRequestController extends Controller
 
         $pdf = Pdf::loadView('exports.leave-requests', compact('requests'));
         return $pdf->download('leave_requests_' . now()->format('Y-m-d') . '.pdf');
+    }
+    public function cancel(LeaveRequest $leaveRequest)
+    {
+        $user = Auth::user();
+        if ($user->employee->id !== $leaveRequest->employee_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if (!str_starts_with($leaveRequest->status, 'pending')) {
+            return back()->with('error', 'Only pending requests can be cancelled.');
+        }
+
+        $leaveRequest->update(['status' => 'cancelled']);
+
+        return redirect()->route('leave-requests.index')->with('success', 'Leave request cancelled.');
     }
 }

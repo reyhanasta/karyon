@@ -1,7 +1,7 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { format, parseISO } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { Plus, Eye, RefreshCw, FileDown, FileSpreadsheet, Search } from 'lucide-react';
+import { Plus, Eye, RefreshCw, FileDown, FileSpreadsheet, Search, Pencil } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { Pagination } from '@/components/pagination';
 import { Badge } from '@/components/ui/badge';
@@ -52,7 +52,9 @@ export default function Index({
         search?: string;
     };
 }) {
+    const { auth } = usePage().props as any;
     const { can } = usePermissions();
+    const canEdit = can('shift-change.edit');
 
     const [search, setSearch] = useState(filters.search ?? '');
     const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -134,6 +136,15 @@ export default function Index({
                 );
             case 'rejected':
                 return <Badge variant="destructive">Ditolak</Badge>;
+            case 'cancelled':
+                return (
+                    <Badge
+                        variant="secondary"
+                        className="bg-gray-100 text-gray-800"
+                    >
+                        Dibatalkan
+                    </Badge>
+                );
             default:
                 return <Badge variant="outline">{status}</Badge>;
         }
@@ -295,6 +306,20 @@ export default function Index({
                                                     Detail
                                                 </Link>
                                             </Button>
+                                            {req.status.startsWith('pending') && (req.requester.id === auth.user.employee?.id || canEdit) && (
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    asChild
+                                                >
+                                                    <Link
+                                                        href={`/shift-change-requests/${req.id}/edit`}
+                                                    >
+                                                        <Pencil className="mr-2 h-4 w-4" />{' '}
+                                                        Edit
+                                                    </Link>
+                                                </Button>
+                                            )}
                                         </TableCell>
                                     </TableRow>
                                 ))
