@@ -530,11 +530,11 @@ class LeaveRequestController extends Controller
         }
 
         if (!str_starts_with($leaveRequest->status, 'pending')) {
-            return back()->with('error', 'Only pending requests can be cancelled.');
+            return back()->with('error', 'Only pending requests can be canceled.');
         }
 
-        $leaveRequest->update(['status' => 'cancelled']);
+        $leaveRequest->update(['status' => 'canceled']);
 
-        return redirect()->route('leave-requests.index')->with('success', 'Leave request cancelled.');
+        return redirect()->route('leave-requests.index')->with('success', 'Leave request canceled.');
     }
 }

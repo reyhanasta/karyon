@@ -401,7 +401,7 @@ class ShiftChangeRequestController extends Controller
         }
 
         $shift_change_request->update([
-            'status' => 'cancelled'
+            'status' => 'canceled'
         ]);
 
         return redirect()->route('shift-change-requests.index')->with('success', 'Permintaan tukar shift telah dibatalkan.');

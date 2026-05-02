@@ -40,7 +40,7 @@ import {
 import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
 
-type Status = 'pending' | 'approved' | 'rejected';
+type Status = 'pending' | 'approved' | 'rejected' | 'canceled';
 type LeaveTypeOption = { id: number; name: string };
 
 export default function Index({
@@ -165,7 +165,8 @@ export default function Index({
                                 </Button>
                                 <Button variant="outline" asChild>
                                     <a href={getExportUrl('pdf')}>
-                                        <FileDown className="mr-2 h-4 w-4" /> PDF
+                                        <FileDown className="mr-2 h-4 w-4" />{' '}
+                                        PDF
                                     </a>
                                 </Button>
                             </>
@@ -239,6 +240,9 @@ export default function Index({
                                 </SelectItem>
                                 <SelectItem value="rejected">
                                     Ditolak
+                                </SelectItem>
+                                <SelectItem value="canceled">
+                                    Dibatalkan
                                 </SelectItem>
                             </SelectContent>
                         </Select>
@@ -321,33 +325,42 @@ export default function Index({
                                                     ? 'default'
                                                     : request.status ===
                                                         'rejected'
-                                                        ? 'destructive'
+                                                      ? 'destructive'
+                                                      : request.status ===
+                                                          'canceled'
+                                                        ? 'outline'
                                                         : 'secondary'
                                             }
                                             className={
                                                 request.status === 'approved'
                                                     ? 'border-green-600 bg-green-600 text-white hover:bg-green-700'
                                                     : request.status.startsWith(
-                                                        'pending',
-                                                    )
-                                                        ? 'border-yellow-200 bg-yellow-100 text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900/40 dark:text-yellow-500'
+                                                            'pending',
+                                                        )
+                                                      ? 'border-yellow-200 bg-yellow-100 text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900/40 dark:text-yellow-500'
+                                                      : request.status ===
+                                                          'canceled'
+                                                        ? 'border-gray-200 bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
                                                         : ''
                                             }
                                         >
                                             {request.status === 'approved'
                                                 ? 'Disetujui'
                                                 : request.status === 'rejected'
-                                                    ? 'Ditolak'
+                                                  ? 'Ditolak'
+                                                  : request.status ===
+                                                      'pending_hrd'
+                                                    ? 'Menunggu HRD'
                                                     : request.status ===
-                                                        'pending_hrd'
-                                                        ? 'Menunggu HRD'
+                                                        'pending_manager'
+                                                      ? 'Menunggu Karu'
+                                                      : request.status ===
+                                                          'pending_director'
+                                                        ? 'Menunggu Direktur'
                                                         : request.status ===
-                                                            'pending_manager'
-                                                            ? 'Menunggu Karu'
-                                                            : request.status ===
-                                                                'pending_director'
-                                                                ? 'Menunggu Direktur'
-                                                                : 'Menunggu'}
+                                                            'canceled'
+                                                          ? 'Dibatalkan'
+                                                          : 'Menunggu'}
                                         </Badge>
                                     </TableCell>
                                     {showActions && (
@@ -365,7 +378,9 @@ export default function Index({
                                                     </Button>
                                                 </Link>
                                                 {canEdit &&
-                                                    request.status.startsWith('pending') && (
+                                                    request.status.startsWith(
+                                                        'pending',
+                                                    ) && (
                                                         <Link
                                                             href={`/leave-requests/${request.id}/edit`}
                                                         >

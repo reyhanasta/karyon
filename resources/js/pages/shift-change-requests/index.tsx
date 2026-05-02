@@ -1,7 +1,15 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { format, parseISO } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { Plus, Eye, RefreshCw, FileDown, FileSpreadsheet, Search, Pencil } from 'lucide-react';
+import {
+    Plus,
+    Eye,
+    RefreshCw,
+    FileDown,
+    FileSpreadsheet,
+    Search,
+    Pencil,
+} from 'lucide-react';
 import { useState, useRef } from 'react';
 import { Pagination } from '@/components/pagination';
 import { Badge } from '@/components/ui/badge';
@@ -136,7 +144,7 @@ export default function Index({
                 );
             case 'rejected':
                 return <Badge variant="destructive">Ditolak</Badge>;
-            case 'cancelled':
+            case 'canceled':
                 return (
                     <Badge
                         variant="secondary"
@@ -174,7 +182,8 @@ export default function Index({
                     <div className="flex gap-2">
                         <Button variant="outline" asChild>
                             <a href={getExportUrl('excel')}>
-                                <FileSpreadsheet className="mr-2 h-4 w-4" /> Excel
+                                <FileSpreadsheet className="mr-2 h-4 w-4" />{' '}
+                                Excel
                             </a>
                         </Button>
                         <Button variant="outline" asChild>
@@ -215,7 +224,9 @@ export default function Index({
                                 <SelectValue placeholder="Semua Status" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">Semua Status</SelectItem>
+                                <SelectItem value="all">
+                                    Semua Status
+                                </SelectItem>
                                 <SelectItem value="pending">
                                     Menunggu
                                 </SelectItem>
@@ -306,20 +317,23 @@ export default function Index({
                                                     Detail
                                                 </Link>
                                             </Button>
-                                            {req.status.startsWith('pending') && (req.requester.id === auth.user.employee?.id || canEdit) && (
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    asChild
-                                                >
-                                                    <Link
-                                                        href={`/shift-change-requests/${req.id}/edit`}
+                                            {req.status.startsWith('pending') &&
+                                                (req.requester.id ===
+                                                    auth.user.employee?.id ||
+                                                    canEdit) && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        asChild
                                                     >
-                                                        <Pencil className="mr-2 h-4 w-4" />{' '}
-                                                        Edit
-                                                    </Link>
-                                                </Button>
-                                            )}
+                                                        <Link
+                                                            href={`/shift-change-requests/${req.id}/edit`}
+                                                        >
+                                                            <Pencil className="mr-2 h-4 w-4" />{' '}
+                                                            Edit
+                                                        </Link>
+                                                    </Button>
+                                                )}
                                         </TableCell>
                                     </TableRow>
                                 ))

@@ -14,6 +14,7 @@ interface RequestData {
     manager_approver?: Approver | null;
     kepala_ruangan_approver?: Approver | null;
     director_approver?: Approver | null;
+    target_approver?: Approver | null;
 }
 
 interface ApprovalHistoryProps {
@@ -22,6 +23,7 @@ interface ApprovalHistoryProps {
     onApprove?: () => void;
     onReject?: () => void;
     showDirectorStep?: boolean;
+    showTargetStep?: boolean;
 }
 
 type StepStatus = 'done' | 'rejected' | 'current' | 'waiting';
@@ -68,6 +70,7 @@ export function ApprovalHistory({
     onApprove,
     onReject,
     showDirectorStep = true,
+    showTargetStep = false,
 }: ApprovalHistoryProps) {
     const formatDatetime = (dateStr?: string) => {
         if (!dateStr) return '-';
@@ -81,6 +84,16 @@ export function ApprovalHistory({
     };
 
     // Determine step status for each approver level
+    const getTargetStatus = (): StepStatus => {
+        if (request.target_approver) {
+            const isRejected = request.status === 'rejected' && !request.manager_approver && !request.hrd_approver;
+            return isRejected ? 'rejected' : 'done';
+        }
+        if (request.status === 'pending_target') return 'current';
+        if (request.status !== 'pending' && request.status !== 'pending_target') return 'done';
+        return 'waiting';
+    };
+
     const getKaruStatus = (): StepStatus => {
         const approver =
             request.manager_approver ?? request.kepala_ruangan_approver;
@@ -146,7 +159,22 @@ export function ApprovalHistory({
                         status="done"
                     />
 
-                    {/* Step 1: Karu / Manager */}
+                    {/* Step 1: Target (Optional, for Shift Change) */}
+                    {showTargetStep && (
+                        <TimelineStep
+                            title="Karyawan Pengganti"
+                            status={getTargetStatus()}
+                            subtitle={
+                                request.target_approver
+                                    ? `Disetujui oleh ${request.target_approver.employee?.full_name ?? 'Pengganti'}`
+                                    : request.status === 'pending_target'
+                                      ? 'Menunggu persetujuan pengganti…'
+                                      : 'Selesai'
+                            }
+                        />
+                    )}
+
+                    {/* Step 2: Karu / Manager */}
                     <TimelineStep
                         title="Kepala Ruangan"
                         status={getKaruStatus()}
@@ -168,7 +196,7 @@ export function ApprovalHistory({
                         }
                     />
 
-                    {/* Step 2: HRD */}
+                    {/* Step 3: HRD */}
                     <TimelineStep
                         title="HRD"
                         status={getHrdStatus()}
@@ -187,7 +215,7 @@ export function ApprovalHistory({
                         }
                     />
 
-                    {/* Step 3: Direktur */}
+                    {/* Step 4: Direktur */}
                     {showDirectorStep && (
                         <TimelineStep
                             title="Direktur"
@@ -206,20 +234,20 @@ export function ApprovalHistory({
                 </ol>
 
                 {canApprove && request.status.startsWith('pending') && (
-                    <div className="mt-6 space-y-2 border-t pt-4">
+                    <div className="mt-8 flex flex-col gap-3 border-t border-border/50 pt-6">
                         <Button
                             variant="default"
-                            className="w-full bg-green-600 font-semibold text-white hover:bg-green-700"
+                            className="h-12 w-full rounded-2xl bg-primary font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300 hover:bg-primary/90 active:scale-[0.98]"
                             onClick={onApprove}
                         >
-                            <Check className="mr-2 h-4 w-4" /> Setujui
+                            <Check className="mr-2 h-4 w-4" /> Setujui Sekarang
                         </Button>
                         <Button
                             variant="outline"
-                            className="w-full border-destructive text-destructive hover:bg-destructive/10"
+                            className="h-12 w-full rounded-2xl border-destructive/20 bg-destructive/5 font-bold text-destructive transition-all duration-300 hover:bg-destructive hover:text-destructive-foreground active:scale-[0.98]"
                             onClick={onReject}
                         >
-                            <X className="mr-2 h-4 w-4" /> Tolak
+                            <X className="mr-2 h-4 w-4" /> Tolak Pengajuan
                         </Button>
                     </div>
                 )}

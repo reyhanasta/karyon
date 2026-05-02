@@ -367,11 +367,11 @@ class OvertimeRequestController extends Controller
         }
 
         if (!str_starts_with($overtimeRequest->status, 'pending')) {
-            return back()->with('error', 'Only pending requests can be cancelled.');
+            return back()->with('error', 'Only pending requests can be canceled.');
         }
 
-        $overtimeRequest->update(['status' => 'cancelled']);
+        $overtimeRequest->update(['status' => 'canceled']);
 
-        return redirect()->route('overtime-requests.index')->with('success', 'Overtime request cancelled.');
+        return redirect()->route('overtime-requests.index')->with('success', 'Overtime request canceled.');
     }
 }

@@ -68,7 +68,7 @@ export default function Show({
                 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500 border-green-200 dark:border-green-800/40',
             rejected:
                 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-500 border-red-200 dark:border-red-800/40',
-            cancelled:
+            canceled:
                 'bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-500 border-gray-200 dark:border-gray-700/40',
         }[overtimeRequest.status] ||
         'bg-gray-100 text-gray-800 border-gray-200';
@@ -80,7 +80,7 @@ export default function Show({
             pending_manager: 'Menunggu Karu',
             approved: 'Disetujui',
             rejected: 'Ditolak',
-            cancelled: 'Dibatalkan',
+            canceled: 'Dibatalkan',
         }[overtimeRequest.status] || overtimeRequest.status;
 
     const statusIcon = overtimeRequest.status.startsWith('pending') ? (
@@ -225,11 +225,11 @@ export default function Show({
                         </div>
                     </div>
                     <div className="flex gap-2">
-                        {overtimeRequest.status.startsWith('pending') &&
-                            (overtimeRequest.employee_id ===
-                                currentUser.employee?.id ||
-                                canEdit) && (
-                                <>
+                        {overtimeRequest.status.startsWith('pending') && (
+                            <>
+                                {(overtimeRequest.employee_id ===
+                                    currentUser.employee?.id ||
+                                    canEdit) && (
                                     <Link
                                         href={`/overtime-requests/${overtimeRequest.id}/edit`}
                                     >
@@ -237,6 +237,9 @@ export default function Show({
                                             <Edit className="h-4 w-4" /> Edit
                                         </Button>
                                     </Link>
+                                )}
+                                {overtimeRequest.employee_id ===
+                                    currentUser.employee?.id && (
                                     <Button
                                         variant="outline"
                                         size="lg"
@@ -245,8 +248,9 @@ export default function Show({
                                     >
                                         <X className="h-4 w-4" /> Batalkan
                                     </Button>
-                                </>
-                            )}
+                                )}
+                            </>
+                        )}
                     </div>
 
                     {/* Status Badge in Header */}

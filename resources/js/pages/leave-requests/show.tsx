@@ -73,7 +73,7 @@ export default function Show({
                 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500 border-green-200 dark:border-green-800/40',
             rejected:
                 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-500 border-red-200 dark:border-red-800/40',
-            cancelled:
+            canceled:
                 'bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-500 border-gray-200 dark:border-gray-700/40',
         }[leaveRequest.status] || 'bg-gray-100 text-gray-800 border-gray-200';
 
@@ -85,7 +85,7 @@ export default function Show({
             pending_director: 'Menunggu Direktur',
             approved: 'Disetujui',
             rejected: 'Ditolak',
-            cancelled: 'Dibatalkan',
+            canceled: 'Dibatalkan',
         }[leaveRequest.status] || leaveRequest.status;
 
     const statusIcon = leaveRequest.status.startsWith('pending') ? (
@@ -163,6 +163,7 @@ export default function Show({
         }
     };
 
+
     return (
         <AppLayout
             breadcrumbs={[
@@ -213,11 +214,11 @@ export default function Show({
                     </div>
 
                     <div className="flex gap-2">
-                        {leaveRequest.status.startsWith('pending') &&
-                            (leaveRequest.employee_id ===
-                                currentUser.employee?.id ||
-                                canEdit) && (
-                                <>
+                        {leaveRequest.status.startsWith('pending') && (
+                            <>
+                                {(leaveRequest.employee_id ===
+                                    currentUser.employee?.id ||
+                                    canEdit) && (
                                     <Link
                                         href={`/leave-requests/${leaveRequest.id}/edit`}
                                     >
@@ -225,6 +226,9 @@ export default function Show({
                                             <Edit className="h-4 w-4" /> Edit
                                         </Button>
                                     </Link>
+                                )}
+                                {leaveRequest.employee_id ===
+                                    currentUser.employee?.id && (
                                     <Button
                                         variant="outline"
                                         size="lg"
@@ -233,8 +237,9 @@ export default function Show({
                                     >
                                         <X className="h-4 w-4" /> Batalkan
                                     </Button>
-                                </>
-                            )}
+                                )}
+                            </>
+                        )}
                     </div>
                 </div>
 
