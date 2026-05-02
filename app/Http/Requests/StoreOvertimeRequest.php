@@ -30,8 +30,19 @@ class StoreOvertimeRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'date.before_or_equal'  => 'Overtime date must be today or in the past.',
-            'end_time.after'        => 'End time must be after the start time.',
+            'date.before_or_equal'  => 'Tanggal lembur harus hari ini atau sebelumnya.',
+            'end_time.after'        => 'Waktu selesai harus setelah waktu mulai.',
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'employee_id' => 'karyawan',
+            'date'        => 'tanggal',
+            'start_time'  => 'waktu mulai',
+            'end_time'    => 'waktu selesai',
+            'description' => 'keterangan/alasan',
         ];
     }
 }

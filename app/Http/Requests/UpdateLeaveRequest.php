@@ -47,4 +47,16 @@ class UpdateLeaveRequest extends FormRequest
             'attachment.max'            => 'Ukuran lampiran maksimal 2MB.',
         ];
     }
+
+    public function attributes(): array
+    {
+        return [
+            'employee_id'   => 'karyawan',
+            'leave_type_id' => 'jenis cuti',
+            'start_date'    => 'tanggal mulai',
+            'end_date'      => 'tanggal selesai',
+            'reason'        => 'alasan',
+            'attachment'    => 'lampiran',
+        ];
+    }
 }

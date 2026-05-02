@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Exports\ShiftChangeRequestsExport;
+use App\Http\Requests\StoreShiftChangeRequest;
+use App\Http\Requests\UpdateShiftChangeRequest;
 
 class ShiftChangeRequestController extends Controller
 {
@@ -99,8 +101,6 @@ class ShiftChangeRequestController extends Controller
         // Fetch all potential shifts and employees for filtering on frontend
         $shifts = \App\Models\Shift::where('is_active', true)->get();
 
-        // $employees = Employee::with(['department', 'position'])->orderBy('full_name')->get();
-
         $employee = $user->employee;
         $myFilteredShifts = collect();
         $myTargetEmployees = collect();
@@ -147,23 +147,16 @@ class ShiftChangeRequestController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreShiftChangeRequest $request)
     {
         $user = Auth::user();
         $canCreateAny = $user->can('shift-change.create.any');
 
-        $validated = $request->validate([
-            'requester_id' => 'nullable|exists:employees,id',
-            'request_date' => 'required|date',
-            'requester_shift_id' => 'required|exists:shifts,id',
-            'target_id' => 'required|exists:employees,id',
-            'reason' => 'required|string|max:500',
-        ]);
+        $validated = $request->validated();
 
         if ($canCreateAny && !empty($validated['requester_id'])) {
             if (!$user->hasRole(['super-admin', 'hr-admin'])) {
                 $managedDeptIds = $user->managedDepartments()->pluck('departments.id')->toArray();
-
 
                 $requester = Employee::whereIn('department_id', $managedDeptIds)
                     ->where('id', '!=', $user->employee->id ?? 0)
@@ -349,6 +342,7 @@ class ShiftChangeRequestController extends Controller
 
         return back()->with('success', 'Permintaan tukar shift ditolak.');
     }
+
     public function edit(ShiftChangeRequest $shift_change_request)
     {
         $this->authorize('update', $shift_change_request);
@@ -371,7 +365,7 @@ class ShiftChangeRequestController extends Controller
         ]);
     }
 
-    public function update(Request $request, ShiftChangeRequest $shift_change_request)
+    public function update(UpdateShiftChangeRequest $request, ShiftChangeRequest $shift_change_request)
     {
         $this->authorize('update', $shift_change_request);
 
@@ -379,13 +373,7 @@ class ShiftChangeRequestController extends Controller
             return back()->with('error', 'Hanya permintaan pending yang dapat diubah.');
         }
 
-        $validated = $request->validate([
-            'requester_id' => 'nullable|exists:employees,id',
-            'request_date' => 'required|date',
-            'requester_shift_id' => 'required|exists:shifts,id',
-            'target_id' => 'required|exists:employees,id',
-            'reason' => 'required|string|max:500',
-        ]);
+        $validated = $request->validated();
 
         $shift_change_request->update([
             'requester_id' => $validated['requester_id'] ?? $shift_change_request->requester_id,
