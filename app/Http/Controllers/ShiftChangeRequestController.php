@@ -39,12 +39,23 @@ class ShiftChangeRequestController extends Controller
             'targetApprovedBy', 'hrdApprovedBy', 'managerApprovedBy'
         ])->latest();
 
-        if ($user->hasPermissionTo('shift-change.approve.manager') && !$user->hasAnyRole(['super-admin', 'hr-admin', 'director', 'karu', 'manager'])) {
+        if ($user->hasAnyRole(['super-admin', 'hr-admin', 'manager', 'director'])) {
+            // Can see all requests, no additional filtering needed.
+        } elseif ($user->hasRole('karu')) {
+            // Karu can only see requests from their managed departments or their own
             $managedDeptIds = $user->managedDepartments()->pluck('departments.id')->toArray();
-            $query->whereHas('requester', function ($q) use ($managedDeptIds) {
-                $q->whereIn('department_id', $managedDeptIds);
+            $query->where(function ($q) use ($managedDeptIds, $user) {
+                $q->whereHas('requester', function ($q2) use ($managedDeptIds) {
+                    $q2->whereIn('department_id', $managedDeptIds);
+                })
+                ->orWhereHas('target', function ($q2) use ($managedDeptIds) {
+                    $q2->whereIn('department_id', $managedDeptIds);
+                })
+                ->orWhere('requester_id', $user->employee->id ?? 0)
+                ->orWhere('target_id', $user->employee->id ?? 0);
             });
-        } elseif ($user->hasRole('employee') && !$user->hasAnyRole(['super-admin', 'hr-admin', 'director', 'karu', 'manager'])) {
+        } else {
+            // Ordinary employee: only see requests they are involved in
             $query->where(function ($q) use ($user) {
                 $q->where('requester_id', $user->employee->id ?? 0)
                   ->orWhere('target_id', $user->employee->id ?? 0);

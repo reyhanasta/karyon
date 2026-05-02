@@ -101,11 +101,11 @@ const Request: NavItem[] = [
 const footerNavItems: NavItem[] = [];
 
 export function AppSidebar() {
-    const { can } = usePermissions();
+    const { can, hasRole } = usePermissions();
 
-    const visibleNavItems = mainNavItems.filter(
-        (item) => !item.permission || can(item.permission),
-    );
+    const visibleNavItems = mainNavItems.filter((item) => !item.permission || can(item.permission));
+
+    const isKaruOnly = hasRole('karu') && !hasRole(['super-admin', 'hr-admin', 'manager', 'director']);
 
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -122,7 +122,9 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain title="Platform" items={visibleNavItems} />
+                {visibleNavItems.length > 0 && !isKaruOnly && (
+                    <NavMain title="Platform" items={visibleNavItems} />
+                )}
                 <NavMain title="Pengajuan" items={Request} />
             </SidebarContent>
 

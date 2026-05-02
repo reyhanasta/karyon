@@ -44,12 +44,18 @@ class OvertimeRequestController extends Controller
         $user = Auth::user();
         $query = OvertimeRequest::with('employee');
 
-        if ($user->can('overtime.approve.manager') && !$user->hasAnyRole(['super-admin', 'hr-admin', 'director', 'karu', 'manager'])) {
+        if ($user->hasAnyRole(['super-admin', 'hr-admin', 'manager', 'director'])) {
+            // Can see all requests, no additional filtering needed.
+        } elseif ($user->hasRole('karu')) {
+            // Karu can only see requests from their managed departments or their own
             $managedDeptIds = $user->managedDepartments()->pluck('departments.id')->toArray();
-            $query->whereHas('employee', function ($q) use ($managedDeptIds) {
-                $q->whereIn('department_id', $managedDeptIds);
+            $query->where(function ($q) use ($managedDeptIds, $user) {
+                $q->whereHas('employee', function ($q2) use ($managedDeptIds) {
+                    $q2->whereIn('department_id', $managedDeptIds);
+                })->orWhere('employee_id', $user->employee->id ?? 0);
             });
-        } elseif ($user->hasRole('employee') && !$user->hasAnyRole(['super-admin', 'hr-admin', 'director', 'karu', 'manager'])) {
+        } else {
+            // Ordinary employee or others: only see their own requests
             $query->where('employee_id', $user->employee->id ?? 0);
         }
 

@@ -16,14 +16,7 @@ import { useState } from 'react';
 import { ApprovalHistory } from '@/components/approval-history';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
+import { ConfirmationModal } from '@/components/confirmation-modal';
 import AppLayout from '@/layouts/app-layout';
 
 type LeaveRequestData = {
@@ -138,7 +131,7 @@ export default function Show({
     };
 
     const [confirmAction, setConfirmAction] = useState<{
-        status: 'approved' | 'rejected';
+        status: 'approved' | 'rejected' | 'cancel';
     } | null>(null);
 
     const handleStatusUpdate = (status: 'approved' | 'rejected') => {
@@ -147,6 +140,19 @@ export default function Show({
 
     const executeStatusUpdate = () => {
         if (!confirmAction) return;
+
+        if (confirmAction.status === 'cancel') {
+            router.post(
+                `/leave-requests/${leaveRequest.id}/cancel`,
+                {},
+                {
+                    preserveScroll: true,
+                    onSuccess: () => setConfirmAction(null),
+                }
+            );
+            return;
+        }
+
         router.post(
             `/leave-requests/${leaveRequest.id}/status`,
             { status: confirmAction.status },
@@ -158,9 +164,7 @@ export default function Show({
     };
 
     const handleCancel = () => {
-        if (confirm('Apakah Anda yakin ingin membatalkan pengajuan ini?')) {
-            router.post(`/leave-requests/${leaveRequest.id}/cancel`);
-        }
+        setConfirmAction({ status: 'cancel' });
     };
 
 
@@ -430,55 +434,50 @@ export default function Show({
                     </div>
                 </div>
 
-                {/* Confirmation Dialog */}
-                <Dialog
-                    open={!!confirmAction}
-                    onOpenChange={(o) => !o && setConfirmAction(null)}
-                >
-                    <DialogContent className="sm:max-w-106.25">
-                        <DialogHeader>
-                            <DialogTitle className="text-xl font-bold">
-                                Konfirmasi Persetujuan
-                            </DialogTitle>
-                            <DialogDescription className="pt-2 text-sm">
-                                Apakah Anda yakin ingin melakukan aksi{' '}
-                                <strong
-                                    className={
-                                        confirmAction?.status === 'approved'
-                                            ? 'text-green-600'
-                                            : 'text-red-600'
-                                    }
-                                >
-                                    {confirmAction?.status === 'approved'
-                                        ? 'Setujui'
-                                        : 'Tolak'}
-                                </strong>{' '}
-                                untuk pengajuan ini? Tindakan ini tidak dapat
-                                dibatalkan.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter className="mt-6 gap-2">
-                            <Button
-                                variant="outline"
-                                className="flex-1"
-                                onClick={() => setConfirmAction(null)}
-                            >
-                                Batal
-                            </Button>
-                            <Button
-                                variant={
-                                    confirmAction?.status === 'rejected'
-                                        ? 'destructive'
-                                        : 'default'
+            {/* Confirmation Dialog */}
+            <ConfirmationModal
+                isOpen={!!confirmAction}
+                onClose={() => setConfirmAction(null)}
+                onConfirm={executeStatusUpdate}
+                title={
+                    confirmAction?.status === 'cancel'
+                        ? 'Konfirmasi Pembatalan'
+                        : 'Konfirmasi Persetujuan'
+                }
+                description={
+                    confirmAction?.status === 'cancel' ? (
+                        'Apakah Anda yakin ingin membatalkan pengajuan ini? Tindakan ini tidak dapat dibatalkan.'
+                    ) : (
+                        <>
+                            Apakah Anda yakin ingin melakukan aksi{' '}
+                            <strong
+                                className={
+                                    confirmAction?.status === 'approved'
+                                        ? 'text-primary'
+                                        : 'text-destructive'
                                 }
-                                className={`flex-1 ${confirmAction?.status === 'approved' ? 'bg-green-600 hover:bg-green-700' : ''}`}
-                                onClick={executeStatusUpdate}
                             >
-                                Ya, Lanjutkan
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+                                {confirmAction?.status === 'approved'
+                                    ? 'Setujui'
+                                    : 'Tolak'}
+                            </strong>{' '}
+                            untuk pengajuan ini? Tindakan ini tidak dapat
+                            dibatalkan.
+                        </>
+                    )
+                }
+                confirmText={
+                    confirmAction?.status === 'cancel'
+                        ? 'Ya, Batalkan'
+                        : 'Ya, Lanjutkan'
+                }
+                variant={
+                    confirmAction?.status === 'rejected' ||
+                    confirmAction?.status === 'cancel'
+                        ? 'destructive'
+                        : 'default'
+                }
+            />
             </div>
         </AppLayout>
     );

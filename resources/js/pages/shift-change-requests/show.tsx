@@ -21,14 +21,7 @@ import { ApprovalHistory } from '@/components/approval-history';
 import { UserCard } from '@/components/user-card';
 import type { Employee } from '@/components/user-card';
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
+import { ConfirmationModal } from '@/components/confirmation-modal';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { usePermissions } from '@/hooks/use-permissions';
@@ -77,7 +70,7 @@ export default function Show({
     const isManager = can('shift-change.approve.manager');
 
     const [confirmAction, setConfirmAction] = useState<{
-        type: 'approve_hrd' | 'approve_manager' | 'reject';
+        type: 'approve_hrd' | 'approve_manager' | 'reject' | 'cancel';
         notes?: string;
     } | null>(null);
 
@@ -98,6 +91,8 @@ export default function Show({
                 alert('Alasan penolakan wajib diisi.');
                 return;
             }
+        } else if (confirmAction.type === 'cancel') {
+            url = `/shift-change-requests/${request.id}/cancel`;
         }
 
         router.post(url, data, {
@@ -107,9 +102,7 @@ export default function Show({
     };
 
     const cancelRequest = () => {
-        if (confirm('Apakah Anda yakin ingin membatalkan pengajuan ini?')) {
-            router.post(`/shift-change-requests/${request.id}/cancel`);
-        }
+        setConfirmAction({ type: 'cancel' });
     };
 
     const mappedRequest = {
@@ -164,7 +157,8 @@ export default function Show({
                     <div className="ml-auto flex gap-2">
                         {request.status.startsWith('pending') && (
                             <>
-                                {(request.requester.id === auth.user.employee?.id ||
+                                {(request.requester.id ===
+                                    auth.user.employee?.id ||
                                     canEdit) && (
                                     <Link
                                         href={`/shift-change-requests/${request.id}/edit`}
@@ -358,87 +352,61 @@ export default function Show({
                 {/* Bottom Actions */}
             </div>
 
-            {/* Confirmation Dialogs remain largely the same in logic but styled to match */}
-            <Dialog
-                open={!!confirmAction}
-                onOpenChange={(o) => !o && setConfirmAction(null)}
+            {/* Confirmation Dialog */}
+            <ConfirmationModal
+                isOpen={!!confirmAction}
+                onClose={() => setConfirmAction(null)}
+                onConfirm={executeAction}
+                title={
+                    confirmAction?.type === 'reject'
+                        ? 'Konfirmasi Penolakan'
+                        : confirmAction?.type === 'cancel'
+                          ? 'Konfirmasi Pembatalan'
+                          : 'Konfirmasi Persetujuan'
+                }
+                description={
+                    confirmAction?.type === 'reject'
+                        ? 'Apakah Anda yakin ingin menolak pengajuan ini?'
+                        : confirmAction?.type === 'cancel'
+                          ? 'Apakah Anda yakin ingin membatalkan pengajuan ini? Tindakan ini tidak dapat dibatalkan.'
+                          : 'Apakah Anda yakin ingin menyetujui pengajuan ini? Tindakan ini akan memproses jadwal shift karyawan terkait secara otomatis.'
+                }
+                confirmText={
+                    confirmAction?.type === 'reject'
+                        ? 'Ya, Tolak Pengajuan'
+                        : confirmAction?.type === 'cancel'
+                          ? 'Ya, Batalkan Pengajuan'
+                          : 'Ya, Setujui Sekarang'
+                }
+                variant={
+                    confirmAction?.type === 'reject' || confirmAction?.type === 'cancel'
+                        ? 'destructive'
+                        : 'default'
+                }
             >
-                <DialogContent className="overflow-hidden rounded-[2rem] border-border bg-card p-0 text-foreground shadow-2xl sm:max-w-[450px]">
-                    <div
-                        className={cn(
-                            'p-8',
-                            confirmAction?.type === 'reject'
-                                ? 'bg-destructive/5'
-                                : 'bg-primary/5',
-                        )}
-                    >
-                        <DialogHeader>
-                            <DialogTitle className="text-2xl font-bold tracking-tight">
-                                {confirmAction?.type === 'reject'
-                                    ? 'Konfirmasi Penolakan'
-                                    : 'Konfirmasi Persetujuan'}
-                            </DialogTitle>
-                            <DialogDescription className="pt-2 text-base font-medium text-muted-foreground">
-                                {confirmAction?.type === 'reject' ? (
-                                    <>
-                                        Apakah Anda yakin ingin menolak
-                                        pengajuan ini?
-                                        <div className="mt-6 space-y-3">
-                                            <Label
-                                                htmlFor="notes"
-                                                className="text-xs font-bold tracking-widest text-foreground uppercase"
-                                            >
-                                                Alasan Penolakan
-                                            </Label>
-                                            <Textarea
-                                                id="notes"
-                                                placeholder="Berikan alasan yang jelas untuk penolakan ini..."
-                                                value={confirmAction.notes}
-                                                onChange={(e) =>
-                                                    setConfirmAction({
-                                                        ...confirmAction,
-                                                        notes: e.target.value,
-                                                    })
-                                                }
-                                                className="min-h-32 resize-none rounded-2xl border-border/50 bg-background transition-all focus:border-destructive focus:ring-destructive/20"
-                                            />
-                                        </div>
-                                    </>
-                                ) : (
-                                    'Apakah Anda yakin ingin menyetujui pengajuan ini? Tindakan ini akan memproses jadwal shift karyawan terkait secara otomatis.'
-                                )}
-                            </DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter className="mt-8 flex-col gap-3 sm:flex-row">
-                            <Button
-                                variant="ghost"
-                                className="h-12 flex-1 rounded-2xl font-bold hover:bg-muted"
-                                onClick={() => setConfirmAction(null)}
-                            >
-                                Batal
-                            </Button>
-                            <Button
-                                variant={
-                                    confirmAction?.type === 'reject'
-                                        ? 'destructive'
-                                        : 'default'
-                                }
-                                className={cn(
-                                    'h-12 flex-1 rounded-2xl font-bold shadow-lg transition-transform active:scale-95',
-                                    confirmAction?.type !== 'reject'
-                                        ? 'bg-primary shadow-primary/20 hover:bg-primary/90'
-                                        : 'shadow-destructive/20',
-                                )}
-                                onClick={executeAction}
-                            >
-                                {confirmAction?.type === 'reject'
-                                    ? 'Ya, Tolak Pengajuan'
-                                    : 'Ya, Setujui Sekarang'}
-                            </Button>
-                        </DialogFooter>
+                {confirmAction?.type === 'reject' && (
+                    <div className="space-y-3">
+                        <Label
+                            htmlFor="notes"
+                            className="text-xs font-bold tracking-widest text-foreground uppercase"
+                        >
+                            Alasan Penolakan
+                        </Label>
+                        <Textarea
+                            id="notes"
+                            placeholder="Berikan alasan yang jelas untuk penolakan ini..."
+                            value={confirmAction.notes}
+                            onChange={(e) =>
+                                setConfirmAction({
+                                    ...confirmAction,
+                                    notes: e.target.value,
+                                })
+                            }
+                            className="min-h-32 resize-none rounded-2xl border-border/50 bg-background transition-all focus:border-destructive focus:ring-destructive/20"
+                        />
                     </div>
-                </DialogContent>
-            </Dialog>
+                )}
+            </ConfirmationModal>
         </AppLayout>
     );
 }
