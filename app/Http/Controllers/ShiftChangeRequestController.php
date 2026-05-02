@@ -15,16 +15,23 @@ use App\Exports\ShiftChangeRequestsExport;
 
 class ShiftChangeRequestController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $query = $this->getBaseQuery();
+        $status = $request->input('status');
+        $search = $request->input('search');
+
+        $query = $this->getBaseQuery($status, $search);
 
         return Inertia::render('shift-change-requests/index', [
-            'requests' => $query->paginate(15)
+            'requests' => $query->paginate(15)->withQueryString(),
+            'filters' => [
+                'status' => $status,
+                'search' => $search,
+            ]
         ]);
     }
 
-    private function getBaseQuery()
+    private function getBaseQuery($status = null, $search = null)
     {
         $user = Auth::user();
         $query = ShiftChangeRequest::with([
@@ -37,25 +44,38 @@ class ShiftChangeRequestController extends Controller
             $query->whereHas('requester', function ($q) use ($managedDeptIds) {
                 $q->whereIn('department_id', $managedDeptIds);
             });
-        } elseif ($user->hasRole('employee') && !$user->hasRole(['super-admin', 'hr-admin', 'director'])) {
+        } elseif ($user->hasRole('employee') && !$user->hasAnyRole(['super-admin', 'hr-admin', 'director', 'karu', 'manager'])) {
             $query->where(function ($q) use ($user) {
                 $q->where('requester_id', $user->employee->id ?? 0)
                   ->orWhere('target_id', $user->employee->id ?? 0);
             });
         }
 
+        $query->when($status, function ($q) use ($status) {
+            if ($status === 'pending') {
+                $q->where('status', 'like', 'pending_%');
+            } else {
+                $q->where('status', $status);
+            }
+        });
+
+        $query->when($search, function ($q) use ($search) {
+            $q->whereHas('requester', fn ($q2) => $q2->where('full_name', 'like', "%{$search}%"))
+              ->orWhereHas('target', fn ($q2) => $q2->where('full_name', 'like', "%{$search}%"));
+        });
+
         return $query;
     }
 
-    public function exportExcel()
+    public function exportExcel(Request $request)
     {
-        $requests = $this->getBaseQuery()->get();
+        $requests = $this->getBaseQuery($request->status, $request->search)->get();
         return Excel::download(new ShiftChangeRequestsExport($requests), 'shift_change_requests_' . now()->format('YmdHis') . '.xlsx');
     }
 
-    public function exportPdf()
+    public function exportPdf(Request $request)
     {
-        $requests = $this->getBaseQuery()->get();
+        $requests = $this->getBaseQuery($request->status, $request->search)->get();
         $pdf = Pdf::loadView('exports.shift-change-requests', compact('requests'));
         return $pdf->download('shift_change_requests_' . now()->format('YmdHis') . '.pdf');
     }
@@ -67,7 +87,8 @@ class ShiftChangeRequestController extends Controller
         
         // Fetch all potential shifts and employees for filtering on frontend
         $shifts = \App\Models\Shift::where('is_active', true)->get();
-        $employees = Employee::with(['department', 'position'])->orderBy('full_name')->get();
+
+        // $employees = Employee::with(['department', 'position'])->orderBy('full_name')->get();
 
         $employee = $user->employee;
         $myFilteredShifts = collect();

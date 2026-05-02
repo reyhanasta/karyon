@@ -29,6 +29,8 @@ return new class extends Migration
             $table->timestamp('hrd_approved_at')->nullable();
             
             $table->text('notes')->nullable();
+
+            $table->boolean('is_export_displayed')->default(true);
             
             $table->timestamps();
             $table->softDeletes();

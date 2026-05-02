@@ -1,9 +1,19 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { format, parseISO } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { Plus, Eye, RefreshCw, FileDown, FileSpreadsheet } from 'lucide-react';
+import { Plus, Eye, RefreshCw, FileDown, FileSpreadsheet, Search } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Pagination } from '@/components/pagination';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import {
     Table,
     TableBody,
@@ -34,10 +44,53 @@ type ShiftChangeRequest = {
 
 export default function Index({
     requests,
+    filters,
 }: {
-    requests: { data: ShiftChangeRequest[] };
+    requests: { data: ShiftChangeRequest[]; links: any[] };
+    filters: {
+        status?: string;
+        search?: string;
+    };
 }) {
     const { can } = usePermissions();
+
+    const [search, setSearch] = useState(filters.search ?? '');
+    const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const handleSearchChange = (value: string) => {
+        setSearch(value);
+        if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+        searchTimerRef.current = setTimeout(() => {
+            router.get(
+                '/shift-change-requests',
+                { ...filters, search: value || undefined },
+                { preserveState: true, replace: true },
+            );
+        }, 350);
+    };
+
+    const handleFilterChange = (key: string, value: string) => {
+        router.get(
+            '/shift-change-requests',
+            {
+                ...filters,
+                search,
+                [key]: value === 'all' || !value ? undefined : value,
+            },
+            {
+                preserveState: true,
+                replace: true,
+            },
+        );
+    };
+
+    const getExportUrl = (format: 'excel' | 'pdf') => {
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+        if (filters.status) params.append('status', filters.status);
+
+        return `/shift-change-requests/export/${format}?${params.toString()}`;
+    };
 
     console.log(requests);
 
@@ -109,12 +162,12 @@ export default function Index({
                     </div>
                     <div className="flex gap-2">
                         <Button variant="outline" asChild>
-                            <a href="/shift-change-requests/export/excel">
+                            <a href={getExportUrl('excel')}>
                                 <FileSpreadsheet className="mr-2 h-4 w-4" /> Excel
                             </a>
                         </Button>
                         <Button variant="outline" asChild>
-                            <a href="/shift-change-requests/export/pdf">
+                            <a href={getExportUrl('pdf')}>
                                 <FileDown className="mr-2 h-4 w-4" /> PDF
                             </a>
                         </Button>
@@ -126,6 +179,52 @@ export default function Index({
                                 </Link>
                             </Button>
                         )}
+                    </div>
+                </div>
+
+                {/* Filters */}
+                <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                    <div className="relative max-w-sm flex-1">
+                        <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                            placeholder="Cari nama karyawan..."
+                            value={search}
+                            onChange={(e) => handleSearchChange(e.target.value)}
+                            className="pl-9"
+                        />
+                    </div>
+                    <div className="flex flex-wrap items-center gap-4">
+                        <Select
+                            value={filters.status ?? 'all'}
+                            onValueChange={(val) =>
+                                handleFilterChange('status', val)
+                            }
+                        >
+                            <SelectTrigger className="w-44">
+                                <SelectValue placeholder="Semua Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Semua Status</SelectItem>
+                                <SelectItem value="pending">
+                                    Menunggu
+                                </SelectItem>
+                                <SelectItem value="pending_target">
+                                    Menunggu Pengganti
+                                </SelectItem>
+                                <SelectItem value="pending_manager">
+                                    Menunggu Karu
+                                </SelectItem>
+                                <SelectItem value="pending_hrd">
+                                    Menunggu HRD
+                                </SelectItem>
+                                <SelectItem value="approved">
+                                    Disetujui
+                                </SelectItem>
+                                <SelectItem value="rejected">
+                                    Ditolak
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                 </div>
 
@@ -203,6 +302,7 @@ export default function Index({
                         </TableBody>
                     </Table>
                 </div>
+                <Pagination links={requests.links} />
             </div>
         </AppLayout>
     );
