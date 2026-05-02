@@ -69,6 +69,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('overtime-requests/{overtimeRequest}/status', [App\Http\Controllers\OvertimeRequestController::class, 'updateStatus'])
         ->name('overtime-requests.status')
         ->middleware('permission:overtime.approve.hrd|overtime.approve.manager');
+    Route::post('overtime-requests/{overtimeRequest}/toggle-export', [App\Http\Controllers\OvertimeRequestController::class, 'toggleExport'])
+        ->name('overtime-requests.toggle-export')
+        ->middleware('permission:overtime.approve.hrd');
 
     // Notifications
     Route::get('notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');

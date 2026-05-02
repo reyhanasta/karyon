@@ -12,6 +12,8 @@ import {
     X,
 } from 'lucide-react';
 import { useState } from 'react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { ApprovalHistory } from '@/components/approval-history';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -26,6 +28,7 @@ type OvertimeRequestData = {
     end_time: string;
     description: string;
     status: string;
+    is_display_export: boolean;
     created_at: string;
     updated_at: string;
     employee?: {
@@ -182,6 +185,14 @@ export default function Show({
         setConfirmAction({ status: 'cancel' });
     };
 
+    const handleToggleExport = () => {
+        router.post(`/overtime-requests/${overtimeRequest.id}/toggle-export`, {}, {
+            preserveScroll: true,
+        });
+    };
+
+    const isHRD = currentUser.roles.includes('hr-admin') || currentUser.roles.includes('super-admin');
+
     return (
         <AppLayout
             breadcrumbs={[
@@ -229,30 +240,30 @@ export default function Show({
                         </div>
                     </div>
                     <div className="flex gap-2">
-                        {overtimeRequest.status.startsWith('pending') && (
+                        {(overtimeRequest.status.startsWith('pending') && !overtimeRequest.manager_approver) && (
                             <>
                                 {(overtimeRequest.employee_id ===
                                     currentUser.employee?.id ||
                                     canEdit) && (
-                                    <Link
-                                        href={`/overtime-requests/${overtimeRequest.id}/edit`}
-                                    >
-                                        <Button variant="outline" size="lg">
-                                            <Edit className="h-4 w-4" /> Edit
-                                        </Button>
-                                    </Link>
-                                )}
+                                        <Link
+                                            href={`/overtime-requests/${overtimeRequest.id}/edit`}
+                                        >
+                                            <Button variant="outline" size="lg">
+                                                <Edit className="h-4 w-4" /> Edit
+                                            </Button>
+                                        </Link>
+                                    )}
                                 {overtimeRequest.employee_id ===
                                     currentUser.employee?.id && (
-                                    <Button
-                                        variant="outline"
-                                        size="lg"
-                                        className="border-red-500/20 bg-red-500/10 text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/20"
-                                        onClick={handleCancel}
-                                    >
-                                        <X className="h-4 w-4" /> Batalkan
-                                    </Button>
-                                )}
+                                        <Button
+                                            variant="outline"
+                                            size="lg"
+                                            className="border-red-500/20 bg-red-500/10 text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/20"
+                                            onClick={handleCancel}
+                                        >
+                                            <X className="h-4 w-4" /> Batalkan
+                                        </Button>
+                                    )}
                             </>
                         )}
                     </div>
@@ -348,6 +359,24 @@ export default function Show({
                         </div>
 
                         {/* Detailed Content Card */}
+                        {isHRD && (
+                            <div className="flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50/50 p-4 dark:border-blue-900/30 dark:bg-blue-900/10">
+                                <div className="space-y-0.5">
+                                    <Label htmlFor="export-toggle" className="text-sm font-bold tracking-tight">
+                                        Tampilkan di Export Data
+                                    </Label>
+                                    <p className="text-xs text-muted-foreground">
+                                        Jika diaktifkan, data lembur ini akan muncul saat melakukan export Excel/PDF.
+                                    </p>
+                                </div>
+                                <Checkbox
+                                    id="export-toggle"
+                                    checked={overtimeRequest.is_display_export}
+                                    onCheckedChange={handleToggleExport}
+                                    className="h-5 w-5 cursor-pointer"
+                                />
+                            </div>
+                        )}
                         <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
                             <div className="border-b bg-muted/30 px-6 py-4">
                                 <h3 className="text-xs font-bold tracking-widest text-muted-foreground uppercase">
@@ -423,50 +452,50 @@ export default function Show({
                     </div>
                 </div>
 
-            {/* Status Update Dialog */}
-            <ConfirmationModal
-                isOpen={!!confirmAction}
-                onClose={() => setConfirmAction(null)}
-                onConfirm={executeStatusUpdate}
-                title={
-                    confirmAction?.status === 'cancel'
-                        ? 'Konfirmasi Pembatalan'
-                        : 'Konfirmasi Persetujuan'
-                }
-                description={
-                    confirmAction?.status === 'cancel' ? (
-                        'Apakah Anda yakin ingin membatalkan pengajuan ini? Tindakan ini tidak dapat dibatalkan.'
-                    ) : (
-                        <>
-                            Apakah Anda yakin ingin melakukan aksi{' '}
-                            <strong
-                                className={
-                                    confirmAction?.status === 'approved'
-                                        ? 'text-primary'
-                                        : 'text-destructive'
-                                }
-                            >
-                                {confirmAction?.status === 'approved'
-                                    ? 'Setujui'
-                                    : 'Tolak'}
-                            </strong>{' '}
-                            untuk pengajuan ini? Selesai instruksi ini,
-                            status tidak dapat diubah kembali.
-                        </>
-                    )
-                }
-                confirmText={
-                    confirmAction?.status === 'cancel'
-                        ? 'Ya, Batalkan'
-                        : 'Ya, Lanjutkan'
-                }
-                variant={
-                    confirmAction?.status === 'rejected' ||
-                    confirmAction?.status === 'cancel'
-                        ? 'destructive'
-                        : 'default'
-                }
-            />
+                {/* Status Update Dialog */}
+                <ConfirmationModal
+                    isOpen={!!confirmAction}
+                    onClose={() => setConfirmAction(null)}
+                    onConfirm={executeStatusUpdate}
+                    title={
+                        confirmAction?.status === 'cancel'
+                            ? 'Konfirmasi Pembatalan'
+                            : 'Konfirmasi Persetujuan'
+                    }
+                    description={
+                        confirmAction?.status === 'cancel' ? (
+                            'Apakah Anda yakin ingin membatalkan pengajuan ini? Tindakan ini tidak dapat dibatalkan.'
+                        ) : (
+                            <>
+                                Apakah Anda yakin ingin melakukan aksi{' '}
+                                <strong
+                                    className={
+                                        confirmAction?.status === 'approved'
+                                            ? 'text-primary'
+                                            : 'text-destructive'
+                                    }
+                                >
+                                    {confirmAction?.status === 'approved'
+                                        ? 'Setujui'
+                                        : 'Tolak'}
+                                </strong>{' '}
+                                untuk pengajuan ini? Selesai instruksi ini,
+                                status tidak dapat diubah kembali.
+                            </>
+                        )
+                    }
+                    confirmText={
+                        confirmAction?.status === 'cancel'
+                            ? 'Ya, Batalkan'
+                            : 'Ya, Lanjutkan'
+                    }
+                    variant={
+                        confirmAction?.status === 'rejected' ||
+                            confirmAction?.status === 'cancel'
+                            ? 'destructive'
+                            : 'default'
+                    }
+                />
             </div>
         </AppLayout>
     );

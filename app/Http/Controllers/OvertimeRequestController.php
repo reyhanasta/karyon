@@ -345,6 +345,17 @@ class OvertimeRequestController extends Controller
 
         return redirect()->back()->with('success', 'Overtime request status updated.');
     }
+    
+    public function toggleExport(OvertimeRequest $overtimeRequest)
+    {
+        $this->authorize('updateStatus', $overtimeRequest); // Reusing permission check, or create a specific one if needed
+        
+        $overtimeRequest->update([
+            'is_display_export' => !$overtimeRequest->is_display_export
+        ]);
+        
+        return back()->with('success', 'Export visibility updated.');
+    }
 
     public function exportExcel(Request $request)
     {
@@ -360,7 +371,7 @@ class OvertimeRequestController extends Controller
             $request->search,
             $request->date_from,
             $request->date_to
-        )->orderBy('date', 'desc')->get();
+        )->where('is_display_export', true)->orderBy('date', 'desc')->get();
 
         $pdf = Pdf::loadView('exports.overtime-requests', compact('requests'));
         return $pdf->download('overtime_requests_' . now()->format('Y-m-d') . '.pdf');

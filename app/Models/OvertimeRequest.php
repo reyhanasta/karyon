@@ -23,6 +23,11 @@ class OvertimeRequest extends Model
         'manager_approved_at',
         'director_approved_by',
         'director_approved_at',
+        'is_display_export',
+    ];
+
+    protected $casts = [
+        'is_display_export' => 'boolean',
     ];
 
     public function employee()

@@ -30,7 +30,6 @@ return new class extends Migration
             
             $table->text('notes')->nullable();
 
-            $table->boolean('is_export_displayed')->default(true);
             
             $table->timestamps();
             $table->softDeletes();

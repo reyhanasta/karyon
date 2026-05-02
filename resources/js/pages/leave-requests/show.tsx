@@ -218,30 +218,30 @@ export default function Show({
                     </div>
 
                     <div className="flex gap-2">
-                        {leaveRequest.status.startsWith('pending') && (
+                        {(leaveRequest.status.startsWith('pending') && !leaveRequest.manager_approver) && (
                             <>
                                 {(leaveRequest.employee_id ===
                                     currentUser.employee?.id ||
                                     canEdit) && (
-                                    <Link
-                                        href={`/leave-requests/${leaveRequest.id}/edit`}
-                                    >
-                                        <Button variant="outline" size="lg">
-                                            <Edit className="h-4 w-4" /> Edit
-                                        </Button>
-                                    </Link>
-                                )}
+                                        <Link
+                                            href={`/leave-requests/${leaveRequest.id}/edit`}
+                                        >
+                                            <Button variant="outline" size="lg">
+                                                <Edit className="h-4 w-4" /> Edit
+                                            </Button>
+                                        </Link>
+                                    )}
                                 {leaveRequest.employee_id ===
                                     currentUser.employee?.id && (
-                                    <Button
-                                        variant="outline"
-                                        size="lg"
-                                        className="border-red-500/20 bg-red-500/10 text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/20"
-                                        onClick={handleCancel}
-                                    >
-                                        <X className="h-4 w-4" /> Batalkan
-                                    </Button>
-                                )}
+                                        <Button
+                                            variant="outline"
+                                            size="lg"
+                                            className="border-red-500/20 bg-red-500/10 text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/20"
+                                            onClick={handleCancel}
+                                        >
+                                            <X className="h-4 w-4" /> Batalkan
+                                        </Button>
+                                    )}
                             </>
                         )}
                     </div>
@@ -434,50 +434,50 @@ export default function Show({
                     </div>
                 </div>
 
-            {/* Confirmation Dialog */}
-            <ConfirmationModal
-                isOpen={!!confirmAction}
-                onClose={() => setConfirmAction(null)}
-                onConfirm={executeStatusUpdate}
-                title={
-                    confirmAction?.status === 'cancel'
-                        ? 'Konfirmasi Pembatalan'
-                        : 'Konfirmasi Persetujuan'
-                }
-                description={
-                    confirmAction?.status === 'cancel' ? (
-                        'Apakah Anda yakin ingin membatalkan pengajuan ini? Tindakan ini tidak dapat dibatalkan.'
-                    ) : (
-                        <>
-                            Apakah Anda yakin ingin melakukan aksi{' '}
-                            <strong
-                                className={
-                                    confirmAction?.status === 'approved'
-                                        ? 'text-primary'
-                                        : 'text-destructive'
-                                }
-                            >
-                                {confirmAction?.status === 'approved'
-                                    ? 'Setujui'
-                                    : 'Tolak'}
-                            </strong>{' '}
-                            untuk pengajuan ini? Tindakan ini tidak dapat
-                            dibatalkan.
-                        </>
-                    )
-                }
-                confirmText={
-                    confirmAction?.status === 'cancel'
-                        ? 'Ya, Batalkan'
-                        : 'Ya, Lanjutkan'
-                }
-                variant={
-                    confirmAction?.status === 'rejected' ||
-                    confirmAction?.status === 'cancel'
-                        ? 'destructive'
-                        : 'default'
-                }
-            />
+                {/* Confirmation Dialog */}
+                <ConfirmationModal
+                    isOpen={!!confirmAction}
+                    onClose={() => setConfirmAction(null)}
+                    onConfirm={executeStatusUpdate}
+                    title={
+                        confirmAction?.status === 'cancel'
+                            ? 'Konfirmasi Pembatalan'
+                            : 'Konfirmasi Persetujuan'
+                    }
+                    description={
+                        confirmAction?.status === 'cancel' ? (
+                            'Apakah Anda yakin ingin membatalkan pengajuan ini? Tindakan ini tidak dapat dibatalkan.'
+                        ) : (
+                            <>
+                                Apakah Anda yakin ingin melakukan aksi{' '}
+                                <strong
+                                    className={
+                                        confirmAction?.status === 'approved'
+                                            ? 'text-primary'
+                                            : 'text-destructive'
+                                    }
+                                >
+                                    {confirmAction?.status === 'approved'
+                                        ? 'Setujui'
+                                        : 'Tolak'}
+                                </strong>{' '}
+                                untuk pengajuan ini? Tindakan ini tidak dapat
+                                dibatalkan.
+                            </>
+                        )
+                    }
+                    confirmText={
+                        confirmAction?.status === 'cancel'
+                            ? 'Ya, Batalkan'
+                            : 'Ya, Lanjutkan'
+                    }
+                    variant={
+                        confirmAction?.status === 'rejected' ||
+                            confirmAction?.status === 'cancel'
+                            ? 'destructive'
+                            : 'default'
+                    }
+                />
             </div>
         </AppLayout>
     );

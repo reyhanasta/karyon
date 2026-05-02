@@ -19,6 +19,7 @@ return new class extends Migration
             $table->time('end_time');
             $table->text('description');
             $table->string('status')->default('pending_hrd');
+            $table->boolean('is_display_export')->default(true);
             $table->timestamps();
         });
     }

@@ -304,40 +304,40 @@ export default function Index({
                                                 request.status === 'approved'
                                                     ? 'default'
                                                     : request.status ===
-                                                          'rejected'
-                                                      ? 'destructive'
-                                                      : request.status ===
+                                                        'rejected'
+                                                        ? 'destructive'
+                                                        : request.status ===
                                                             'canceled'
-                                                        ? 'outline'
-                                                        : 'secondary'
+                                                            ? 'outline'
+                                                            : 'secondary'
                                             }
                                             className={
                                                 request.status === 'approved'
                                                     ? 'border-green-600 bg-green-600 text-white hover:bg-green-700'
                                                     : request.status.startsWith(
-                                                          'pending',
-                                                      )
-                                                      ? 'border-yellow-200 bg-yellow-100 text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900/40 dark:text-yellow-500'
-                                                      : request.status ===
-                                                          'canceled'
-                                                        ? 'border-gray-200 bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
-                                                        : ''
+                                                        'pending',
+                                                    )
+                                                        ? 'border-yellow-200 bg-yellow-100 text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900/40 dark:text-yellow-500'
+                                                        : request.status ===
+                                                            'canceled'
+                                                            ? 'border-gray-200 bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
+                                                            : ''
                                             }
                                         >
                                             {request.status === 'approved'
                                                 ? 'Disetujui'
                                                 : request.status === 'rejected'
-                                                  ? 'Ditolak'
-                                                  : request.status ===
-                                                      'pending_hrd'
-                                                    ? 'Menunggu HRD'
+                                                    ? 'Ditolak'
                                                     : request.status ===
-                                                        'pending_manager'
-                                                      ? 'Menunggu Karu'
-                                                      : request.status ===
-                                                          'canceled'
-                                                        ? 'Dibatalkan'
-                                                        : 'Batal'}
+                                                        'pending_hrd'
+                                                        ? 'Menunggu HRD'
+                                                        : request.status ===
+                                                            'pending_manager'
+                                                            ? 'Menunggu Karu'
+                                                            : request.status ===
+                                                                'canceled'
+                                                                ? 'Dibatalkan'
+                                                                : 'Batal'}
                                         </Badge>
                                     </TableCell>
                                     {showActions && (
@@ -357,7 +357,7 @@ export default function Index({
                                                 {canEdit &&
                                                     request.status.startsWith(
                                                         'pending',
-                                                    ) && (
+                                                    ) && !request.manager_approved_at && (
                                                         <Link
                                                             href={`/overtime-requests/${request.id}/edit`}
                                                         >

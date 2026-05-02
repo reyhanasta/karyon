@@ -97,6 +97,7 @@ export function ApprovalHistory({
     const getKaruStatus = (): StepStatus => {
         const approver =
             request.manager_approver ?? request.kepala_ruangan_approver;
+        
         if (approver) {
             const isRejected =
                 request.status === 'rejected' &&
@@ -104,29 +105,41 @@ export function ApprovalHistory({
                 !request.director_approver;
             return isRejected ? 'rejected' : 'done';
         }
+
         if (
             request.status === 'pending_manager' ||
             request.status === 'pending_kepala_ruangan'
         )
             return 'current';
-        if (request.status === 'approved' && request.manager_approver)
-            return 'done';
+        
+        // If status is past Karu approval, it's done (even if approver data is missing/bypassed)
+        const isPastKaru = [
+            'pending_hrd',
+            'pending_director',
+            'approved'
+        ].includes(request.status) || !!request.hrd_approver || !!request.director_approver;
+
+        if (isPastKaru) return 'done';
+
         return 'waiting';
     };
 
-    console.log(request);
     const getHrdStatus = (): StepStatus => {
         if (request.hrd_approver) {
             const isRejected =
                 request.status === 'rejected' && !request.director_approver;
             return isRejected ? 'rejected' : 'done';
         }
+
         if (request.status === 'pending_hrd') return 'current';
-        if (
-            request.status === 'pending_director' ||
-            (request.status === 'approved' && request.hrd_approver)
-        )
-            return 'done';
+
+        const isPastHrd = [
+            'pending_director',
+            'approved'
+        ].includes(request.status) || !!request.director_approver;
+
+        if (isPastHrd) return 'done';
+
         return 'waiting';
     };
 
@@ -136,9 +149,9 @@ export function ApprovalHistory({
         if (isRejected) return 'rejected';
         if (request.director_approver) return 'done';
         if (request.status === 'pending_director') return 'current';
+        if (request.status === 'approved') return 'done';
         return 'waiting';
     };
-    console.log(request.status);
 
     const karuApprover =
         request.kepala_ruangan_approver ?? request.manager_approver;
@@ -164,13 +177,17 @@ export function ApprovalHistory({
                         <TimelineStep
                             title="Karyawan Pengganti"
                             status={getTargetStatus()}
-                            subtitle={
-                                request.target_approver
-                                    ? `Disetujui oleh ${request.target_approver.employee?.full_name ?? 'Pengganti'}`
-                                    : request.status === 'pending_target'
-                                      ? 'Menunggu persetujuan pengganti…'
-                                      : 'Selesai'
-                            }
+                        subtitle={
+                            request.target_approver
+                                ? getTargetStatus() === 'rejected'
+                                    ? `Ditolak oleh ${request.target_approver.employee?.full_name ?? 'Pengganti'}`
+                                    : `Disetujui oleh ${request.target_approver.employee?.full_name ?? 'Pengganti'}`
+                                : getTargetStatus() === 'current'
+                                    ? 'Menunggu persetujuan pengganti…'
+                                    : getTargetStatus() === 'done'
+                                        ? 'Selesai'
+                                        : 'Menunggu…'
+                        }
                         />
                     )}
 
@@ -180,19 +197,14 @@ export function ApprovalHistory({
                         status={getKaruStatus()}
                         subtitle={
                             karuApprover
-                                ? request.status === 'rejected' &&
-                                  !request.hrd_approver &&
-                                  !request.director_approver
+                                ? getKaruStatus() === 'rejected'
                                     ? `Ditolak oleh ${karuApprover.employee?.full_name ?? 'Kepala Ruangan'}`
                                     : `Disetujui oleh ${karuApprover.employee?.full_name ?? 'Kepala Ruangan'}`
-                                : request.status === 'approved' ||
-                                    request.director_approver
-                                  ? 'Dilewati (Bypass)'
-                                  : request.status === 'pending_manager' ||
-                                      request.status ===
-                                          'pending_kepala_ruangan'
-                                    ? 'Sedang diproses…'
-                                    : 'Menunggu…'
+                                : getKaruStatus() === 'done'
+                                    ? 'Dilewati (Bypass)'
+                                    : getKaruStatus() === 'current'
+                                        ? 'Sedang diproses…'
+                                        : 'Menunggu…'
                         }
                     />
 
@@ -202,16 +214,14 @@ export function ApprovalHistory({
                         status={getHrdStatus()}
                         subtitle={
                             request.hrd_approver
-                                ? request.status === 'rejected' &&
-                                  !request.director_approver
+                                ? getHrdStatus() === 'rejected'
                                     ? `Ditolak oleh ${request.hrd_approver.employee?.full_name ?? 'HRD'}`
                                     : `Disetujui oleh ${request.hrd_approver.employee?.full_name ?? 'HRD'}`
-                                : request.status === 'approved' ||
-                                    request.director_approver
-                                  ? 'Dilewati (Bypass)'
-                                  : request.status === 'pending_hrd'
-                                    ? 'Sedang diproses…'
-                                    : 'Menunggu…'
+                                : getHrdStatus() === 'done'
+                                    ? 'Dilewati (Bypass)'
+                                    : getHrdStatus() === 'current'
+                                        ? 'Sedang diproses…'
+                                        : 'Menunggu…'
                         }
                     />
 
@@ -222,12 +232,12 @@ export function ApprovalHistory({
                             status={getDirectorStatus()}
                             subtitle={
                                 request.director_approver
-                                    ? request.status === 'rejected'
+                                    ? getDirectorStatus() === 'rejected'
                                         ? `Ditolak oleh ${request.director_approver.employee?.full_name ?? 'Direktur'}`
                                         : `Disetujui oleh ${request.director_approver.employee?.full_name ?? 'Direktur'}`
-                                    : request.status === 'pending_director'
-                                      ? 'Sedang diproses…'
-                                      : 'Menunggu…'
+                                    : getDirectorStatus() === 'current'
+                                        ? 'Sedang diproses…'
+                                        : 'Menunggu…'
                             }
                         />
                     )}

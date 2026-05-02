@@ -48,6 +48,8 @@ class OvertimeRequestExport implements FromQuery, WithHeadings, WithMapping, Wit
         $query->when($dateFrom, fn ($q) => $q->where('date', '>=', $dateFrom));
         $query->when($dateTo, fn ($q) => $q->where('date', '<=', $dateTo));
 
+        $query->where('is_display_export', true);
+
         return $query->orderBy('date', 'desc');
     }
 

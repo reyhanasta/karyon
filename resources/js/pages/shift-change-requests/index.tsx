@@ -41,12 +41,13 @@ type ShiftChangeRequest = {
     target: Employee;
     request_date: string;
     requesterShift: Shift;
+    manager_approved_at: string;
     status:
-        | 'pending_target'
-        | 'pending_hrd'
-        | 'pending_manager'
-        | 'approved'
-        | 'rejected';
+    | 'pending_target'
+    | 'pending_hrd'
+    | 'pending_manager'
+    | 'approved'
+    | 'rejected';
     created_at: string;
 };
 
@@ -160,6 +161,7 @@ export default function Index({
 
     const canCreate =
         can('shift-change.create') || can('shift-change.create.any');
+
 
     return (
         <AppLayout
@@ -317,7 +319,7 @@ export default function Index({
                                                     Detail
                                                 </Link>
                                             </Button>
-                                            {req.status.startsWith('pending') &&
+                                            {req.status.startsWith('pending') && !req.manager_approved_at &&
                                                 (req.requester.id ===
                                                     auth.user.employee?.id ||
                                                     canEdit) && (

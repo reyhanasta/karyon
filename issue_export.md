@@ -1,0 +1,4 @@
+- menambahkan input field untuk is_display_export di halaman detail overtime
+- fitur ini hanya bisa digunakan dan dilihat oleh hrd
+- jika is_display_export = true maka data tersebut dapat ditampilkan di export
+- jika tidak sembunyikan dari data yang diexport
