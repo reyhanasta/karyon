@@ -9,10 +9,22 @@ use App\Notifications\ShiftChangeRequestNotification;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Exports\ShiftChangeRequestsExport;
 
 class ShiftChangeRequestController extends Controller
 {
     public function index()
+    {
+        $query = $this->getBaseQuery();
+
+        return Inertia::render('shift-change-requests/index', [
+            'requests' => $query->paginate(15)
+        ]);
+    }
+
+    private function getBaseQuery()
     {
         $user = Auth::user();
         $query = ShiftChangeRequest::with([
@@ -32,10 +44,20 @@ class ShiftChangeRequestController extends Controller
             });
         }
 
+        return $query;
+    }
 
-        return Inertia::render('shift-change-requests/index', [
-            'requests' => $query->paginate(15)
-        ]);
+    public function exportExcel()
+    {
+        $requests = $this->getBaseQuery()->get();
+        return Excel::download(new ShiftChangeRequestsExport($requests), 'shift_change_requests_' . now()->format('YmdHis') . '.xlsx');
+    }
+
+    public function exportPdf()
+    {
+        $requests = $this->getBaseQuery()->get();
+        $pdf = Pdf::loadView('exports.shift-change-requests', compact('requests'));
+        return $pdf->download('shift_change_requests_' . now()->format('YmdHis') . '.pdf');
     }
 
     public function create()

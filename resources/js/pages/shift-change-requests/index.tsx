@@ -1,7 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { format, parseISO } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { Plus, Eye, RefreshCw } from 'lucide-react';
+import { Plus, Eye, RefreshCw, FileDown, FileSpreadsheet } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -107,14 +107,26 @@ export default function Index({
                             Daftar pengajuan penggantian shift karyawan.
                         </p>
                     </div>
-                    {canCreate && (
-                        <Button asChild>
-                            <Link href="/shift-change-requests/create">
-                                <Plus className="mr-2 h-4 w-4" /> Ajukan
-                                Penggantian
-                            </Link>
+                    <div className="flex gap-2">
+                        <Button variant="outline" asChild>
+                            <a href="/shift-change-requests/export/excel">
+                                <FileSpreadsheet className="mr-2 h-4 w-4" /> Excel
+                            </a>
                         </Button>
-                    )}
+                        <Button variant="outline" asChild>
+                            <a href="/shift-change-requests/export/pdf">
+                                <FileDown className="mr-2 h-4 w-4" /> PDF
+                            </a>
+                        </Button>
+                        {canCreate && (
+                            <Button asChild>
+                                <Link href="/shift-change-requests/create">
+                                    <Plus className="mr-2 h-4 w-4" /> Ajukan
+                                    Penggantian
+                                </Link>
+                            </Button>
+                        )}
+                    </div>
                 </div>
 
                 <div className="rounded-md border bg-card">
