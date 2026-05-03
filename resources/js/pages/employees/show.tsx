@@ -535,8 +535,8 @@ export default function Show({
                                         </dt>
                                         <dd className="text-sm sm:col-span-2">
                                             <Badge
-                                                variant="secondary"
-                                                className="border-none bg-green-100 text-green-700 capitalize dark:bg-green-900/20 dark:text-green-400"
+                                                variant="success"
+                                                className="capitalize"
                                             >
                                                 {employee.employee_status?.replace(
                                                     '_',

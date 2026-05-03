@@ -302,42 +302,23 @@ export default function Index({
                                         <Badge
                                             variant={
                                                 request.status === 'approved'
-                                                    ? 'default'
-                                                    : request.status ===
-                                                        'rejected'
+                                                    ? 'success'
+                                                    : request.status === 'rejected' || request.status === 'canceled'
                                                         ? 'destructive'
-                                                        : request.status ===
-                                                            'canceled'
-                                                            ? 'outline'
-                                                            : 'secondary'
-                                            }
-                                            className={
-                                                request.status === 'approved'
-                                                    ? 'border-green-600 bg-green-600 text-white hover:bg-green-700'
-                                                    : request.status.startsWith(
-                                                        'pending',
-                                                    )
-                                                        ? 'border-yellow-200 bg-yellow-100 text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900/40 dark:text-yellow-500'
-                                                        : request.status ===
-                                                            'canceled'
-                                                            ? 'border-gray-200 bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
-                                                            : ''
+                                                        : 'warning'
                                             }
                                         >
                                             {request.status === 'approved'
                                                 ? 'Disetujui'
                                                 : request.status === 'rejected'
                                                     ? 'Ditolak'
-                                                    : request.status ===
-                                                        'pending_hrd'
+                                                    : request.status === 'pending_hrd'
                                                         ? 'Menunggu HRD'
-                                                        : request.status ===
-                                                            'pending_manager'
+                                                        : request.status === 'pending_manager'
                                                             ? 'Menunggu Karu'
-                                                            : request.status ===
-                                                                'canceled'
+                                                            : request.status === 'canceled'
                                                                 ? 'Dibatalkan'
-                                                                : 'Batal'}
+                                                                : 'Menunggu'}
                                         </Badge>
                                     </TableCell>
                                     {showActions && (

@@ -258,12 +258,12 @@ export default function Index({
                                                                                     p,
                                                                                 ) =>
                                                                                     p.id ===
-                                                                                    pos.id
+                                                                                        pos.id
                                                                                         ? {
-                                                                                              ...p,
-                                                                                              is_required:
-                                                                                                  !!checked,
-                                                                                          }
+                                                                                            ...p,
+                                                                                            is_required:
+                                                                                                !!checked,
+                                                                                        }
                                                                                         : p,
                                                                             ),
                                                                         );
@@ -328,8 +328,7 @@ export default function Index({
                                         <TableCell>
                                             {type.is_active ? (
                                                 <Badge
-                                                    variant="default"
-                                                    className="bg-green-500 hover:bg-green-600"
+                                                    variant="success"
                                                 >
                                                     Aktif
                                                 </Badge>
@@ -493,12 +492,12 @@ export default function Index({
                                                                                 p,
                                                                             ) =>
                                                                                 p.id ===
-                                                                                pos.id
+                                                                                    pos.id
                                                                                     ? {
-                                                                                          ...p,
-                                                                                          is_required:
-                                                                                              !!checked,
-                                                                                      }
+                                                                                        ...p,
+                                                                                        is_required:
+                                                                                            !!checked,
+                                                                                    }
                                                                                     : p,
                                                                         ),
                                                                     );

@@ -325,13 +325,8 @@ export default function Index({ leaveTypes }: { leaveTypes: LeaveType[] }) {
                                         <Badge
                                             variant={
                                                 type.is_active
-                                                    ? 'default'
+                                                    ? 'success'
                                                     : 'secondary'
-                                            }
-                                            className={
-                                                type.is_active
-                                                    ? 'border-green-600 bg-green-600 text-white hover:bg-green-700'
-                                                    : ''
                                             }
                                         >
                                             {type.is_active

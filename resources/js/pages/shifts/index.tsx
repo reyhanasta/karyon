@@ -324,10 +324,7 @@ export default function Index({
                                         </TableCell>
                                         <TableCell>
                                             {shift.is_active ? (
-                                                <Badge
-                                                    variant="default"
-                                                    className="bg-green-500"
-                                                >
+                                                <Badge variant="success">
                                                     Aktif
                                                 </Badge>
                                             ) : (

@@ -75,13 +75,14 @@ export function UserCard({
                 {status && (
                     <div className="mt-2">
                         <Badge
-                            variant="secondary"
-                            className={cn(
-                                "px-2.5 py-0.5 text-[9px] font-bold tracking-wider uppercase",
-                                status === 'DIAJUKAN' && "bg-primary/10 text-primary border-primary/20",
-                                status === 'DISETUJUI' && "bg-green-500/10 text-green-600 border-green-500/20 dark:text-green-400",
-                                status === 'MENUNGGU' && "bg-orange-500/10 text-orange-600 border-orange-500/20 dark:text-orange-400"
-                            )}
+                            variant={
+                                status === 'DISETUJUI' 
+                                    ? 'success' 
+                                    : status === 'MENUNGGU' 
+                                        ? 'warning' 
+                                        : 'default'
+                            }
+                            className="px-2.5 py-0.5 text-[9px] font-bold tracking-wider uppercase"
                         >
                             {status}
                         </Badge>

@@ -95,7 +95,7 @@ export default function Dashboard({
                             value={s.totalEmployees}
                             description="Terdaftar dalam sistem"
                             icon={Users}
-                            color="bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                            color="bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400"
                             href="/employees"
                         />
                         <StatCard
@@ -103,7 +103,7 @@ export default function Dashboard({
                             value={s.pendingLeaves}
                             description="Menunggu persetujuan"
                             icon={CalendarOff}
-                            color="bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400"
+                            color="bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400"
                             href="/leave-requests"
                         />
                         <StatCard
@@ -111,7 +111,7 @@ export default function Dashboard({
                             value={s.pendingOvertime}
                             description="Menunggu persetujuan"
                             icon={Clock}
-                            color="bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
+                            color="bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400"
                             href="/overtime-requests"
                         />
                         <StatCard
@@ -119,14 +119,14 @@ export default function Dashboard({
                             value={s.approvedLeavesThisMonth}
                             description={monthYear}
                             icon={CheckCircle2}
-                            color="bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
+                            color="bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400"
                         />
                         <StatCard
                             title="Lembur Disetujui Bulan Ini"
                             value={s.approvedOvertimeThisMonth}
                             description={monthYear}
                             icon={CheckCircle2}
-                            color="bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400"
+                            color="bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400"
                         />
                     </div>
                 </div>
@@ -154,14 +154,14 @@ export default function Dashboard({
                         value={s.leaveQuota}
                         description="Hari yang tersedia tahun ini"
                         icon={CalendarOff}
-                        color="bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                        color="bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400"
                     />
                     <StatCard
                         title="Pengajuan Cuti Menunggu"
                         value={s.pendingLeaves}
                         description="Menunggu persetujuan manajer"
                         icon={CalendarOff}
-                        color="bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400"
+                        color="bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400"
                         href="/leave-requests"
                     />
                     <StatCard
@@ -169,14 +169,14 @@ export default function Dashboard({
                         value={s.approvedLeaves}
                         description="Total hari cuti yang disetujui"
                         icon={CheckCircle2}
-                        color="bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
+                        color="bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400"
                     />
                     <StatCard
                         title="Lembur Menunggu"
                         value={s.pendingOvertime}
                         description="Menunggu persetujuan manajer"
                         icon={Clock}
-                        color="bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
+                        color="bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400"
                         href="/overtime-requests"
                     />
                     <StatCard
@@ -184,7 +184,7 @@ export default function Dashboard({
                         value={s.approvedOvertimeThisMonth}
                         description={monthYear}
                         icon={CheckCircle2}
-                        color="bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400"
+                        color="bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400"
                     />
                 </div>
             </div>

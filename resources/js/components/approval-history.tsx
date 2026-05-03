@@ -45,9 +45,9 @@ function TimelineStep({
     };
 
     const colorMap: Record<StepStatus, string> = {
-        done: 'bg-green-100 text-green-600 ring-background',
-        rejected: 'bg-red-100 text-red-600 ring-background',
-        current: 'bg-blue-100 text-blue-600 ring-background',
+        done: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 ring-background',
+        rejected: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 ring-background',
+        current: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 ring-background',
         waiting: 'bg-muted text-muted-foreground ring-background',
     };
 

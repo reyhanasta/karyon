@@ -109,37 +109,25 @@ export default function Index({
         switch (status) {
             case 'pending_target':
                 return (
-                    <Badge
-                        variant="secondary"
-                        className="bg-yellow-100 text-yellow-800"
-                    >
+                    <Badge variant="warning">
                         Menunggu Konfirmasi Pengganti
                     </Badge>
                 );
             case 'pending_hrd':
                 return (
-                    <Badge
-                        variant="secondary"
-                        className="bg-blue-100 text-blue-800"
-                    >
+                    <Badge variant="warning">
                         Menunggu HRD
                     </Badge>
                 );
             case 'pending_manager':
                 return (
-                    <Badge
-                        variant="secondary"
-                        className="bg-purple-100 text-purple-800"
-                    >
+                    <Badge variant="warning">
                         Menunggu Kepala Ruangan
                     </Badge>
                 );
             case 'approved':
                 return (
-                    <Badge
-                        variant="secondary"
-                        className="bg-green-100 text-green-800"
-                    >
+                    <Badge variant="success">
                         Disetujui
                     </Badge>
                 );
@@ -147,10 +135,7 @@ export default function Index({
                 return <Badge variant="destructive">Ditolak</Badge>;
             case 'canceled':
                 return (
-                    <Badge
-                        variant="secondary"
-                        className="bg-gray-100 text-gray-800"
-                    >
+                    <Badge variant="destructive">
                         Dibatalkan
                     </Badge>
                 );
