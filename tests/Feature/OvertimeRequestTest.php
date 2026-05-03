@@ -293,6 +293,6 @@ test('HR admin can approve overtime request', function () {
 });
 
 test('authorized user can export overtime requests', function () {
-    $response = $this->actingAs($this->managerUser)->get(route('overtime-requests.export'));
-    $response->assertStatus(200);
+    $this->actingAs($this->managerUser)->get(route('overtime-requests.export.excel'))->assertStatus(200);
+    $this->actingAs($this->managerUser)->get(route('overtime-requests.export.pdf'))->assertStatus(200);
 });
