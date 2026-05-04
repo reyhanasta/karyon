@@ -66,7 +66,9 @@ export default function Index({
         setData({
             name: department.name,
             description: department.description || '',
-            manager_ids: department.managers ? department.managers.map((m: any) => m.id) : [],
+            manager_ids: department.managers
+                ? department.managers.map((m: any) => m.id)
+                : [],
         });
     };
 
@@ -179,27 +181,55 @@ export default function Index({
                                     </div>
                                     <div className="grid gap-2">
                                         <Label>Penanggung Jawab (Karu)</Label>
-                                        <div className="grid grid-cols-1 gap-2 rounded-md border p-3 max-h-40 overflow-y-auto">
-                                            {availableManagers.map((manager) => (
-                                                <div key={manager.id} className="flex items-center gap-2">
-                                                    <input
-                                                        type="checkbox"
-                                                        id={`create-manager-${manager.id}`}
-                                                        className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4"
-                                                        checked={data.manager_ids.includes(manager.id)}
-                                                        onChange={(e) => {
-                                                            if (e.target.checked) {
-                                                                setData('manager_ids', [...data.manager_ids, manager.id]);
-                                                            } else {
-                                                                setData('manager_ids', data.manager_ids.filter(id => id !== manager.id));
-                                                            }
-                                                        }}
-                                                    />
-                                                    <Label htmlFor={`create-manager-${manager.id}`} className="text-sm font-normal cursor-pointer">
-                                                        {manager.name}
-                                                    </Label>
-                                                </div>
-                                            ))}
+                                        <div className="grid max-h-40 grid-cols-1 gap-2 overflow-y-auto rounded-md border p-3">
+                                            {availableManagers.map(
+                                                (manager) => (
+                                                    <div
+                                                        key={manager.id}
+                                                        className="flex items-center gap-2"
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            id={`create-manager-${manager.id}`}
+                                                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                                            checked={data.manager_ids.includes(
+                                                                manager.id,
+                                                            )}
+                                                            onChange={(e) => {
+                                                                if (
+                                                                    e.target
+                                                                        .checked
+                                                                ) {
+                                                                    setData(
+                                                                        'manager_ids',
+                                                                        [
+                                                                            ...data.manager_ids,
+                                                                            manager.id,
+                                                                        ],
+                                                                    );
+                                                                } else {
+                                                                    setData(
+                                                                        'manager_ids',
+                                                                        data.manager_ids.filter(
+                                                                            (
+                                                                                id,
+                                                                            ) =>
+                                                                                id !==
+                                                                                manager.id,
+                                                                        ),
+                                                                    );
+                                                                }
+                                                            }}
+                                                        />
+                                                        <Label
+                                                            htmlFor={`create-manager-${manager.id}`}
+                                                            className="cursor-pointer text-sm font-normal"
+                                                        >
+                                                            {manager.name}
+                                                        </Label>
+                                                    </div>
+                                                ),
+                                            )}
                                         </div>
                                         {errors.manager_ids && (
                                             <p className="text-sm text-destructive">
@@ -259,12 +289,19 @@ export default function Index({
 
                                 {/* Managers display */}
                                 <div className="text-sm text-muted-foreground">
-                                    <span className="font-medium text-foreground">Karu: </span>
-                                    {department.managers && department.managers.length > 0 ? (
-                                        department.managers.map((m: any) => m.employee?.full_name || m.email).join(', ')
-                                    ) : (
-                                        'Belum diset'
-                                    )}
+                                    <span className="font-medium text-foreground">
+                                        Karu:{' '}
+                                    </span>
+                                    {department.managers &&
+                                    department.managers.length > 0
+                                        ? department.managers
+                                              .map(
+                                                  (m: any) =>
+                                                      m.employee?.full_name ||
+                                                      m.email,
+                                              )
+                                              .join(', ')
+                                        : 'Belum diset'}
                                 </div>
 
                                 {/* Employee count */}
@@ -286,7 +323,7 @@ export default function Index({
                                         className="flex-1"
                                         onClick={() => handleEdit(department)}
                                     >
-                                        <Edit2 className="mr-1.5 h-3.5 w-3.5" />
+                                        <Edit2 className="mr-1.5 h-3.5 w-3.5 text-yellow-500" />
                                         Edit
                                     </Button>
                                     <Button
@@ -343,57 +380,78 @@ export default function Index({
                                         </p>
                                     )}
                                 </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="edit-description">
-                                            Deskripsi
-                                        </Label>
-                                        <Input
-                                            id="edit-description"
-                                            value={data.description}
-                                            onChange={(e) =>
-                                                setData(
-                                                    'description',
-                                                    e.target.value,
-                                                )
-                                            }
-                                        />
-                                        {errors.description && (
-                                            <p className="text-sm text-destructive">
-                                                {errors.description}
-                                            </p>
-                                        )}
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label>Penanggung Jawab (Karu)</Label>
-                                        <div className="grid grid-cols-1 gap-2 rounded-md border p-3 max-h-40 overflow-y-auto">
-                                            {availableManagers.map((manager) => (
-                                                <div key={manager.id} className="flex items-center gap-2">
-                                                    <input
-                                                        type="checkbox"
-                                                        id={`edit-manager-${manager.id}`}
-                                                        className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4"
-                                                        checked={data.manager_ids.includes(manager.id)}
-                                                        onChange={(e) => {
-                                                            if (e.target.checked) {
-                                                                setData('manager_ids', [...data.manager_ids, manager.id]);
-                                                            } else {
-                                                                setData('manager_ids', data.manager_ids.filter(id => id !== manager.id));
-                                                            }
-                                                        }}
-                                                    />
-                                                    <Label htmlFor={`edit-manager-${manager.id}`} className="text-sm font-normal cursor-pointer">
-                                                        {manager.name}
-                                                    </Label>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        {errors.manager_ids && (
-                                            <p className="text-sm text-destructive">
-                                                {errors.manager_ids}
-                                            </p>
-                                        )}
-                                    </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="edit-description">
+                                        Deskripsi
+                                    </Label>
+                                    <Input
+                                        id="edit-description"
+                                        value={data.description}
+                                        onChange={(e) =>
+                                            setData(
+                                                'description',
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+                                    {errors.description && (
+                                        <p className="text-sm text-destructive">
+                                            {errors.description}
+                                        </p>
+                                    )}
                                 </div>
+                                <div className="grid gap-2">
+                                    <Label>Penanggung Jawab (Karu)</Label>
+                                    <div className="grid max-h-40 grid-cols-1 gap-2 overflow-y-auto rounded-md border p-3">
+                                        {availableManagers.map((manager) => (
+                                            <div
+                                                key={manager.id}
+                                                className="flex items-center gap-2"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    id={`edit-manager-${manager.id}`}
+                                                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                                    checked={data.manager_ids.includes(
+                                                        manager.id,
+                                                    )}
+                                                    onChange={(e) => {
+                                                        if (e.target.checked) {
+                                                            setData(
+                                                                'manager_ids',
+                                                                [
+                                                                    ...data.manager_ids,
+                                                                    manager.id,
+                                                                ],
+                                                            );
+                                                        } else {
+                                                            setData(
+                                                                'manager_ids',
+                                                                data.manager_ids.filter(
+                                                                    (id) =>
+                                                                        id !==
+                                                                        manager.id,
+                                                                ),
+                                                            );
+                                                        }
+                                                    }}
+                                                />
+                                                <Label
+                                                    htmlFor={`edit-manager-${manager.id}`}
+                                                    className="cursor-pointer text-sm font-normal"
+                                                >
+                                                    {manager.name}
+                                                </Label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {errors.manager_ids && (
+                                        <p className="text-sm text-destructive">
+                                            {errors.manager_ids}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
                             <DialogFooter>
                                 <Button type="submit" disabled={processing}>
                                     Perbarui

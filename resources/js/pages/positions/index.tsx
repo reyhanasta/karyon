@@ -174,7 +174,10 @@ export default function Index({
                                             }
                                             required
                                         >
-                                            <SelectTrigger id="department_id" className="w-full">
+                                            <SelectTrigger
+                                                id="department_id"
+                                                className="w-full"
+                                            >
                                                 <SelectValue placeholder="Pilih departemen" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -258,7 +261,11 @@ export default function Index({
                                             {position.name}
                                         </p>
                                         <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">
-                                            {position.department?.name || 'No Department'} • {position.description || 'Tidak ada deskripsi.'}
+                                            {position.department?.name ||
+                                                'No Department'}{' '}
+                                            •{' '}
+                                            {position.description ||
+                                                'Tidak ada deskripsi.'}
                                         </p>
                                     </div>
                                 </div>
@@ -282,7 +289,7 @@ export default function Index({
                                         className="flex-1"
                                         onClick={() => handleEdit(position)}
                                     >
-                                        <Edit2 className="mr-1.5 h-3.5 w-3.5" />
+                                        <Edit2 className="mr-1.5 h-3.5 w-3.5 text-yellow-500" />
                                         Edit
                                     </Button>
                                     <Button
@@ -338,7 +345,10 @@ export default function Index({
                                     )}
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="edit-department_id" required>
+                                    <Label
+                                        htmlFor="edit-department_id"
+                                        required
+                                    >
                                         Departemen
                                     </Label>
                                     <Select
@@ -348,7 +358,10 @@ export default function Index({
                                         }
                                         required
                                     >
-                                        <SelectTrigger id="edit-department_id" className="w-full">
+                                        <SelectTrigger
+                                            id="edit-department_id"
+                                            className="w-full"
+                                        >
                                             <SelectValue placeholder="Pilih departemen" />
                                         </SelectTrigger>
                                         <SelectContent>
