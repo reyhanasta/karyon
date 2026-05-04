@@ -63,7 +63,7 @@ export default function Index({
 }) {
     const { auth } = usePage().props as any;
     const { can } = usePermissions();
-    const canEdit = can('shift-change.edit');
+    const canEdit = can('shift-change-request.edit');
 
     const [search, setSearch] = useState(filters.search ?? '');
     const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -145,7 +145,7 @@ export default function Index({
     };
 
     const canCreate =
-        can('shift-change.create') || can('shift-change.create.any');
+        can('shift-change-request.create') || can('shift-change-request.create.any');
 
 
     return (
@@ -167,17 +167,21 @@ export default function Index({
                         </p>
                     </div>
                     <div className="flex gap-2">
-                        <Button variant="outline" asChild>
-                            <a href={getExportUrl('excel')}>
-                                <FileSpreadsheet className="mr-2 h-4 w-4" />{' '}
-                                Excel
-                            </a>
-                        </Button>
-                        <Button variant="outline" asChild>
-                            <a href={getExportUrl('pdf')}>
-                                <FileDown className="mr-2 h-4 w-4" /> PDF
-                            </a>
-                        </Button>
+                        {can('shift-change-request.export') && (
+                            <>
+                                <Button variant="outline" asChild>
+                                    <a href={getExportUrl('excel')}>
+                                        <FileSpreadsheet className="mr-2 h-4 w-4" />{' '}
+                                        Excel
+                                    </a>
+                                </Button>
+                                <Button variant="outline" asChild>
+                                    <a href={getExportUrl('pdf')}>
+                                        <FileDown className="mr-2 h-4 w-4" /> PDF
+                                    </a>
+                                </Button>
+                            </>
+                        )}
                         {canCreate && (
                             <Button asChild>
                                 <Link href="/shift-change-requests/create">

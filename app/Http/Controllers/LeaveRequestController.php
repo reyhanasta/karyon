@@ -88,7 +88,7 @@ class LeaveRequestController extends Controller
     public function create()
     {
         $user = Auth::user();
-        $canCreateAny = $user->can('leave.create.any');
+        $canCreateAny = $user->can('leave-request.create.any');
         $leaveTypes = LeaveType::active()->orderBy('name','asc')->get();
 
         if ($canCreateAny) {
@@ -145,7 +145,7 @@ class LeaveRequestController extends Controller
         $validated = $request->validated();
 
         // Determine which employee this request is for
-        if ($user->can('leave.create.any') && !empty($validated['employee_id'])) {
+        if ($user->can('leave-request.create.any') && !empty($validated['employee_id'])) {
             if (!$user->hasRole(['super-admin', 'hr-admin'])) {
                 $managedDeptIds = $user->managedDepartments()->pluck('departments.id')->toArray();
                 $employee = Employee::whereIn('department_id', $managedDeptIds)
@@ -249,7 +249,7 @@ class LeaveRequestController extends Controller
         if ($notifyRole === 'manager') {
             $approvers = $employee->department ? $employee->department->managers : collect();
         } else {
-            $approvers = User::permission("leave.approve.{$notifyRole}")->get();
+            $approvers = User::permission("leave-request.approve.{$notifyRole}")->get();
         }
 
         if ($approvers->isNotEmpty()) {
@@ -268,19 +268,19 @@ class LeaveRequestController extends Controller
         $user = Auth::user();
         $canApprove = false;
         
-        if ($leaveRequest->status === 'pending_manager' && $user->can('leave.approve.manager')) $canApprove = true;
-        if ($leaveRequest->status === 'pending_hrd' && $user->can('leave.approve.hrd')) $canApprove = true;
-        if ($leaveRequest->status === 'pending_director' && $user->can('leave.approve.director')) $canApprove = true;
+        if ($leaveRequest->status === 'pending_manager' && $user->can('leave-request.approve.manager')) $canApprove = true;
+        if ($leaveRequest->status === 'pending_hrd' && $user->can('leave-request.approve.hrd')) $canApprove = true;
+        if ($leaveRequest->status === 'pending_director' && $user->can('leave-request.approve.director')) $canApprove = true;
 
         // Bypass: HRD can approve at any pending status
-        if (str_starts_with($leaveRequest->status, 'pending_') && $user->can('leave.approve.hrd')) {
+        if (str_starts_with($leaveRequest->status, 'pending_') && $user->can('leave-request.approve.hrd')) {
             $canApprove = true;
         }
 
         return Inertia::render('leave-requests/show', [
             'leaveRequest' => $leaveRequest,
             'canApprove' => $canApprove,
-            'canEdit' => $user->can('leave.edit'),
+            'canEdit' => $user->can('leave-request.edit'),
         ]);
     }
 
@@ -379,11 +379,11 @@ class LeaveRequestController extends Controller
         $rolesToNotify = [];
 
         if ($leaveRequest->status === 'pending_manager') {
-            if ($user->can('leave.approve.hrd')) {
+            if ($user->can('leave-request.approve.hrd')) {
                 $nextStatus = 'approved';
                 $approveColumn = 'hrd_approved_by';
                 $approveAtColumn = 'hrd_approved_at';
-            } elseif ($user->can('leave.approve.manager')) {
+            } elseif ($user->can('leave-request.approve.manager')) {
                 $nextStatus = 'pending_hrd';
                 $approveColumn = 'manager_approved_by';
                 $approveAtColumn = 'manager_approved_at';
@@ -392,16 +392,16 @@ class LeaveRequestController extends Controller
                 return back()->with('error', 'You do not have permission at this stage.');
             }
         } elseif ($leaveRequest->status === 'pending_hrd') {
-            if (!$user->can('leave.approve.hrd')) return back()->with('error', 'You do not have permission at this stage.');
+            if (!$user->can('leave-request.approve.hrd')) return back()->with('error', 'You do not have permission at this stage.');
             $nextStatus = 'pending_director';
             $approveColumn = 'hrd_approved_by';
             $approveAtColumn = 'hrd_approved_at';
             $rolesToNotify = ['director'];
         } elseif ($leaveRequest->status === 'pending_director') {
-            if ($user->can('leave.approve.hrd') || $user->can('leave.approve.director')) {
+            if ($user->can('leave-request.approve.hrd') || $user->can('leave-request.approve.director')) {
                 $nextStatus = 'approved';
-                $approveColumn = $user->can('leave.approve.director') ? 'director_approved_by' : 'hrd_approved_by';
-                $approveAtColumn = $user->can('leave.approve.director') ? 'director_approved_at' : 'hrd_approved_at';
+                $approveColumn = $user->can('leave-request.approve.director') ? 'director_approved_by' : 'hrd_approved_by';
+                $approveAtColumn = $user->can('leave-request.approve.director') ? 'director_approved_at' : 'hrd_approved_at';
             } else {
                 return back()->with('error', 'You do not have permission at this stage.');
             }
@@ -454,7 +454,7 @@ class LeaveRequestController extends Controller
 
         // Notify next approver in chain
         if (!empty($rolesToNotify)) {
-            $nextApprovers = User::permission("leave.approve.{$rolesToNotify[0]}")->get();
+            $nextApprovers = User::permission("leave-request.approve.{$rolesToNotify[0]}")->get();
             Notification::send($nextApprovers, new LeaveRequestNotification($leaveRequest, $leaveRequest->employee, 'submitted'));
         }
 

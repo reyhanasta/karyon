@@ -9,12 +9,12 @@ class LeaveRequestPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->can('leave.view');
+        return $user->can('leave-request.view');
     }
 
     public function view(User $user, LeaveRequest $leaveRequest): bool
     {
-        if ($user->can('leave.approve.hrd') || $user->can('leave.approve.director') || $user->hasAnyRole(['karu', 'manager'])) {
+        if ($user->can('leave-request.approve.hrd') || $user->can('leave-request.approve.director') || $user->hasAnyRole(['karu', 'manager'])) {
             return true;
         }
 
@@ -23,17 +23,17 @@ class LeaveRequestPolicy
 
     public function create(User $user): bool
     {
-        return $user->can('leave.create') || $user->can('leave.create.any');
+        return $user->can('leave-request.create') || $user->can('leave-request.create.any');
     }
 
     public function update(User $user, LeaveRequest $leaveRequest): bool
     {
-        return $user->can('leave.edit');
+        return $user->can('leave-request.edit');
     }
 
     public function updateStatus(User $user, LeaveRequest $leaveRequest): bool
     {
-        if ($user->can('leave.approve.hrd') || $user->can('leave.approve.director') || $user->hasAnyRole(['karu', 'manager'])) {
+        if ($user->can('leave-request.approve.hrd') || $user->can('leave-request.approve.director') || $user->hasAnyRole(['karu', 'manager'])) {
             return true;
         }
 

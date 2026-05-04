@@ -59,13 +59,13 @@ export default function Index({
     };
 }) {
     const { can } = usePermissions();
-    const canApproveHRD = can('leave.approve.hrd');
-    const canApproveManager = can('leave.approve.manager');
-    const canApproveDirector = can('leave.approve.director');
+    const canApproveHRD = can('leave-request.approve.hrd');
+    const canApproveManager = can('leave-request.approve.manager');
+    const canApproveDirector = can('leave-request.approve.director');
     const canApprove = canApproveHRD || canApproveManager || canApproveDirector;
-    const canCreateAny = can('leave.create.any');
-    const canCreate = can('leave.create') || canCreateAny;
-    const canEdit = can('leave.edit');
+    const canCreateAny = can('leave-request.create.any');
+    const canCreate = can('leave-request.create') || canCreateAny;
+    const canEdit = can('leave-request.edit');
 
     const [search, setSearch] = useState(filters.search ?? '');
     const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -156,7 +156,7 @@ export default function Index({
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
-                        {can('leave.view') && (
+                        {can('leave-request.view') && (
                             <>
                                 <Button variant="outline" asChild>
                                     <a href={getExportUrl('excel')}>

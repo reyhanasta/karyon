@@ -12,7 +12,7 @@ class UpdateShiftChangeRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->can('shift-change-request.edit');
     }
 
     /**

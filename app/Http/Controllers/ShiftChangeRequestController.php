@@ -96,7 +96,7 @@ class ShiftChangeRequestController extends Controller
     public function create()
     {
         $user = Auth::user();
-        $canCreateAny = $user->can('shift-change.create.any');
+        $canCreateAny = $user->can('shift-change-request.create.any');
         
         // Fetch all potential shifts and employees for filtering on frontend
         $shifts = \App\Models\Shift::where('is_active', true)->get();
@@ -150,7 +150,7 @@ class ShiftChangeRequestController extends Controller
     public function store(StoreShiftChangeRequest $request)
     {
         $user = Auth::user();
-        $canCreateAny = $user->can('shift-change.create.any');
+        $canCreateAny = $user->can('shift-change-request.create.any');
 
         $validated = $request->validated();
 
@@ -218,7 +218,7 @@ class ShiftChangeRequestController extends Controller
         if ($notifyRole === 'manager') {
             $approvers = $requester->department ? $requester->department->managers : collect();
         } else {
-            $approvers = User::permission('shift-change.approve.hrd')->get();
+            $approvers = User::permission('shift-change-request.approve.hrd')->get();
         }
 
         foreach ($approvers as $approver) {
@@ -242,13 +242,13 @@ class ShiftChangeRequestController extends Controller
 
         return Inertia::render('shift-change-requests/show', [
             'request' => $shift_change_request,
-            'canEdit' => Auth::user()->can('shift-change.edit')
+            'canEdit' => Auth::user()->can('shift-change-request.edit')
         ]);
     }
 
     public function approveHrd(Request $request, ShiftChangeRequest $shift_change_request)
     {
-        if (!Auth::user()->hasPermissionTo('shift-change.approve.hrd')) {
+        if (!Auth::user()->hasPermissionTo('shift-change-request.approve.hrd')) {
             abort(403);
         }
 
@@ -278,7 +278,7 @@ class ShiftChangeRequestController extends Controller
     public function approveManager(Request $request, ShiftChangeRequest $shift_change_request)
     {
         $user = Auth::user();
-        if (!$user->hasPermissionTo('shift-change.approve.manager')) {
+        if (!$user->hasPermissionTo('shift-change-request.approve.manager')) {
             abort(403);
         }
 
@@ -294,7 +294,7 @@ class ShiftChangeRequestController extends Controller
         ]);
 
         // Notify HRD
-        $hrAdmins = User::permission('shift-change.approve.hrd')->get();
+        $hrAdmins = User::permission('shift-change-request.approve.hrd')->get();
         /** @var \App\Models\User $hr */
         foreach ($hrAdmins as $hr) {
             $hr->notify(new ShiftChangeRequestNotification($shift_change_request, 'pending_hrd'));
@@ -307,8 +307,8 @@ class ShiftChangeRequestController extends Controller
     {
         $user = Auth::user();
         
-        $isHrd = $user->hasPermissionTo('shift-change.approve.hrd');
-        $isManager = $user->hasPermissionTo('shift-change.approve.manager');
+        $isHrd = $user->hasPermissionTo('shift-change-request.approve.hrd');
+        $isManager = $user->hasPermissionTo('shift-change-request.approve.manager');
 
         if (!$isHrd && !$isManager) {
             abort(403, 'Unauthorized action.');
@@ -355,7 +355,7 @@ class ShiftChangeRequestController extends Controller
         $employees = Employee::with(['department', 'position'])->orderBy('full_name')->get();
 
         $user = Auth::user();
-        $canCreateAny = $user->can('shift-change.create.any');
+        $canCreateAny = $user->can('shift-change-request.create.any');
 
         return Inertia::render('shift-change-requests/edit', [
             'request' => $shift_change_request->load(['requester', 'target', 'requesterShift']),

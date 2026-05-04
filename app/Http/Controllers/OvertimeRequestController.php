@@ -80,7 +80,7 @@ class OvertimeRequestController extends Controller
     public function create()
     {
         $user = Auth::user();
-        $canCreateAny = $user->can('overtime.create.any');
+        $canCreateAny = $user->can('overtime-request.create.any');
 
         if ($canCreateAny) {
             if ($user->hasRole(['super-admin', 'hr-admin'])) {
@@ -121,7 +121,7 @@ class OvertimeRequestController extends Controller
         $validated = $request->validated();
 
         // Determine which employee this request is for
-        if ($user->can('overtime.create.any') && !empty($validated['employee_id'])) {
+        if ($user->can('overtime-request.create.any') && !empty($validated['employee_id'])) {
             if (!$user->hasRole(['super-admin', 'hr-admin'])) {
                 $managedDeptIds = $user->managedDepartments()->pluck('departments.id')->toArray();
 
@@ -187,7 +187,7 @@ class OvertimeRequestController extends Controller
         if ($notifyRole === 'manager') {
             $approvers = $employee->department ? $employee->department->managers : collect();
         } else {
-            $approvers = User::permission("overtime.approve.{$notifyRole}")->get();
+            $approvers = User::permission("overtime-request.approve.{$notifyRole}")->get();
         }
 
         if ($approvers->isNotEmpty()) {
@@ -205,18 +205,18 @@ class OvertimeRequestController extends Controller
 
         $user = Auth::user();
         $canApprove = false;
-        if ($overtimeRequest->status === 'pending_manager' && $user->can('overtime.approve.manager')) $canApprove = true;
-        if ($overtimeRequest->status === 'pending_hrd' && $user->can('overtime.approve.hrd')) $canApprove = true;
+        if ($overtimeRequest->status === 'pending_manager' && $user->can('overtime-request.approve.manager')) $canApprove = true;
+        if ($overtimeRequest->status === 'pending_hrd' && $user->can('overtime-request.approve.hrd')) $canApprove = true;
 
         // Bypass: HRD can approve at any pending status
-        if (str_starts_with($overtimeRequest->status, 'pending_') && $user->can('overtime.approve.hrd')) {
+        if (str_starts_with($overtimeRequest->status, 'pending_') && $user->can('overtime-request.approve.hrd')) {
             $canApprove = true;
         }
 
         return Inertia::render('overtime-requests/show', [
             'overtimeRequest' => $overtimeRequest,
             'canApprove' => $canApprove,
-            'canEdit' => $user->can('overtime.edit'),
+            'canEdit' => $user->can('overtime-request.edit'),
         ]);
     }
 
@@ -287,11 +287,11 @@ class OvertimeRequestController extends Controller
         $rolesToNotify = [];
 
         if ($overtimeRequest->status === 'pending_manager') {
-            if ($user->can('overtime.approve.hrd')) {
+            if ($user->can('overtime-request.approve.hrd')) {
                 $nextStatus = 'approved';
                 $approveColumn = 'hrd_approved_by';
                 $approveAtColumn = 'hrd_approved_at';
-            } elseif ($user->can('overtime.approve.manager')) {
+            } elseif ($user->can('overtime-request.approve.manager')) {
                 $nextStatus = 'pending_hrd';
                 $approveColumn = 'manager_approved_by';
                 $approveAtColumn = 'manager_approved_at';
@@ -300,7 +300,7 @@ class OvertimeRequestController extends Controller
                 return back()->with('error', 'You do not have permission at this stage.');
             }
         } elseif ($overtimeRequest->status === 'pending_hrd') {
-            if (!$user->can('overtime.approve.hrd')) return back()->with('error', 'You do not have permission at this stage.');
+            if (!$user->can('overtime-request.approve.hrd')) return back()->with('error', 'You do not have permission at this stage.');
             $nextStatus = 'approved';
             $approveColumn = 'hrd_approved_by';
             $approveAtColumn = 'hrd_approved_at';
@@ -339,7 +339,7 @@ class OvertimeRequestController extends Controller
 
         // Notify next approver in chain
         if (!empty($rolesToNotify)) {
-            $nextApprovers = User::permission("overtime.approve.{$rolesToNotify[0]}")->get();
+            $nextApprovers = User::permission("overtime-request.approve.{$rolesToNotify[0]}")->get();
             Notification::send($nextApprovers, new OvertimeRequestNotification($overtimeRequest, $overtimeRequest->employee, 'submitted'));
         }
 

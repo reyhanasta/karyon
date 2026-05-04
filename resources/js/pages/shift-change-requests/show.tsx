@@ -66,8 +66,8 @@ export default function Show({
 
     console.log(request);
 
-    const isHrd = can('shift-change.approve.hrd');
-    const isManager = can('shift-change.approve.manager');
+    const isHrd = can('shift-change-request.approve.hrd');
+    const isManager = can('shift-change-request.approve.manager');
 
     const [confirmAction, setConfirmAction] = useState<{
         type: 'approve_hrd' | 'approve_manager' | 'reject' | 'cancel';

@@ -12,13 +12,13 @@ use Illuminate\Support\Facades\Notification;
 beforeEach(function () {
     // Create base permissions and roles
     $permissions = [
-        'overtime.view',
-        'overtime.create',
-        'overtime.create.any',
-        'overtime.edit',
-        'overtime.approve.hrd',
-        'overtime.approve.manager',
-        'overtime.approve.director'
+        'overtime-request.view',
+        'overtime-request.create',
+        'overtime-request.create.any',
+        'overtime-request.edit',
+        'overtime-request.approve.hrd',
+        'overtime-request.approve.manager',
+        'overtime-request.approve.director'
     ];
     
     foreach ($permissions as $perm) {
@@ -26,13 +26,13 @@ beforeEach(function () {
     }
 
     $managerRole = Role::firstOrCreate(['name' => 'manager']);
-    $managerRole->syncPermissions(['overtime.view', 'overtime.create.any', 'overtime.edit', 'overtime.approve.manager']);
+    $managerRole->syncPermissions(['overtime-request.view', 'overtime-request.create.any', 'overtime-request.edit', 'overtime-request.approve.manager']);
 
     Role::firstOrCreate(['name' => 'super-admin']);
     Role::firstOrCreate(['name' => 'hr-admin']);
 
     $employeeRole = Role::firstOrCreate(['name' => 'employee']);
-    $employeeRole->syncPermissions(['overtime.view', 'overtime.create']);
+    $employeeRole->syncPermissions(['overtime-request.view', 'overtime-request.create']);
     
     $department = Department::firstOrCreate(['name' => 'IT Department']);
     $position = Position::firstOrCreate(['name' => 'IT Staff']);
@@ -257,7 +257,7 @@ test('overtime request can only be updated if pending', function () {
         'status' => 'approved'
     ]);
 
-    $this->employeeUser->givePermissionTo('overtime.edit');
+    $this->employeeUser->givePermissionTo('overtime-request.edit');
 
     $response = $this->actingAs($this->employeeUser)->put(route('overtime-requests.update', $overtime), [
         'employee_id' => $this->employee->id,
@@ -273,8 +273,8 @@ test('overtime request can only be updated if pending', function () {
 test('HR admin can approve overtime request', function () {
     $hrAdmin = User::factory()->create();
     $hrAdmin->assignRole('hr-admin');
-    Permission::firstOrCreate(['name' => 'overtime.approve.hrd']);
-    $hrAdmin->givePermissionTo('overtime.approve.hrd');
+    Permission::firstOrCreate(['name' => 'overtime-request.approve.hrd']);
+    $hrAdmin->givePermissionTo('overtime-request.approve.hrd');
 
     $overtime = OvertimeRequest::create([
         'employee_id' => $this->employee->id,

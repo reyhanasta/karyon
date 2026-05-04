@@ -18,37 +18,24 @@ class RoleAndPermissionSeeder extends Seeder
         // Define all permissions
         $permissions = [
             // Employee management
-            'employee.view',
-            'employee.create',
-            'employee.edit',
-            'employee.delete',
+            'employee.view', 'employee.create', 'employee.edit', 'employee.delete',
             'employee-profile.edit',
+            // Department & Position
+            'department.view', 'department.create', 'department.edit', 'department.delete',
+            'position.view', 'position.create', 'position.edit', 'position.delete',
             // Shift management
-            'shift.view',
-            'shift.manage',
-            'shift-change.view',
-            'shift-change.create',
-            'shift-change.edit',
-            'shift-change.create.any',
-            'shift-change.approve.hrd',
-            'shift-change.approve.manager',
+            'shift.view', 'shift.manage',
+            'shift-change-request.view', 'shift-change-request.create', 'shift-change-request.edit', 'shift-change-request.delete',
+            'shift-change-request.create.any', 'shift-change-request.approve.hrd', 'shift-change-request.approve.manager', 'shift-change-request.export',
             // Document management
-            'document.upload',
+            'document.upload', 'document-type.view', 'document-type.create', 'document-type.edit', 'document-type.delete',
             // Leave request management
-            'leave.view',
-            'leave.create',
-            'leave.create.any',
-            'leave.edit',
-            'leave.approve.hrd',
-            'leave.approve.manager',
-            'leave.approve.director',
+            'leave-request.view', 'leave-request.create', 'leave-request.create.any', 'leave-request.edit', 'leave-request.delete',
+            'leave-request.approve.hrd', 'leave-request.approve.manager', 'leave-request.approve.director',
+            'leave-type.view', 'leave-type.create', 'leave-type.edit', 'leave-type.delete',
             // Overtime request management
-            'overtime.view',
-            'overtime.create',
-            'overtime.create.any',
-            'overtime.edit',
-            'overtime.approve.hrd',
-            'overtime.approve.manager',
+            'overtime-request.view', 'overtime-request.create', 'overtime-request.create.any', 'overtime-request.edit', 'overtime-request.delete',
+            'overtime-request.approve.hrd', 'overtime-request.approve.manager',
         ];
 
         foreach ($permissions as $perm) {
@@ -62,46 +49,48 @@ class RoleAndPermissionSeeder extends Seeder
         $hrAdmin = Role::firstOrCreate(['name' => 'hr-admin']);
         $hrAdmin->syncPermissions([
             'employee.view', 'employee.create', 'employee.edit', 'employee.delete',
-            'shift.view', 'shift.manage', 'shift-change.view', 'shift-change.create.any', 'shift-change.approve.hrd','shift-change.edit',
-            'document.upload',
-            'leave.view', 'leave.create.any', 'leave.edit', 'leave.approve.hrd',
-            'overtime.view', 'overtime.create.any', 'overtime.edit', 'overtime.approve.hrd',
+            'department.view', 'department.create', 'department.edit', 'department.delete',
+            'position.view', 'position.create', 'position.edit', 'position.delete',
+            'shift.view', 'shift.manage', 'shift-change-request.view', 'shift-change-request.create.any', 'shift-change-request.approve.hrd', 'shift-change-request.edit', 'shift-change-request.export',
+            'document.upload', 'document-type.view',
+            'leave-request.view', 'leave-request.create.any', 'leave-request.edit', 'leave-request.approve.hrd', 'leave-type.view',
+            'overtime-request.view', 'overtime-request.create.any', 'overtime-request.edit', 'overtime-request.approve.hrd',
         ]);
 
         $manager = Role::firstOrCreate(['name' => 'manager']);
         $manager->syncPermissions([
-            'employee.view',
-            'shift.view', 'shift.manage', 'shift-change.view','shift-change.edit',
-            'document.upload',
-            'leave.view', 'leave.approve.manager', 'leave.create', 'leave.create.any',
-            'overtime.view', 'overtime.approve.manager', 'overtime.create', 'overtime.create.any',
-            'shift-change.view', 'shift-change.approve.manager', 'shift-change.create.any', 'employee-profile.edit'
+            'employee.view', 'department.view', 'position.view',
+            'shift.view', 'shift.manage', 'shift-change-request.view', 'shift-change-request.edit', 'shift-change-request.approve.manager', 'shift-change-request.create.any', 'shift-change-request.export',
+            'document.upload', 'document-type.view',
+            'leave-request.view', 'leave-request.approve.manager', 'leave-request.create', 'leave-request.create.any', 'leave-type.view',
+            'overtime-request.view', 'overtime-request.approve.manager', 'overtime-request.create', 'overtime-request.create.any',
+            'employee-profile.edit'
         ]);
 
         $karu = Role::firstOrCreate(['name' => 'karu']);
         $karu->syncPermissions([
-            'employee.view',
-            'shift.view', 'shift.manage', 'shift-change.view','shift-change.create.any','shift-change.approve.manager','shift-change.edit',
+            'shift.view', 'shift-change-request.view', 'shift-change-request.create', 'shift-change-request.edit', 'shift-change-request.approve.manager',
             'document.upload',
-            'leave.view', 'leave.approve.manager', 'leave.create', 'leave.create.any','leave.edit',
-            'overtime.view', 'overtime.approve.manager', 'overtime.create', 'overtime.create.any','overtime.edit',
-            'shift-change.view', 'shift-change.approve.manager', 'shift-change.create.any', 'employee-profile.edit'
+            'leave-request.view', 'leave-request.approve.manager', 'leave-request.create', 'leave-request.edit',
+            'overtime-request.view', 'overtime-request.approve.manager', 'overtime-request.create', 'overtime-request.edit',
+            'employee-profile.edit'
         ]);
 
         $director = Role::firstOrCreate(['name' => 'director']);
         $director->syncPermissions([
-            'employee.view',
-            'shift.view', 'shift-change.view', 'shift-change.approve.manager',
-            'leave.view', 'leave.approve.hrd','leave.approve.manager','leave.approve.director','leave.create',
-            'overtime.view', 'overtime.approve.hrd','overtime.approve.manager','overtime.create','employee-profile.edit'
+            'employee.view', 'department.view', 'position.view',
+            'shift.view', 'shift-change-request.view', 'shift-change-request.approve.manager', 'shift-change-request.export',
+            'leave-request.view', 'leave-request.approve.hrd', 'leave-request.approve.manager', 'leave-request.approve.director', 'leave-request.create', 'leave-type.view',
+            'overtime-request.view', 'overtime-request.approve.hrd', 'overtime-request.approve.manager', 'overtime-request.create',
+            'employee-profile.edit'
         ]);
 
         $employee = Role::firstOrCreate(['name' => 'employee']);
         $employee->syncPermissions([
             'document.upload',
-            'shift.view', 'shift-change.view', 'shift-change.create','shift-change.edit',
-            'leave.view', 'leave.create','leave.edit',
-            'overtime.view', 'overtime.create','overtime.edit',
+            'shift.view', 'shift-change-request.view', 'shift-change-request.create', 'shift-change-request.edit',
+            'leave-request.view', 'leave-request.create', 'leave-request.edit',
+            'overtime-request.view', 'overtime-request.create', 'overtime-request.edit',
             'employee-profile.edit'
         ]);
 

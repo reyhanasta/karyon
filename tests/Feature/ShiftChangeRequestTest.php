@@ -43,7 +43,7 @@ beforeEach(function () {
     // Create a Karu user and assign managed department
     $this->karu = User::factory()->create(['email' => 'karu@test.com']);
     $this->karu->assignRole('employee');
-    $this->karu->givePermissionTo('shift-change.approve.manager');
+    $this->karu->givePermissionTo('shift-change-request.approve.manager');
     $this->karu->managedDepartments()->attach($this->department->id);
 });
 

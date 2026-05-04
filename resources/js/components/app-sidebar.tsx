@@ -43,31 +43,31 @@ const mainNavItems: NavItem[] = [
         title: 'Departemen',
         href: '/departments',
         icon: Building2,
-        permission: 'employee.view',
+        permission: 'department.view',
     },
     {
         title: 'Jabatan',
         href: '/positions',
         icon: UsersRound,
-        permission: 'employee.view',
+        permission: 'position.view',
     },
     {
         title: 'Jenis Cuti',
         href: '/leave-types',
         icon: Book,
-        permission: 'employee.view',
+        permission: 'leave-type.view',
     },
     {
         title: 'Jenis Dokumen',
         href: '/document-types',
         icon: FileText,
-        permission: 'employee.view',
+        permission: 'document-type.view',
     },
     {
         title: 'Managemen Shift',
         href: '/shifts',
         icon: Clock,
-        permission: 'shift.manage',
+        permission: 'shift.view',
     },
     // {
     //     title: 'Jadwal Shift',
@@ -82,19 +82,19 @@ const Request: NavItem[] = [
         title: 'Pengajuan Cuti',
         href: '/leave-requests',
         icon: Calendar,
-        permission: 'leave.view',
+        permission: 'leave-request.view',
     },
     {
         title: 'Pengajuan Lembur',
         href: '/overtime-requests',
         icon: Clock,
-        permission: 'overtime.view',
+        permission: 'overtime-request.view',
     },
     {
         title: 'Penggantian Shift',
         href: '/shift-change-requests',
         icon: RefreshCw,
-        permission: 'shift-change.view',
+        permission: 'shift-change-request.view',
     },
 ];
 
@@ -102,10 +102,19 @@ const footerNavItems: NavItem[] = [];
 
 export function AppSidebar() {
     const { can, hasRole } = usePermissions();
+    const dashboardItem = mainNavItems.find((item) => item.title === 'Dashboard');
+    const platformItems = mainNavItems.filter((item) => item.title !== 'Dashboard');
 
-    const visibleNavItems = mainNavItems.filter((item) => !item.permission || can(item.permission));
+    const visiblePlatformItems = platformItems.filter(
+        (item) => !item.permission || can(item.permission),
+    );
 
-    const isKaruOnly = hasRole('karu') && !hasRole(['super-admin', 'hr-admin', 'manager', 'director']);
+    const isManagement = hasRole([
+        'super-admin',
+        'hr-admin',
+        'manager',
+        'director',
+    ]);
 
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -122,8 +131,11 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                {visibleNavItems.length > 0 && !isKaruOnly && (
-                    <NavMain title="Platform" items={visibleNavItems} />
+                {dashboardItem && (
+                    <NavMain title="Overview" items={[dashboardItem]} />
+                )}
+                {visiblePlatformItems.length > 0 && isManagement && (
+                    <NavMain title="Platform" items={visiblePlatformItems} />
                 )}
                 <NavMain title="Pengajuan" items={Request} />
             </SidebarContent>

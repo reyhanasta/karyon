@@ -70,7 +70,7 @@ export function ConfirmationModal({
                             className={cn(
                                 'h-12 flex-1 rounded-2xl font-bold shadow-lg transition-transform active:scale-95',
                                 variant !== 'destructive'
-                                    ? 'bg-primary text-primary-foreground shadow-primary/20 hover:bg-primary/90'
+                                    ? 'bg-emerald-600 text-white shadow-primary/20 hover:bg-emerald-700'
                                     : 'shadow-destructive/20',
                             )}
                             onClick={onConfirm}

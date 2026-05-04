@@ -9,12 +9,12 @@ class OvertimeRequestPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->can('overtime.view');
+        return $user->can('overtime-request.view');
     }
 
     public function view(User $user, OvertimeRequest $overtimeRequest): bool
     {
-        if ($user->can('overtime.approve.hrd') || $user->hasAnyRole(['karu', 'manager'])) {
+        if ($user->can('overtime-request.approve.hrd') || $user->hasAnyRole(['karu', 'manager'])) {
             return true;
         }
 
@@ -23,17 +23,17 @@ class OvertimeRequestPolicy
 
     public function create(User $user): bool
     {
-        return $user->can('overtime.create') || $user->can('overtime.create.any');
+        return $user->can('overtime-request.create') || $user->can('overtime-request.create.any');
     }
 
     public function update(User $user, OvertimeRequest $overtimeRequest): bool
     {
-        return $user->can('overtime.edit');
+        return $user->can('overtime-request.edit');
     }
 
     public function updateStatus(User $user, OvertimeRequest $overtimeRequest): bool
     {
-        if ($user->can('overtime.approve.hrd') || $user->hasAnyRole(['karu', 'manager'])) {
+        if ($user->can('overtime-request.approve.hrd') || $user->hasAnyRole(['karu', 'manager'])) {
             return true;
         }
 

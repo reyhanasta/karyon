@@ -9,7 +9,7 @@ class ShiftChangeRequestPolicy
 {
     public function view(User $user, ShiftChangeRequest $shiftChangeRequest): bool
     {
-        if ($user->can('shift-change.approve.hrd') || $user->can('shift-change.approve.manager')) {
+        if ($user->can('shift-change-request.approve.hrd') || $user->can('shift-change-request.approve.manager')) {
             return true;
         }
 
@@ -22,14 +22,14 @@ class ShiftChangeRequestPolicy
     }
     public function update(User $user, ShiftChangeRequest $shiftChangeRequest): bool
     {
-        if ($user->can('shift-change.edit')) {
+        if ($user->can('shift-change-request.edit')) {
             return true;
         }
         return $user->employee->id === $shiftChangeRequest->requester_id;
     }
     public function cancel(User $user, ShiftChangeRequest $shiftChangeRequest): bool
     {
-        if ($user->can('shift-change.edit')) {
+        if ($user->can('shift-change-request.edit')) {
             return true;
         }
         return $user->employee->id === $shiftChangeRequest->requester_id;

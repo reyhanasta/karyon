@@ -43,35 +43,35 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Leave requests
     Route::get('leave-requests/export/excel', [App\Http\Controllers\LeaveRequestController::class, 'exportExcel'])
         ->name('leave-requests.export.excel')
-        ->middleware('permission:leave.view');
+        ->middleware('permission:leave-request.view');
     Route::get('leave-requests/export/pdf', [App\Http\Controllers\LeaveRequestController::class, 'exportPdf'])
         ->name('leave-requests.export.pdf')
-        ->middleware('permission:leave.view');
+        ->middleware('permission:leave-request.view');
     Route::resource('leave-requests', App\Http\Controllers\LeaveRequestController::class)
-        ->middleware('permission:leave.view');
+        ->middleware('permission:leave-request.view');
     Route::post('leave-requests/{leaveRequest}/cancel', [App\Http\Controllers\LeaveRequestController::class, 'cancel'])
         ->name('leave-requests.cancel');
     Route::post('leave-requests/{leaveRequest}/status', [App\Http\Controllers\LeaveRequestController::class, 'updateStatus'])
         ->name('leave-requests.status')
-        ->middleware('permission:leave.approve.hrd|leave.approve.manager|leave.approve.director');
+        ->middleware('permission:leave-request.approve.hrd|leave-request.approve.manager|leave-request.approve.director');
 
     // Overtime requests
     Route::get('overtime-requests/export/excel', [App\Http\Controllers\OvertimeRequestController::class, 'exportExcel'])
         ->name('overtime-requests.export.excel')
-        ->middleware('permission:overtime.view');
+        ->middleware('permission:overtime-request.view');
     Route::get('overtime-requests/export/pdf', [App\Http\Controllers\OvertimeRequestController::class, 'exportPdf'])
         ->name('overtime-requests.export.pdf')
-        ->middleware('permission:overtime.view');
+        ->middleware('permission:overtime-request.view');
     Route::resource('overtime-requests', App\Http\Controllers\OvertimeRequestController::class)
-        ->middleware('permission:overtime.view');
+        ->middleware('permission:overtime-request.view');
     Route::post('overtime-requests/{overtimeRequest}/cancel', [App\Http\Controllers\OvertimeRequestController::class, 'cancel'])
         ->name('overtime-requests.cancel');
     Route::post('overtime-requests/{overtimeRequest}/status', [App\Http\Controllers\OvertimeRequestController::class, 'updateStatus'])
         ->name('overtime-requests.status')
-        ->middleware('permission:overtime.approve.hrd|overtime.approve.manager');
+        ->middleware('permission:overtime-request.approve.hrd|overtime-request.approve.manager');
     Route::post('overtime-requests/{overtimeRequest}/toggle-export', [App\Http\Controllers\OvertimeRequestController::class, 'toggleExport'])
         ->name('overtime-requests.toggle-export')
-        ->middleware('permission:overtime.approve.hrd');
+        ->middleware('permission:overtime-request.approve.hrd');
 
     // Notifications
     Route::get('notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
@@ -112,15 +112,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('shift-change-requests.reject');
     Route::get('shift-change-requests/export/excel', [App\Http\Controllers\ShiftChangeRequestController::class, 'exportExcel'])
         ->name('shift-change-requests.export.excel')
-        ->middleware('permission:shift-change.view');
+        ->middleware('permission:shift-change-request.export');
     Route::get('shift-change-requests/export/pdf', [App\Http\Controllers\ShiftChangeRequestController::class, 'exportPdf'])
         ->name('shift-change-requests.export.pdf')
-        ->middleware('permission:shift-change.view');
+        ->middleware('permission:shift-change-request.export');
     Route::post('shift-change-requests/{shift_change_request}/cancel', [App\Http\Controllers\ShiftChangeRequestController::class, 'cancel'])
         ->name('shift-change-requests.cancel');
     Route::resource('shift-change-requests', App\Http\Controllers\ShiftChangeRequestController::class)
         ->only(['index', 'create', 'store', 'show', 'edit', 'update'])
-        ->middleware('permission:shift-change.view');
+        ->middleware('permission:shift-change-request.view');
 });
 
 require __DIR__.'/settings.php';

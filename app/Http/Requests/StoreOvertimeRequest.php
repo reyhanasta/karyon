@@ -8,7 +8,7 @@ class StoreOvertimeRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('overtime.create') || $this->user()->can('overtime.create.any');
+        return $this->user()->can('overtime-request.create') || $this->user()->can('overtime-request.create.any');
     }
 
     public function rules(): array
@@ -20,7 +20,7 @@ class StoreOvertimeRequest extends FormRequest
             'description' => 'required|string|max:500',
         ];
 
-        if ($this->user()->can('overtime.create.any')) {
+        if ($this->user()->can('overtime-request.create.any')) {
             $rules['employee_id'] = 'nullable|exists:employees,id';
         }
 

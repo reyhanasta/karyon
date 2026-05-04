@@ -161,7 +161,7 @@ test('leave request can only be updated if pending', function () {
         'status' => 'approved'
     ]);
 
-    $this->employee->user->givePermissionTo('leave.edit');
+    $this->employee->user->givePermissionTo('leave-request.edit');
 
     actingAs($this->employee->user)
         ->put(route('leave-requests.update', $leaveRequest), [

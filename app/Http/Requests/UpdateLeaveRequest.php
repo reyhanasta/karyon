@@ -8,7 +8,7 @@ class UpdateLeaveRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('leave.edit');
+        return $this->user()->can('leave-request.edit');
     }
 
     public function rules(): array

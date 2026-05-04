@@ -12,7 +12,7 @@ class StoreShiftChangeRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->can('shift-change-request.create') || $this->user()->can('shift-change-request.create.any');
     }
 
     /**

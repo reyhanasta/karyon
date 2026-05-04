@@ -55,12 +55,12 @@ export default function Index({
     };
 }) {
     const { can } = usePermissions();
-    const canApproveHRD = can('overtime.approve.hrd');
-    const canApproveManager = can('overtime.approve.manager');
+    const canApproveHRD = can('overtime-request.approve.hrd');
+    const canApproveManager = can('overtime-request.approve.manager');
     const canApprove = canApproveHRD || canApproveManager;
-    const canCreateAny = can('overtime.create.any');
-    const canCreate = can('overtime.create') || canCreateAny;
-    const canEdit = can('overtime.edit');
+    const canCreateAny = can('overtime-request.create.any');
+    const canCreate = can('overtime-request.create') || canCreateAny;
+    const canEdit = can('overtime-request.edit');
 
     const [search, setSearch] = useState(filters.search ?? '');
     const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -151,7 +151,7 @@ export default function Index({
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
-                        {can('overtime.view') && (
+                        {can('overtime-request.view') && (
                             <>
                                 <Button variant="outline" asChild>
                                     <a href={getExportUrl('excel')}>

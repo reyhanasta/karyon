@@ -8,7 +8,7 @@ class UpdateOvertimeRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('overtime.edit');
+        return $this->user()->can('overtime-request.edit');
     }
 
     public function rules(): array

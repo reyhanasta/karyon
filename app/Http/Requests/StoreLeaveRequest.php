@@ -8,12 +8,12 @@ class StoreLeaveRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('leave.create') || $this->user()->can('leave.create.any');
+        return $this->user()->can('leave-request.create') || $this->user()->can('leave-request.create.any');
     }
 
     public function rules(): array
     {
-        $canCreateAny = $this->user()->can('leave.create.any');
+        $canCreateAny = $this->user()->can('leave-request.create.any');
         $leaveType = \App\Models\LeaveType::find($this->input('leave_type_id'));
 
         $rules = [
