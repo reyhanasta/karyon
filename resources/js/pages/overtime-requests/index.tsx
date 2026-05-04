@@ -151,7 +151,7 @@ export default function Index({
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
-                        {can('overtime-request.view') && (
+                        {can('overtime-request.export') && (
                             <>
                                 <Button variant="outline" asChild>
                                     <a href={getExportUrl('excel')}>
@@ -303,22 +303,28 @@ export default function Index({
                                             variant={
                                                 request.status === 'approved'
                                                     ? 'success'
-                                                    : request.status === 'rejected' || request.status === 'canceled'
-                                                        ? 'destructive'
-                                                        : 'warning'
+                                                    : request.status ===
+                                                            'rejected' ||
+                                                        request.status ===
+                                                            'canceled'
+                                                      ? 'destructive'
+                                                      : 'warning'
                                             }
                                         >
                                             {request.status === 'approved'
                                                 ? 'Disetujui'
                                                 : request.status === 'rejected'
-                                                    ? 'Ditolak'
-                                                    : request.status === 'pending_hrd'
-                                                        ? 'Menunggu HRD'
-                                                        : request.status === 'pending_manager'
-                                                            ? 'Menunggu Karu'
-                                                            : request.status === 'canceled'
-                                                                ? 'Dibatalkan'
-                                                                : 'Menunggu'}
+                                                  ? 'Ditolak'
+                                                  : request.status ===
+                                                      'pending_hrd'
+                                                    ? 'Menunggu HRD'
+                                                    : request.status ===
+                                                        'pending_manager'
+                                                      ? 'Menunggu Karu'
+                                                      : request.status ===
+                                                          'canceled'
+                                                        ? 'Dibatalkan'
+                                                        : 'Menunggu'}
                                         </Badge>
                                     </TableCell>
                                     {showActions && (
@@ -338,7 +344,8 @@ export default function Index({
                                                 {canEdit &&
                                                     request.status.startsWith(
                                                         'pending',
-                                                    ) && !request.manager_approved_at && (
+                                                    ) &&
+                                                    !request.manager_approved_at && (
                                                         <Link
                                                             href={`/overtime-requests/${request.id}/edit`}
                                                         >

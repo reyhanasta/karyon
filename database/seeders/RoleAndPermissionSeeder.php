@@ -31,11 +31,11 @@ class RoleAndPermissionSeeder extends Seeder
             'document.upload', 'document-type.view', 'document-type.create', 'document-type.edit', 'document-type.delete',
             // Leave request management
             'leave-request.view', 'leave-request.create', 'leave-request.create.any', 'leave-request.edit', 'leave-request.delete',
-            'leave-request.approve.hrd', 'leave-request.approve.manager', 'leave-request.approve.director',
+            'leave-request.approve.hrd', 'leave-request.approve.manager', 'leave-request.approve.director','leave-request.export',
             'leave-type.view', 'leave-type.create', 'leave-type.edit', 'leave-type.delete',
             // Overtime request management
             'overtime-request.view', 'overtime-request.create', 'overtime-request.create.any', 'overtime-request.edit', 'overtime-request.delete',
-            'overtime-request.approve.hrd', 'overtime-request.approve.manager',
+            'overtime-request.approve.hrd', 'overtime-request.approve.manager','overtime-request.export',
         ];
 
         foreach ($permissions as $perm) {
@@ -53,8 +53,8 @@ class RoleAndPermissionSeeder extends Seeder
             'position.view', 'position.create', 'position.edit', 'position.delete',
             'shift.view', 'shift.manage', 'shift-change-request.view', 'shift-change-request.create.any', 'shift-change-request.approve.hrd', 'shift-change-request.edit', 'shift-change-request.export',
             'document.upload', 'document-type.view',
-            'leave-request.view', 'leave-request.create.any', 'leave-request.edit', 'leave-request.approve.hrd', 'leave-type.view',
-            'overtime-request.view', 'overtime-request.create.any', 'overtime-request.edit', 'overtime-request.approve.hrd',
+            'leave-request.view', 'leave-request.create.any', 'leave-request.edit', 'leave-request.approve.hrd', 'leave-request.export', 'leave-type.view',
+            'overtime-request.view', 'overtime-request.create.any', 'overtime-request.edit', 'overtime-request.approve.hrd','overtime-request.export',
         ]);
 
         $manager = Role::firstOrCreate(['name' => 'manager']);
@@ -69,19 +69,19 @@ class RoleAndPermissionSeeder extends Seeder
 
         $karu = Role::firstOrCreate(['name' => 'karu']);
         $karu->syncPermissions([
-            'shift.view', 'shift-change-request.view', 'shift-change-request.create', 'shift-change-request.edit', 'shift-change-request.approve.manager',
+            'shift.view', 'shift-change-request.view', 'shift-change-request.create', 'shift-change-request.edit', 'shift-change-request.approve.manager','shift-change-request.export',
             'document.upload',
-            'leave-request.view', 'leave-request.approve.manager', 'leave-request.create', 'leave-request.edit',
-            'overtime-request.view', 'overtime-request.approve.manager', 'overtime-request.create', 'overtime-request.edit',
+            'leave-request.view', 'leave-request.approve.manager', 'leave-request.create', 'leave-request.edit','leave-request.export',
+            'overtime-request.view', 'overtime-request.approve.manager', 'overtime-request.create', 'overtime-request.edit','overtime-request.export',
             'employee-profile.edit'
         ]);
 
         $director = Role::firstOrCreate(['name' => 'director']);
         $director->syncPermissions([
-            'employee.view', 'department.view', 'position.view',
-            'shift.view', 'shift-change-request.view', 'shift-change-request.approve.manager', 'shift-change-request.export',
-            'leave-request.view', 'leave-request.approve.hrd', 'leave-request.approve.manager', 'leave-request.approve.director', 'leave-request.create', 'leave-type.view',
-            'overtime-request.view', 'overtime-request.approve.hrd', 'overtime-request.approve.manager', 'overtime-request.create',
+            'employee.view', 'department.view', 'position.view','leave-type.view','shift.view',
+            'shift-change-request.view', 'shift-change-request.approve.manager', 'shift-change-request.export',
+            'leave-request.view', 'leave-request.approve.hrd', 'leave-request.approve.manager', 'leave-request.approve.director', 'leave-request.create', 'leave-request.edit', 'leave-request.export', 
+            'overtime-request.view', 'overtime-request.approve.hrd', 'overtime-request.approve.manager', 'overtime-request.create','overtime-request.export',
             'employee-profile.edit'
         ]);
 

@@ -91,7 +91,6 @@ export default function Index({
         );
     };
 
-
     const handleSearchChange = (value: string) => {
         setSearch(value);
         if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
@@ -156,7 +155,7 @@ export default function Index({
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
-                        {can('leave-request.view') && (
+                        {can('leave-request.export') && (
                             <>
                                 <Button variant="outline" asChild>
                                     <a href={getExportUrl('excel')}>
@@ -184,7 +183,7 @@ export default function Index({
                 </div>
 
                 {/* Filters */}
-                <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                <div className="flex flex-row gap-4 sm:flex-row sm:items-center">
                     {canApprove && (
                         <div className="relative max-w-sm flex-1">
                             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -198,7 +197,7 @@ export default function Index({
                             />
                         </div>
                     )}
-                    <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex flex-1 flex-wrap items-center justify-end gap-4">
                         <Select
                             value={filters.leave_type_id ?? 'all'}
                             onValueChange={(val) =>
@@ -324,24 +323,31 @@ export default function Index({
                                             variant={
                                                 request.status === 'approved'
                                                     ? 'success'
-                                                    : request.status === 'rejected' || request.status === 'canceled'
-                                                        ? 'destructive'
-                                                        : 'warning'
+                                                    : request.status ===
+                                                            'rejected' ||
+                                                        request.status ===
+                                                            'canceled'
+                                                      ? 'destructive'
+                                                      : 'warning'
                                             }
                                         >
                                             {request.status === 'approved'
                                                 ? 'Disetujui'
                                                 : request.status === 'rejected'
-                                                    ? 'Ditolak'
-                                                    : request.status === 'pending_hrd'
-                                                        ? 'Menunggu HRD'
-                                                        : request.status === 'pending_manager'
-                                                            ? 'Menunggu Karu'
-                                                            : request.status === 'pending_director'
-                                                                ? 'Menunggu Direktur'
-                                                                : request.status === 'canceled'
-                                                                    ? 'Dibatalkan'
-                                                                    : 'Menunggu'}
+                                                  ? 'Ditolak'
+                                                  : request.status ===
+                                                      'pending_hrd'
+                                                    ? 'Menunggu HRD'
+                                                    : request.status ===
+                                                        'pending_manager'
+                                                      ? 'Menunggu Karu'
+                                                      : request.status ===
+                                                          'pending_director'
+                                                        ? 'Menunggu Direktur'
+                                                        : request.status ===
+                                                            'canceled'
+                                                          ? 'Dibatalkan'
+                                                          : 'Menunggu'}
                                         </Badge>
                                     </TableCell>
                                     {showActions && (
@@ -361,7 +367,8 @@ export default function Index({
                                                 {canEdit &&
                                                     request.status.startsWith(
                                                         'pending',
-                                                    ) && !request.manager_approved_at && (
+                                                    ) &&
+                                                    !request.manager_approved_at && (
                                                         <Link
                                                             href={`/leave-requests/${request.id}/edit`}
                                                         >
