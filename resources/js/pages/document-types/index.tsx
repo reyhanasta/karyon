@@ -176,10 +176,60 @@ export default function Index({
                                         />
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label>
-                                            Berlaku untuk Posisi (Pilih & Set
-                                            Wajib)
-                                        </Label>
+                                        <div className="flex items-center justify-between mb-1">
+                                            <Label>
+                                                Berlaku untuk Posisi (Pilih & Set
+                                                Wajib)
+                                            </Label>
+                                            <div className="flex items-center gap-2">
+                                                <Checkbox
+                                                    id="select-all-create"
+                                                    checked={
+                                                        data.positions.length ===
+                                                            positions.length &&
+                                                        positions.length > 0
+                                                    }
+                                                    onCheckedChange={(
+                                                        checked,
+                                                    ) => {
+                                                        if (checked) {
+                                                            setData(
+                                                                'positions',
+                                                                positions.map(
+                                                                    (p) => {
+                                                                        const existing =
+                                                                            data.positions.find(
+                                                                                (
+                                                                                    ep,
+                                                                                ) =>
+                                                                                    ep.id ===
+                                                                                    p.id,
+                                                                            );
+                                                                        return existing
+                                                                            ? existing
+                                                                            : {
+                                                                                  id: p.id,
+                                                                                  is_required: false,
+                                                                              };
+                                                                    },
+                                                                ),
+                                                            );
+                                                        } else {
+                                                            setData(
+                                                                'positions',
+                                                                [],
+                                                            );
+                                                        }
+                                                    }}
+                                                />
+                                                <Label
+                                                    htmlFor="select-all-create"
+                                                    className="text-xs font-medium cursor-pointer"
+                                                >
+                                                    Pilih Semua
+                                                </Label>
+                                            </div>
+                                        </div>
                                         <div className="max-h-48 space-y-1 overflow-y-auto rounded-md border p-2">
                                             {positions.map((pos) => {
                                                 const isSelected =
@@ -415,9 +465,57 @@ export default function Index({
                                     />
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label>
-                                        Berlaku untuk Posisi (Pilih & Set Wajib)
-                                    </Label>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <Label>
+                                            Berlaku untuk Posisi (Pilih & Set Wajib)
+                                        </Label>
+                                        <div className="flex items-center gap-2">
+                                            <Checkbox
+                                                id="select-all-edit"
+                                                checked={
+                                                    data.positions.length ===
+                                                        positions.length &&
+                                                    positions.length > 0
+                                                }
+                                                onCheckedChange={(checked) => {
+                                                    if (checked) {
+                                                        setData(
+                                                            'positions',
+                                                            positions.map(
+                                                                (p) => {
+                                                                    const existing =
+                                                                        data.positions.find(
+                                                                            (
+                                                                                ep,
+                                                                            ) =>
+                                                                                ep.id ===
+                                                                                p.id,
+                                                                        );
+                                                                    return existing
+                                                                        ? existing
+                                                                        : {
+                                                                              id: p.id,
+                                                                              is_required: false,
+                                                                          };
+                                                                },
+                                                            ),
+                                                        );
+                                                    } else {
+                                                        setData(
+                                                            'positions',
+                                                            [],
+                                                        );
+                                                    }
+                                                }}
+                                            />
+                                            <Label
+                                                htmlFor="select-all-edit"
+                                                className="text-xs font-medium cursor-pointer"
+                                            >
+                                                Pilih Semua
+                                            </Label>
+                                        </div>
+                                    </div>
                                     <div className="max-h-48 space-y-1 overflow-y-auto rounded-md border p-2">
                                         {positions.map((pos) => {
                                             const isSelected =
