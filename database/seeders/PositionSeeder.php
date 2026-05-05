@@ -2,7 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Department;
+use App\Models\Position;
 use Illuminate\Database\Seeder;
 
 class PositionSeeder extends Seeder
@@ -12,27 +13,44 @@ class PositionSeeder extends Seeder
      */
     public function run(): void
     {
-        $positions = [
-            ['name' => 'Direktur'],
-            ['name' => 'Manajer'],
-            ['name' => 'Perawat'],
-            ['name' => 'Bidan'],
-            ['name' => 'Rekam Medis'],
-            ['name' => 'Casemix & HRD'],
-            ['name' => 'Dokter'],
-            ['name' => 'Apoteker'],
-            ['name' => 'Asisten Apoteker'],
-            ['name' => 'Farmasi'],
-            ['name' => 'Staff Laboratorium'],
-            ['name' => 'Ahli Gizi'],
-            ['name' => 'Keuangan'],
-            ['name' => 'IT'],
-            ['name' => 'Security'],
-            ['name' => 'Cleaning Service'],
+        $mapping = [
+            'Manajemen' => [
+                'Direktur',
+                'Manajer',
+                'Casemix HRD',
+                'IT',
+                'Staff Laboratorium',
+                'Keuangan'
+            ],
+            'Pelayanan Medis' => [
+                'Perawat',
+                'Bidan',
+                'Rekam Medis',
+                'Dokter'
+            ],
+            'Security & Driver' => [
+                'Security'
+            ],
+            'Cleaning Service' => [
+                'Cleaning Service'
+            ],
+            'Farmasi & Keuangan' => [
+                'Apoteker',
+                'Asisten Apoteker'
+            ],
         ];
 
-        foreach ($positions as $position) {
-            \App\Models\Position::create($position);
+        foreach ($mapping as $deptName => $positions) {
+            $department = Department::where('name', $deptName)->first();
+            
+            if ($department) {
+                foreach ($positions as $posName) {
+                    Position::updateOrCreate(
+                        ['name' => $posName],
+                        ['department_id' => $department->id]
+                    );
+                }
+            }
         }
     }
 }

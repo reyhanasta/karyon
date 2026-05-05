@@ -97,7 +97,7 @@ class ShiftSeeder extends Seeder
         }
 
         // 5. Shift Farmasi
-        $farmasiDept = Department::where('name', 'Farmasi')->first();
+        $farmasiDept = Department::where('name', 'Farmasi & Keuangan')->first();
         if ($farmasiDept) {
             $farmasiShifts = [
                 ['name' => 'Pagi Apoteker', 'start_time' => '08:00', 'end_time' => '17:00'],

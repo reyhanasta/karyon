@@ -14,13 +14,13 @@ class DepartmentSeeder extends Seeder
         $departments = [
             ['name' => 'Manajemen'],
             ['name' => 'Pelayanan Medis'],
-            ['name' => 'Kebersihan'],
+            ['name' => 'Cleaning Service'],
             ['name' => 'Security & Driver'],
             ['name' => 'Farmasi & Keuangan'],
         ];
 
         foreach ($departments as $department) {
-            \App\Models\Department::create($department);
+            \App\Models\Department::updateOrCreate(['name' => $department['name']], $department);
         }
     }
 }

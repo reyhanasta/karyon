@@ -160,7 +160,7 @@ class EmployeeSeeder extends Seeder
     {
         return match ($roleName) {
             'super-admin' => $positions->where('name', 'IT')->first()?->id ?? $positions->first()->id,
-            'hr-admin' => $positions->where('name', 'Casemix & HRD')->first()?->id ?? $positions->first()->id,
+            'hr-admin' => $positions->where('name', 'Casemix HRD')->first()?->id ?? $positions->first()->id,
             'manager' => $positions->where('name', 'Manajer')->first()?->id ?? $positions->first()->id,
             'director' => $positions->where('name', 'Direktur')->first()?->id ?? $positions->first()->id,
             'karu' => $positions->where('name', 'Perawat')->first()?->id ?? $positions->first()->id,
