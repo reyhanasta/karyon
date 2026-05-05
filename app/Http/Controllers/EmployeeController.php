@@ -150,7 +150,7 @@ class EmployeeController extends Controller
 
             Employee::create([
                 'user_id' => $user->id,
-                'full_name' => $validated['full_name'],
+                'full_name' => ucwords($validated['full_name']),
                 'position_id' => $validated['position_id'],
                 'department_id' => $validated['department_id'],
                 'employee_sip' => $validated['employee_sip'] ?? null,

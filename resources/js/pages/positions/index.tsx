@@ -289,7 +289,7 @@ export default function Index({
                                         className="flex-1"
                                         onClick={() => handleEdit(position)}
                                     >
-                                        <Edit2 className="mr-1.5 h-3.5 w-3.5 text-yellow-500" />
+                                        <Edit2 className="mr-1.5 h-3.5 w-3.5" />
                                         Edit
                                     </Button>
                                     <Button

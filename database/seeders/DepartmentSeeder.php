@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DepartmentSeeder extends Seeder
@@ -15,7 +14,7 @@ class DepartmentSeeder extends Seeder
         $departments = [
             ['name' => 'Manajemen'],
             ['name' => 'Pelayanan Medis'],
-            ['name' => 'Cleaning Service'],
+            ['name' => 'Kebersihan'],
             ['name' => 'Security & Driver'],
             ['name' => 'Farmasi & Keuangan'],
         ];
