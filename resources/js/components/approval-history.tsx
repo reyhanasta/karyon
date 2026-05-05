@@ -207,7 +207,7 @@ export function ApprovalHistory({
                                     ? `Ditolak oleh ${karuApprover.employee?.full_name ?? 'Kepala Ruangan'}`
                                     : `Disetujui oleh ${karuApprover.employee?.full_name ?? 'Kepala Ruangan'}`
                                 : getKaruStatus() === 'done'
-                                  ? 'Dilewati (Bypass)'
+                                  ? `Dilewati (Bypass oleh ${request.hrd_approver?.employee?.full_name ?? 'HRD'})`
                                   : getKaruStatus() === 'current'
                                     ? 'Sedang diproses…'
                                     : 'Menunggu…'
@@ -224,7 +224,7 @@ export function ApprovalHistory({
                                     ? `Ditolak oleh ${request.hrd_approver.employee?.full_name ?? 'HRD'}`
                                     : `Disetujui oleh ${request.hrd_approver.employee?.full_name ?? 'HRD'}`
                                 : getHrdStatus() === 'done'
-                                  ? 'Dilewati (Bypass)'
+                                  ? `Dilewati (Bypass oleh ${request.director_approver?.employee?.full_name ?? 'Direktur'})`
                                   : getHrdStatus() === 'current'
                                     ? 'Sedang diproses…'
                                     : 'Menunggu…'
@@ -241,9 +241,11 @@ export function ApprovalHistory({
                                     ? getDirectorStatus() === 'rejected'
                                         ? `Ditolak oleh ${request.director_approver.employee?.full_name ?? 'Direktur'}`
                                         : `Disetujui oleh ${request.director_approver.employee?.full_name ?? 'Direktur'}`
-                                    : getDirectorStatus() === 'current'
-                                      ? 'Sedang diproses…'
-                                      : 'Menunggu…'
+                                    : getDirectorStatus() === 'done'
+                                      ? `Dilewati (Bypass oleh ${request.hrd_approver?.employee?.full_name ?? 'HRD'})`
+                                      : getDirectorStatus() === 'current'
+                                        ? 'Sedang diproses…'
+                                        : 'Menunggu…'
                             }
                         />
                     )}
