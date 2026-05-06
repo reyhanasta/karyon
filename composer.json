@@ -1,9 +1,9 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/react-starter-kit",
+    "name": "reyhanasta/karyaone",
     "version": "0.1.0",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Karyon HRIS - Modern Human Resource Information System built with Laravel 12 and React.",
     "keywords": [
         "laravel",
         "framework"
