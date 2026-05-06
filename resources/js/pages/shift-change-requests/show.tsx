@@ -5,28 +5,22 @@ import {
     ArrowLeft,
     ArrowLeftRight,
     Calendar,
-    Check,
-    CheckCircle2,
     Clock,
-    FileText,
     User,
-    UserCheck,
     Edit,
-    Trash2,
     X,
-    XCircle,
 } from 'lucide-react';
 import { useState } from 'react';
 import { ApprovalHistory } from '@/components/approval-history';
+import { ConfirmationModal } from '@/components/confirmation-modal';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { UserCard } from '@/components/user-card';
 import type { Employee } from '@/components/user-card';
-import { Button } from '@/components/ui/button';
-import { ConfirmationModal } from '@/components/confirmation-modal';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
-import { cn } from '@/lib/utils';
+
 
 // ... (types)
 type Shift = { id: number; name: string; start_time: string; end_time: string };

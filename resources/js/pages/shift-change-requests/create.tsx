@@ -1,11 +1,7 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import {
-    CalendarDays,
     CheckCircle,
-    Clock,
-    HelpCircle,
     Info,
-    User,
     User2,
     UserRound,
     Users,

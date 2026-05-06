@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Shift;
 use App\Models\Department;
+use App\Models\Shift;
+use Illuminate\Database\Seeder;
 
 class ShiftSeeder extends Seeder
 {
@@ -24,7 +24,7 @@ class ShiftSeeder extends Seeder
                 'end_time' => '16:00',
                 'is_active' => true,
             ]);
-            
+
             Shift::firstOrCreate([
                 'department_id' => $managementDept->id,
                 'name' => 'Pagi (Sabtu)',

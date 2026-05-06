@@ -1,9 +1,8 @@
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
     Briefcase,
     BuildingIcon,
     Calendar,
-    ChevronLeft,
     Download,
     Mail,
     Upload,
@@ -13,11 +12,10 @@ import {
     ShieldCheck,
     Clock,
     Phone,
-    MapPin,
-    Trophy,
     Pencil,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { editMyProfile } from '@/actions/App/Http/Controllers/EmployeeController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -39,12 +37,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
-import { editMyProfile } from '@/actions/App/Http/Controllers/EmployeeController';
 
 type DocumentType = {
     id: number;
@@ -107,7 +104,7 @@ export default function Show({
     leaveStats: LeaveStats;
     leaveHistories: LeaveHistory[];
 }) {
-    const { auth } = usePage().props as any;
+    
     const { can } = usePermissions();
 
     // Local states for Document actions

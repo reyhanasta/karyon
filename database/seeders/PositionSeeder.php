@@ -20,29 +20,29 @@ class PositionSeeder extends Seeder
                 'Casemix HRD',
                 'IT',
                 'Staff Laboratorium',
-                'Keuangan'
+                'Keuangan',
             ],
             'Pelayanan Medis' => [
                 'Perawat',
                 'Bidan',
                 'Rekam Medis',
-                'Dokter'
+                'Dokter',
             ],
             'Security & Driver' => [
-                'Security'
+                'Security',
             ],
             'Cleaning Service' => [
-                'Cleaning Service'
+                'Cleaning Service',
             ],
             'Farmasi & Keuangan' => [
                 'Apoteker',
-                'Asisten Apoteker'
+                'Asisten Apoteker',
             ],
         ];
 
         foreach ($mapping as $deptName => $positions) {
             $department = Department::where('name', $deptName)->first();
-            
+
             if ($department) {
                 foreach ($positions as $posName) {
                     Position::updateOrCreate(

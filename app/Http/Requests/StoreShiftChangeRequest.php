@@ -18,16 +18,16 @@ class StoreShiftChangeRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
-            'requester_id'       => 'nullable|exists:employees,id',
-            'request_date'       => 'required|date',
+            'requester_id' => 'nullable|exists:employees,id',
+            'request_date' => 'required|date',
             'requester_shift_id' => 'required|exists:shifts,id',
-            'target_id'          => 'required|exists:employees,id',
-            'reason'             => 'required|string|max:500',
+            'target_id' => 'required|exists:employees,id',
+            'reason' => 'required|string|max:500',
         ];
     }
 
@@ -39,11 +39,11 @@ class StoreShiftChangeRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'requester_id'       => 'karyawan pemohon',
-            'request_date'       => 'tanggal penggantian',
+            'requester_id' => 'karyawan pemohon',
+            'request_date' => 'tanggal penggantian',
             'requester_shift_id' => 'shift asal',
-            'target_id'          => 'karyawan pengganti',
-            'reason'             => 'alasan',
+            'target_id' => 'karyawan pengganti',
+            'reason' => 'alasan',
         ];
     }
 }

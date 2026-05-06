@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Employee;
 use App\Models\Shift;
 use App\Models\ShiftAssignment;
-use App\Models\Employee;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Carbon\Carbon;
 
 class ShiftAssignmentController extends Controller
 {
@@ -22,10 +22,10 @@ class ShiftAssignmentController extends Controller
         $employees = Employee::with([
             'shiftAssignments' => function ($query) use ($startOfMonth, $endOfMonth) {
                 $query->whereBetween('date', [$startOfMonth, $endOfMonth])
-                      ->with('shift');
+                    ->with('shift');
             },
             'position',
-            'department'
+            'department',
         ])->get();
 
         $shifts = Shift::where('is_active', true)->get();
@@ -83,6 +83,7 @@ class ShiftAssignmentController extends Controller
     {
         $this->authorize('delete', Shift::class);
         $assignment->delete();
+
         return redirect()->back()->with('success', 'Jadwal shift berhasil dihapus.');
     }
 }

@@ -2,19 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ShiftChangeRequest;
-use App\Models\Employee;
-use App\Models\User;
-use App\Notifications\ShiftChangeRequestNotification;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Illuminate\Support\Facades\Auth;
-use Maatwebsite\Excel\Facades\Excel;
-use Barryvdh\DomPDF\Facade\Pdf;
 use App\Exports\ShiftChangeRequestsExport;
 use App\Http\Requests\StoreShiftChangeRequest;
 use App\Http\Requests\UpdateShiftChangeRequest;
+use App\Models\Employee;
+use App\Models\Shift;
+use App\Models\ShiftChangeRequest;
+use App\Models\User;
+use App\Notifications\ShiftChangeRequestNotification;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ShiftChangeRequestController extends Controller
 {
@@ -30,7 +31,7 @@ class ShiftChangeRequestController extends Controller
             'filters' => [
                 'status' => $status,
                 'search' => $search,
-            ]
+            ],
         ]);
     }
 
@@ -38,8 +39,8 @@ class ShiftChangeRequestController extends Controller
     {
         $user = Auth::user();
         $query = ShiftChangeRequest::with([
-            'requester', 'target', 'requesterShift', 'targetShift', 
-            'targetApprovedBy', 'hrdApprovedBy', 'managerApprovedBy'
+            'requester', 'target', 'requesterShift', 'targetShift',
+            'targetApprovedBy', 'hrdApprovedBy', 'managerApprovedBy',
         ])->latest();
 
         if ($user->hasAnyRole(['super-admin', 'hr-admin', 'manager', 'director'])) {
@@ -51,17 +52,17 @@ class ShiftChangeRequestController extends Controller
                 $q->whereHas('requester', function ($q2) use ($managedDeptIds) {
                     $q2->whereIn('department_id', $managedDeptIds);
                 })
-                ->orWhereHas('target', function ($q2) use ($managedDeptIds) {
-                    $q2->whereIn('department_id', $managedDeptIds);
-                })
-                ->orWhere('requester_id', $user->employee->id ?? 0)
-                ->orWhere('target_id', $user->employee->id ?? 0);
+                    ->orWhereHas('target', function ($q2) use ($managedDeptIds) {
+                        $q2->whereIn('department_id', $managedDeptIds);
+                    })
+                    ->orWhere('requester_id', $user->employee->id ?? 0)
+                    ->orWhere('target_id', $user->employee->id ?? 0);
             });
         } else {
             // Ordinary employee: only see requests they are involved in
             $query->where(function ($q) use ($user) {
                 $q->where('requester_id', $user->employee->id ?? 0)
-                  ->orWhere('target_id', $user->employee->id ?? 0);
+                    ->orWhere('target_id', $user->employee->id ?? 0);
             });
         }
 
@@ -75,7 +76,7 @@ class ShiftChangeRequestController extends Controller
 
         $query->when($search, function ($q) use ($search) {
             $q->whereHas('requester', fn ($q2) => $q2->where('full_name', 'like', "%{$search}%"))
-              ->orWhereHas('target', fn ($q2) => $q2->where('full_name', 'like', "%{$search}%"));
+                ->orWhereHas('target', fn ($q2) => $q2->where('full_name', 'like', "%{$search}%"));
         });
 
         return $query;
@@ -84,23 +85,25 @@ class ShiftChangeRequestController extends Controller
     public function exportExcel(Request $request)
     {
         $requests = $this->getBaseQuery($request->status, $request->search)->get();
-        return Excel::download(new ShiftChangeRequestsExport($requests), 'shift_change_requests_' . now()->format('YmdHis') . '.xlsx');
+
+        return Excel::download(new ShiftChangeRequestsExport($requests), 'shift_change_requests_'.now()->format('YmdHis').'.xlsx');
     }
 
     public function exportPdf(Request $request)
     {
         $requests = $this->getBaseQuery($request->status, $request->search)->get();
         $pdf = Pdf::loadView('exports.shift-change-requests', compact('requests'));
-        return $pdf->download('shift_change_requests_' . now()->format('YmdHis') . '.pdf');
+
+        return $pdf->download('shift_change_requests_'.now()->format('YmdHis').'.pdf');
     }
 
     public function create()
     {
         $user = Auth::user();
         $canCreateAny = $user->can('shift-change-request.create.any');
-        
+
         // Fetch all potential shifts and employees for filtering on frontend
-        $shifts = \App\Models\Shift::where('is_active', true)->get();
+        $shifts = Shift::where('is_active', true)->get();
 
         $employee = $user->employee;
         $myFilteredShifts = collect();
@@ -136,7 +139,7 @@ class ShiftChangeRequestController extends Controller
             ]);
         }
 
-        if (!$employee) {
+        if (! $employee) {
             return redirect()->route('shift-change-requests.index')->with('error', 'Hanya karyawan yang dapat mengajukan tukar shift.');
         }
 
@@ -155,8 +158,8 @@ class ShiftChangeRequestController extends Controller
 
         $validated = $request->validated();
 
-        if ($canCreateAny && !empty($validated['requester_id'])) {
-            if (!$user->hasRole(['super-admin', 'hr-admin'])) {
+        if ($canCreateAny && ! empty($validated['requester_id'])) {
+            if (! $user->hasRole(['super-admin', 'hr-admin'])) {
                 $managedDeptIds = $user->managedDepartments()->pluck('departments.id')->toArray();
 
                 $requester = Employee::whereIn('department_id', $managedDeptIds)
@@ -167,7 +170,7 @@ class ShiftChangeRequestController extends Controller
             }
         } else {
             $requester = $user->employee;
-            if (!$requester) {
+            if (! $requester) {
                 return redirect()->route('shift-change-requests.index')->with('error', 'Hanya karyawan yang dapat mengajukan penggantian shift.');
             }
         }
@@ -236,14 +239,13 @@ class ShiftChangeRequestController extends Controller
         $shift_change_request->load([
             'requester.position', 'requester.department',
             'target.position', 'target.department',
-            'requesterShift', 'targetShift', 
-            'targetApprovedBy.employee', 'hrdApprovedBy.employee', 'managerApprovedBy.employee'
+            'requesterShift', 'targetShift',
+            'targetApprovedBy.employee', 'hrdApprovedBy.employee', 'managerApprovedBy.employee',
         ]);
-
 
         return Inertia::render('shift-change-requests/show', [
             'request' => $shift_change_request,
-            'canEdit' => Auth::user()->can('shift-change-request.edit')
+            'canEdit' => Auth::user()->can('shift-change-request.edit'),
         ]);
     }
 
@@ -251,12 +253,12 @@ class ShiftChangeRequestController extends Controller
     {
         // This is primarily for administrative approval (Manager, HRD, Director)
         // target approval is still handled separately in approveTarget
-        
+
         $validated = $request->validate([
-            'status' => 'required|in:approved,rejected'
+            'status' => 'required|in:approved,rejected',
         ]);
 
-        if (!str_starts_with($shift_change_request->status, 'pending')) {
+        if (! str_starts_with($shift_change_request->status, 'pending')) {
             return back()->with('error', 'Permintaan ini sudah selesai diproses.');
         }
 
@@ -277,15 +279,21 @@ class ShiftChangeRequestController extends Controller
                 return back()->with('error', 'Anda tidak memiliki akses di tahap ini.');
             }
         } elseif ($shift_change_request->status === 'pending_hrd') {
-            if (!$user->can('shift-change-request.approve.hrd')) return back()->with('error', 'Anda tidak memiliki akses di tahap ini.');
+            if (! $user->can('shift-change-request.approve.hrd')) {
+                return back()->with('error', 'Anda tidak memiliki akses di tahap ini.');
+            }
             $nextStatus = 'approved';
             $rolesToFill = ['hrd'];
         }
 
         if ($validated['status'] === 'rejected') {
             $nextStatus = 'rejected';
-            if ($shift_change_request->status === 'pending_manager') $rolesToFill = ['manager'];
-            if ($shift_change_request->status === 'pending_hrd') $rolesToFill = ['hrd'];
+            if ($shift_change_request->status === 'pending_manager') {
+                $rolesToFill = ['manager'];
+            }
+            if ($shift_change_request->status === 'pending_hrd') {
+                $rolesToFill = ['hrd'];
+            }
         }
 
         DB::transaction(function () use ($shift_change_request, $nextStatus, $rolesToFill) {
@@ -310,11 +318,11 @@ class ShiftChangeRequestController extends Controller
             if ($shift_change_request->target->user) {
                 $shift_change_request->target->user->notify(new ShiftChangeRequestNotification($shift_change_request, $nextStatus));
             }
-        } elseif (!empty($rolesToNotify)) {
-             $nextApprovers = User::permission("shift-change-request.approve.{$rolesToNotify[0]}")->get();
-             foreach ($nextApprovers as $approver) {
-                 $approver->notify(new ShiftChangeRequestNotification($shift_change_request, $nextStatus));
-             }
+        } elseif (! empty($rolesToNotify)) {
+            $nextApprovers = User::permission("shift-change-request.approve.{$rolesToNotify[0]}")->get();
+            foreach ($nextApprovers as $approver) {
+                $approver->notify(new ShiftChangeRequestNotification($shift_change_request, $nextStatus));
+            }
         }
 
         return back()->with('success', 'Status permintaan tukar shift berhasil diperbarui.');
@@ -323,33 +331,35 @@ class ShiftChangeRequestController extends Controller
     public function approveHrd(Request $request, ShiftChangeRequest $shift_change_request)
     {
         $request->merge(['status' => 'approved']);
+
         return $this->updateStatus($request, $shift_change_request);
     }
 
     public function approveManager(Request $request, ShiftChangeRequest $shift_change_request)
     {
         $request->merge(['status' => 'approved']);
+
         return $this->updateStatus($request, $shift_change_request);
     }
 
     public function reject(Request $request, ShiftChangeRequest $shift_change_request)
     {
         $user = Auth::user();
-        
+
         $isHrd = $user->hasPermissionTo('shift-change-request.approve.hrd');
         $isManager = $user->hasPermissionTo('shift-change-request.approve.manager');
 
-        if (!$isHrd && !$isManager) {
+        if (! $isHrd && ! $isManager) {
             abort(403, 'Unauthorized action.');
         }
 
         $validated = $request->validate([
-            'notes' => 'required|string|max:500'
+            'notes' => 'required|string|max:500',
         ]);
 
         $updateData = [
             'status' => 'rejected',
-            'notes' => $validated['notes']
+            'notes' => $validated['notes'],
         ];
 
         if ($isHrd && $shift_change_request->status === 'pending_hrd') {
@@ -364,7 +374,7 @@ class ShiftChangeRequestController extends Controller
 
         // Notify requester
         if ($shift_change_request->requester->user) {
-            /** @var \App\Models\User $requesterUser */
+            /** @var User $requesterUser */
             $requesterUser = $shift_change_request->requester->user;
             $requesterUser->notify(new ShiftChangeRequestNotification($shift_change_request, 'rejected'));
         }
@@ -376,11 +386,11 @@ class ShiftChangeRequestController extends Controller
     {
         $this->authorize('update', $shift_change_request);
 
-        if (!str_starts_with($shift_change_request->status, 'pending')) {
+        if (! str_starts_with($shift_change_request->status, 'pending')) {
             return redirect()->route('shift-change-requests.show', $shift_change_request)->with('error', 'Hanya permintaan pending yang dapat diedit.');
         }
 
-        $shifts = \App\Models\Shift::where('is_active', true)->get();
+        $shifts = Shift::where('is_active', true)->get();
         $employees = Employee::with(['department', 'position'])->orderBy('full_name')->get();
 
         $user = Auth::user();
@@ -398,7 +408,7 @@ class ShiftChangeRequestController extends Controller
     {
         $this->authorize('update', $shift_change_request);
 
-        if (!str_starts_with($shift_change_request->status, 'pending')) {
+        if (! str_starts_with($shift_change_request->status, 'pending')) {
             return back()->with('error', 'Hanya permintaan pending yang dapat diubah.');
         }
 
@@ -418,18 +428,18 @@ class ShiftChangeRequestController extends Controller
     public function cancel(ShiftChangeRequest $shift_change_request)
     {
         $user = Auth::user();
-        
+
         // Ensure user is the owner (requester)
         if ($user->employee->id !== $shift_change_request->requester_id) {
             abort(403, 'Unauthorized action.');
         }
 
-        if (!str_starts_with($shift_change_request->status, 'pending')) {
+        if (! str_starts_with($shift_change_request->status, 'pending')) {
             return back()->with('error', 'Hanya permintaan pending yang dapat dibatalkan.');
         }
 
         $shift_change_request->update([
-            'status' => 'canceled'
+            'status' => 'canceled',
         ]);
 
         return redirect()->route('shift-change-requests.index')->with('success', 'Permintaan tukar shift telah dibatalkan.');

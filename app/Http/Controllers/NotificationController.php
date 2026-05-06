@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
 
 class NotificationController extends Controller
 {

@@ -17,22 +17,22 @@ class UpdateEmployeeRequest extends FormRequest
         $userId = $this->route('employee')->user_id;
 
         $roleRule = 'required|exists:roles,name';
-        if (!$this->user()->hasRole('super-admin')) {
+        if (! $this->user()->hasRole('super-admin')) {
             $roleRule .= '|in:employee,director,karu';
         }
 
         return [
-            'nip'          => ['nullable', 'string', Rule::unique('users')->ignore($userId)],
-            'email'        => ['required', 'email', Rule::unique('users')->ignore($userId)],
-            'password'     => 'nullable|string|min:8',
-            'full_name'    => 'required|string|max:255',
-            'position_id'  => 'required|exists:positions,id',
-            'department_id'=> 'required|exists:departments,id',
+            'nip' => ['nullable', 'string', Rule::unique('users')->ignore($userId)],
+            'email' => ['required', 'email', Rule::unique('users')->ignore($userId)],
+            'password' => 'nullable|string|min:8',
+            'full_name' => 'required|string|max:255',
+            'position_id' => 'required|exists:positions,id',
+            'department_id' => 'required|exists:departments,id',
             'employee_sip' => 'nullable|string|max:255',
             'employee_status' => 'required|string|in:orientasi,tidak_tetap,tetap,keluar',
-            'join_date'    => 'required|date',
-            'role'         => $roleRule,
-            'leave_quota'  => 'required|integer|min:0',
+            'join_date' => 'required|date',
+            'role' => $roleRule,
+            'leave_quota' => 'required|integer|min:0',
         ];
     }
 }

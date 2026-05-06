@@ -1,9 +1,9 @@
 <?php
 
-use App\Models\User;
-use App\Models\Employee;
 use App\Models\Department;
+use App\Models\Employee;
 use App\Models\Position;
+use App\Models\User;
 use Spatie\Permission\Models\Permission;
 
 beforeEach(function () {
@@ -21,14 +21,14 @@ test('unauthenticated users are redirected', function () {
 
 test('unauthorized users get forbidden', function () {
     $this->actingAs($this->unauthorizedUser)
-         ->get(route('positions.index'))
-         ->assertForbidden();
+        ->get(route('positions.index'))
+        ->assertForbidden();
 });
 
 test('authorized users can view positions', function () {
     $this->actingAs($this->authorizedUser)
-         ->get(route('positions.index'))
-         ->assertOk();
+        ->get(route('positions.index'))
+        ->assertOk();
 });
 
 test('can create a position', function () {
@@ -50,9 +50,9 @@ test('can create a position', function () {
 test('cannot create duplicate position in same department', function () {
     $department = Department::create(['name' => 'IT']);
     Position::create(['name' => 'Supervisor', 'department_id' => $department->id]);
-    
+
     // Allowed in different dept
-    Position::create(['name' => 'Supervisor', 'department_id' => Department::create(['name' => 'HR'])->id]); 
+    Position::create(['name' => 'Supervisor', 'department_id' => Department::create(['name' => 'HR'])->id]);
 
     $response = $this->actingAs($this->authorizedUser)->post(route('positions.store'), [
         'name' => 'Supervisor',
@@ -93,7 +93,7 @@ test('can delete a position without employees', function () {
 test('cannot delete a position with employees', function () {
     $department = Department::firstOrCreate(['name' => 'IT Department']);
     $position = Position::create(['name' => 'Has Employees', 'department_id' => $department->id]);
-    
+
     $user = User::factory()->create();
     Employee::create([
         'user_id' => $user->id,

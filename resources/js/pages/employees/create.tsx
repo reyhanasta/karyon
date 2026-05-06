@@ -10,10 +10,8 @@ import {
     Fingerprint,
     ShieldCheck,
     Stethoscope,
-    Badge,
     Building2,
     Users2,
-    VerifiedIcon,
     Info,
 } from 'lucide-react';
 import React from 'react';

@@ -2,12 +2,12 @@
 
 namespace App\Notifications;
 
-use App\Models\OvertimeRequest;
 use App\Models\Employee;
+use App\Models\OvertimeRequest;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Notification;
 
 class OvertimeRequestNotification extends Notification implements ShouldQueue
 {
@@ -28,9 +28,9 @@ class OvertimeRequestNotification extends Notification implements ShouldQueue
     {
         $messages = [
             'submitted' => "{$this->employee->full_name} mengajukan lembur tanggal {$this->overtimeRequest->date} ({$this->overtimeRequest->start_time} - {$this->overtimeRequest->end_time})",
-            'pending_manager'  => "Pengajuan lembur Anda tanggal {$this->overtimeRequest->date} telah disetujui HRD, menunggu Kepala Ruangan",
-            'approved'  => "Pengajuan lembur Anda tanggal {$this->overtimeRequest->date} telah disetujui",
-            'rejected'  => "Pengajuan lembur Anda tanggal {$this->overtimeRequest->date} telah ditolak",
+            'pending_manager' => "Pengajuan lembur Anda tanggal {$this->overtimeRequest->date} telah disetujui HRD, menunggu Kepala Ruangan",
+            'approved' => "Pengajuan lembur Anda tanggal {$this->overtimeRequest->date} telah disetujui",
+            'rejected' => "Pengajuan lembur Anda tanggal {$this->overtimeRequest->date} telah ditolak",
         ];
 
         return [
@@ -40,7 +40,7 @@ class OvertimeRequestNotification extends Notification implements ShouldQueue
             'employee_id' => $this->employee->id,
             'employee_name' => $this->employee->full_name,
             'message' => $messages[$this->action] ?? '',
-            'url' => '/overtime-requests/' . $this->overtimeRequest->id,
+            'url' => '/overtime-requests/'.$this->overtimeRequest->id,
         ];
     }
 

@@ -14,14 +14,14 @@ return new class extends Migration
     {
         Schema::table('shift_change_requests', function (Blueprint $table) {
             $table->foreignId('manager_approved_by')
-                  ->nullable()
-                  ->after('hrd_approved_at')
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->after('hrd_approved_at')
+                ->constrained('users')
+                ->nullOnDelete();
 
             $table->timestamp('manager_approved_at')
-                  ->nullable()
-                  ->after('manager_approved_by');
+                ->nullable()
+                ->after('manager_approved_by');
         });
 
         // Use a raw DB statement to update the enum (MySQL only)

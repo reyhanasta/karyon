@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Department;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -22,11 +23,11 @@ class DepartmentController extends Controller
             ->paginate(8)
             ->withQueryString();
 
-        $availableManagers = \App\Models\User::role('karu')
+        $availableManagers = User::role('karu')
             ->has('employee')
             ->with('employee:id,user_id,full_name')
             ->get()
-            ->map(function($user) {
+            ->map(function ($user) {
                 return [
                     'id' => $user->id,
                     'name' => $user->employee->full_name ?? $user->email,
@@ -62,7 +63,7 @@ class DepartmentController extends Controller
     public function update(Request $request, Department $department)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:departments,name,' . $department->id,
+            'name' => 'required|string|max:255|unique:departments,name,'.$department->id,
             'description' => 'nullable|string|max:500',
             'manager_ids' => 'nullable|array',
             'manager_ids.*' => 'exists:users,id',

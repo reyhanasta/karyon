@@ -15,10 +15,10 @@ return new class extends Migration
         Schema::table('leave_requests', function (Blueprint $table) {
             $table->foreignId('hrd_approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('hrd_approved_at')->nullable();
-            
+
             $table->foreignId('manager_approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('manager_approved_at')->nullable();
-            
+
             $table->foreignId('director_approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('director_approved_at')->nullable();
         });
@@ -27,10 +27,10 @@ return new class extends Migration
         Schema::table('overtime_requests', function (Blueprint $table) {
             $table->foreignId('hrd_approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('hrd_approved_at')->nullable();
-            
+
             $table->foreignId('manager_approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('manager_approved_at')->nullable();
-            
+
             $table->foreignId('director_approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('director_approved_at')->nullable();
         });
@@ -44,10 +44,10 @@ return new class extends Migration
         Schema::table('leave_requests', function (Blueprint $table) {
             $table->dropForeign(['hrd_approved_by']);
             $table->dropColumn(['hrd_approved_by', 'hrd_approved_at']);
-            
+
             $table->dropForeign(['manager_approved_by']);
             $table->dropColumn(['manager_approved_by', 'manager_approved_at']);
-            
+
             $table->dropForeign(['director_approved_by']);
             $table->dropColumn(['director_approved_by', 'director_approved_at']);
         });
@@ -55,10 +55,10 @@ return new class extends Migration
         Schema::table('overtime_requests', function (Blueprint $table) {
             $table->dropForeign(['hrd_approved_by']);
             $table->dropColumn(['hrd_approved_by', 'hrd_approved_at']);
-            
+
             $table->dropForeign(['manager_approved_by']);
             $table->dropColumn(['manager_approved_by', 'manager_approved_at']);
-            
+
             $table->dropForeign(['director_approved_by']);
             $table->dropColumn(['director_approved_by', 'director_approved_at']);
         });

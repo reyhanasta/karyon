@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Models\Department;
+use App\Models\Position;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -67,8 +69,8 @@ class FortifyServiceProvider extends ServiceProvider
         ]));
 
         Fortify::registerView(fn () => Inertia::render('auth/register', [
-            'departments' => \App\Models\Department::orderBy('name')->get(['id', 'name']),
-            'positions'   => \App\Models\Position::whereNotIn('name', ['Direktur', 'Manajer', 'HRD'])
+            'departments' => Department::orderBy('name')->get(['id', 'name']),
+            'positions' => Position::whereNotIn('name', ['Direktur', 'Manajer', 'HRD'])
                 ->orderBy('name')
                 ->get(['id', 'name']),
         ]));

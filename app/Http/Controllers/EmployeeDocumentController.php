@@ -12,9 +12,9 @@ class EmployeeDocumentController extends Controller
 {
     public function store(Request $request, Employee $employee)
     {
-        // Authorization handled in routes/middleware or Policy. 
+        // Authorization handled in routes/middleware or Policy.
         // For simplicity, we assume HRD can upload for anyone, employee can only upload for themselves.
-        if (!auth()->user()->can('employee.edit') && auth()->user()->id !== $employee->user_id) {
+        if (! auth()->user()->can('employee.edit') && auth()->user()->id !== $employee->user_id) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -35,7 +35,7 @@ class EmployeeDocumentController extends Controller
         // Create unique path: private/employee-documents/{employee_id}/{random_string}_{filename}
         $path = $file->storeAs(
             "private/employee-documents/{$employee->id}",
-            Str::random(10) . '_' . Str::slug(pathinfo($fileName, PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension()
+            Str::random(10).'_'.Str::slug(pathinfo($fileName, PATHINFO_FILENAME)).'.'.$file->getClientOriginalExtension()
         );
 
         $employee->documents()->create([
@@ -57,11 +57,11 @@ class EmployeeDocumentController extends Controller
         }
 
         // Authorization
-        if (!auth()->user()->can('employee.view') && auth()->user()->id !== $employee->user_id) {
+        if (! auth()->user()->can('employee.view') && auth()->user()->id !== $employee->user_id) {
             abort(403, 'Unauthorized action.');
         }
 
-        if (!Storage::exists($document->file_path)) {
+        if (! Storage::exists($document->file_path)) {
             return back()->with('error', 'File fisik tidak ditemukan di server.');
         }
 
@@ -76,7 +76,7 @@ class EmployeeDocumentController extends Controller
         }
 
         // Authorization
-        if (!auth()->user()->can('employee.edit') && auth()->user()->id !== $employee->user_id) {
+        if (! auth()->user()->can('employee.edit') && auth()->user()->id !== $employee->user_id) {
             abort(403, 'Unauthorized action.');
         }
 

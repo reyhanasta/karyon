@@ -3,19 +3,19 @@
 namespace App\Exports;
 
 use App\Models\OvertimeRequest;
+use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use Maatwebsite\Excel\Concerns\WithColumnFormatting;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
-use Carbon\Carbon;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class OvertimeRequestExport implements FromQuery, WithHeadings, WithMapping, WithStyles, ShouldAutoSize, WithColumnFormatting
+class OvertimeRequestExport implements FromQuery, ShouldAutoSize, WithColumnFormatting, WithHeadings, WithMapping, WithStyles
 {
     protected $filters;
 
@@ -70,13 +70,13 @@ class OvertimeRequestExport implements FromQuery, WithHeadings, WithMapping, Wit
     }
 
     /**
-     * @param OvertimeRequest $overtimeRequest
+     * @param  OvertimeRequest  $overtimeRequest
      */
     public function map($overtimeRequest): array
     {
         $start = Carbon::parse($overtimeRequest->start_time);
         $end = Carbon::parse($overtimeRequest->end_time);
-        
+
         // Basic hours calculation (assuming same day overtime)
         $totalHours = round($start->diffInMinutes($end) / 60, 2);
 
@@ -105,7 +105,7 @@ class OvertimeRequestExport implements FromQuery, WithHeadings, WithMapping, Wit
     {
         $highestRow = $sheet->getHighestRow();
         $highestColumn = $sheet->getHighestColumn();
-        $cellRange = 'A1:' . $highestColumn . $highestRow;
+        $cellRange = 'A1:'.$highestColumn.$highestRow;
 
         $sheet->getStyle($cellRange)->applyFromArray([
             'borders' => [
@@ -115,7 +115,7 @@ class OvertimeRequestExport implements FromQuery, WithHeadings, WithMapping, Wit
             ],
         ]);
 
-        $sheet->getStyle('A1:' . $highestColumn . '1')->applyFromArray([
+        $sheet->getStyle('A1:'.$highestColumn.'1')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'color' => ['argb' => 'FFFFFFFF'],
@@ -124,7 +124,7 @@ class OvertimeRequestExport implements FromQuery, WithHeadings, WithMapping, Wit
                 'fillType' => Fill::FILL_SOLID,
                 'startColor' => [
                     'argb' => 'FF4F46E5', // Indigo-600
-                ]
+                ],
             ],
         ]);
 

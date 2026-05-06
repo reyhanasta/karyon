@@ -1,13 +1,13 @@
 <?php
 
-use App\Models\User;
-use App\Models\Employee;
 use App\Models\Department;
-use App\Models\Position;
+use App\Models\Employee;
 use App\Models\OvertimeRequest;
+use App\Models\Position;
+use App\Models\User;
+use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\Notification;
 
 beforeEach(function () {
     // Create base permissions and roles
@@ -18,9 +18,9 @@ beforeEach(function () {
         'overtime-request.edit',
         'overtime-request.approve.hrd',
         'overtime-request.approve.manager',
-        'overtime-request.approve.director'
+        'overtime-request.approve.director',
     ];
-    
+
     foreach ($permissions as $perm) {
         Permission::firstOrCreate(['name' => $perm]);
     }
@@ -33,7 +33,7 @@ beforeEach(function () {
 
     $employeeRole = Role::firstOrCreate(['name' => 'employee']);
     $employeeRole->syncPermissions(['overtime-request.view', 'overtime-request.create']);
-    
+
     $department = Department::firstOrCreate(['name' => 'IT Department']);
     $position = Position::firstOrCreate(['name' => 'IT Staff']);
 
@@ -41,14 +41,14 @@ beforeEach(function () {
     $this->managerUser = User::factory()->create();
     $this->managerUser->assignRole('manager');
     $this->managerUser->managedDepartments()->attach($department->id);
-    
+
     $this->managerEmployee = Employee::create([
         'user_id' => $this->managerUser->id,
         'full_name' => 'Manager Man',
         'department_id' => $department->id,
         'position_id' => $position->id,
         'join_date' => now()->toDateString(),
-        'leave_quota' => 12
+        'leave_quota' => 12,
     ]);
 
     // Regular employee user
@@ -60,7 +60,7 @@ beforeEach(function () {
         'department_id' => $department->id,
         'position_id' => $position->id,
         'join_date' => now()->toDateString(),
-        'leave_quota' => 12
+        'leave_quota' => 12,
     ]);
 
     // Another employee user (to test isolation)
@@ -72,7 +72,7 @@ beforeEach(function () {
         'department_id' => $department->id,
         'position_id' => $position->id,
         'join_date' => now()->toDateString(),
-        'leave_quota' => 12
+        'leave_quota' => 12,
     ]);
 });
 
@@ -117,7 +117,7 @@ test('employee cannot submit multiple overtimes for same date', function () {
         'start_time' => '17:00',
         'end_time' => '19:00',
         'description' => 'Existing task',
-        'status' => 'pending_manager'
+        'status' => 'pending_manager',
     ]);
 
     $response = $this->actingAs($this->employeeUser)->post(route('overtime-requests.store'), [
@@ -156,7 +156,7 @@ test('employee can view own overtime detail', function () {
         'start_time' => '17:00',
         'end_time' => '19:00',
         'description' => 'Existing task',
-        'status' => 'pending_manager'
+        'status' => 'pending_manager',
     ]);
 
     $this->actingAs($this->employeeUser)->get(route('overtime-requests.show', $overtime))->assertOk();
@@ -169,7 +169,7 @@ test('employee cannot view other employee overtime detail', function () {
         'start_time' => '17:00',
         'end_time' => '19:00',
         'description' => 'Existing task',
-        'status' => 'pending_manager'
+        'status' => 'pending_manager',
     ]);
 
     $this->actingAs($this->employeeUser)->get(route('overtime-requests.show', $overtime))->assertForbidden();
@@ -182,7 +182,7 @@ test('manager can view any overtime detail', function () {
         'start_time' => '17:00',
         'end_time' => '19:00',
         'description' => 'Existing task',
-        'status' => 'pending_manager'
+        'status' => 'pending_manager',
     ]);
 
     $this->actingAs($this->managerUser)->get(route('overtime-requests.show', $overtime))->assertOk();
@@ -197,11 +197,11 @@ test('manager can update overtime status', function () {
         'start_time' => '17:00',
         'end_time' => '19:00',
         'description' => 'Existing task',
-        'status' => 'pending_manager'
+        'status' => 'pending_manager',
     ]);
 
     $response = $this->actingAs($this->managerUser)->post(route('overtime-requests.status', $overtime), [
-        'status' => 'approved'
+        'status' => 'approved',
     ]);
 
     $response->assertSessionHas('success');
@@ -218,11 +218,11 @@ test('employee cannot update overtime status', function () {
         'start_time' => '17:00',
         'end_time' => '19:00',
         'description' => 'Existing task',
-        'status' => 'pending_manager'
+        'status' => 'pending_manager',
     ]);
 
     $this->actingAs($this->employeeUser)->post(route('overtime-requests.status', $overtime), [
-        'status' => 'approved'
+        'status' => 'approved',
     ])->assertForbidden();
 });
 
@@ -233,11 +233,11 @@ test('cannot update status if already processed', function () {
         'start_time' => '17:00',
         'end_time' => '19:00',
         'description' => 'Existing task',
-        'status' => 'rejected'
+        'status' => 'rejected',
     ]);
 
     $response = $this->actingAs($this->managerUser)->post(route('overtime-requests.status', $overtime), [
-        'status' => 'approved'
+        'status' => 'approved',
     ]);
 
     $response->assertSessionHas('error');
@@ -254,7 +254,7 @@ test('overtime request can only be updated if pending', function () {
         'start_time' => '17:00',
         'end_time' => '19:00',
         'description' => 'Pending task',
-        'status' => 'approved'
+        'status' => 'approved',
     ]);
 
     $this->employeeUser->givePermissionTo('overtime-request.edit');
@@ -282,11 +282,11 @@ test('HR admin can approve overtime request', function () {
         'start_time' => '17:00',
         'end_time' => '19:00',
         'description' => 'Test',
-        'status' => 'pending_manager'
+        'status' => 'pending_manager',
     ]);
 
     $this->actingAs($hrAdmin)->post(route('overtime-requests.status', $overtime), [
-        'status' => 'approved'
+        'status' => 'approved',
     ]);
 
     expect($overtime->refresh()->status)->toBe('approved');

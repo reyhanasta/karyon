@@ -3,19 +3,19 @@
 namespace App\Exports;
 
 use App\Models\LeaveRequest;
+use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use Maatwebsite\Excel\Concerns\WithColumnFormatting;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
-use Carbon\Carbon;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class LeaveRequestExport implements FromQuery, WithHeadings, WithMapping, WithStyles, ShouldAutoSize, WithColumnFormatting
+class LeaveRequestExport implements FromQuery, ShouldAutoSize, WithColumnFormatting, WithHeadings, WithMapping, WithStyles
 {
     protected $filters;
 
@@ -71,7 +71,7 @@ class LeaveRequestExport implements FromQuery, WithHeadings, WithMapping, WithSt
     }
 
     /**
-     * @param LeaveRequest $leaveRequest
+     * @param  LeaveRequest  $leaveRequest
      */
     public function map($leaveRequest): array
     {
@@ -104,7 +104,7 @@ class LeaveRequestExport implements FromQuery, WithHeadings, WithMapping, WithSt
     {
         $highestRow = $sheet->getHighestRow();
         $highestColumn = $sheet->getHighestColumn();
-        $cellRange = 'A1:' . $highestColumn . $highestRow;
+        $cellRange = 'A1:'.$highestColumn.$highestRow;
 
         $sheet->getStyle($cellRange)->applyFromArray([
             'borders' => [
@@ -114,7 +114,7 @@ class LeaveRequestExport implements FromQuery, WithHeadings, WithMapping, WithSt
             ],
         ]);
 
-        $sheet->getStyle('A1:' . $highestColumn . '1')->applyFromArray([
+        $sheet->getStyle('A1:'.$highestColumn.'1')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'color' => ['argb' => 'FFFFFFFF'],
@@ -123,7 +123,7 @@ class LeaveRequestExport implements FromQuery, WithHeadings, WithMapping, WithSt
                 'fillType' => Fill::FILL_SOLID,
                 'startColor' => [
                     'argb' => 'FF4F46E5', // Indigo-600
-                ]
+                ],
             ],
         ]);
 

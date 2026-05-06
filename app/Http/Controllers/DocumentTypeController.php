@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DocumentType;
+use App\Models\Position;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -21,7 +22,7 @@ class DocumentTypeController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        $positions = \App\Models\Position::orderBy('name')->get(['id', 'name']);
+        $positions = Position::orderBy('name')->get(['id', 'name']);
 
         return Inertia::render('document-types/index', [
             'documentTypes' => $documentTypes,
@@ -61,7 +62,7 @@ class DocumentTypeController extends Controller
     public function update(Request $request, DocumentType $documentType)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:100|unique:document_types,name,' . $documentType->id,
+            'name' => 'required|string|max:100|unique:document_types,name,'.$documentType->id,
             'description' => 'nullable|string',
             'is_active' => 'boolean',
             'positions' => 'nullable|array',

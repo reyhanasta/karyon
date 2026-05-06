@@ -2,17 +2,19 @@
 
 use App\Models\Department;
 use App\Models\Employee;
+use App\Models\LeaveRequest;
 use App\Models\LeaveType;
 use App\Models\Position;
 use App\Models\User;
 use Database\Seeders\RoleAndPermissionSeeder;
+
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\seed;
 
 beforeEach(function () {
     seed(RoleAndPermissionSeeder::class);
     $this->admin = User::where('email', 'admin@admin.com')->first();
-    
+
     $this->department = Department::create(['name' => 'Medis']);
     $this->position = Position::create(['name' => 'Dokter']);
     $this->leaveType = LeaveType::create(['name' => 'Cuti Tahunan', 'code' => 'CT', 'default_days' => 12]);
@@ -20,7 +22,7 @@ beforeEach(function () {
     $this->employee = Employee::factory()->create([
         'department_id' => $this->department->id,
         'position_id' => $this->position->id,
-        'leave_quota' => 12
+        'leave_quota' => 12,
     ]);
     $this->employee->user->assignRole('employee');
 });
@@ -39,7 +41,7 @@ test('employee can submit leave request', function () {
     $this->assertDatabaseHas('leave_requests', [
         'employee_id' => $this->employee->id,
         'leave_type_id' => $this->leaveType->id,
-        'status' => 'pending_manager'
+        'status' => 'pending_manager',
     ]);
 });
 
@@ -57,7 +59,7 @@ test('admin can submit leave request for employee', function () {
 
     $this->assertDatabaseHas('leave_requests', [
         'employee_id' => $this->employee->id,
-        'status' => 'pending_hrd'
+        'status' => 'pending_hrd',
     ]);
 });
 
@@ -75,13 +77,13 @@ test('employee cannot submit leave request if quota is insufficient', function (
 });
 
 test('leave request approval workflow', function () {
-    $leaveRequest = \App\Models\LeaveRequest::create([
+    $leaveRequest = LeaveRequest::create([
         'employee_id' => $this->employee->id,
         'leave_type_id' => $this->leaveType->id,
         'start_date' => now()->addDays(1)->format('Y-m-d'),
         'end_date' => now()->addDays(2)->format('Y-m-d'),
         'reason' => 'Test',
-        'status' => 'pending_manager'
+        'status' => 'pending_manager',
     ]);
 
     // Manager approval
@@ -115,13 +117,13 @@ test('leave request approval workflow', function () {
 
 test('leave quota is deducted after final approval', function () {
     $initialQuota = $this->employee->leave_quota;
-    $leaveRequest = \App\Models\LeaveRequest::create([
+    $leaveRequest = LeaveRequest::create([
         'employee_id' => $this->employee->id,
         'leave_type_id' => $this->leaveType->id,
         'start_date' => now()->addDays(1)->format('Y-m-d'),
         'end_date' => now()->addDays(1)->format('Y-m-d'), // 1 day
         'reason' => 'Test',
-        'status' => 'pending_director'
+        'status' => 'pending_director',
     ]);
 
     $director = User::factory()->create();
@@ -135,13 +137,13 @@ test('leave quota is deducted after final approval', function () {
 });
 
 test('leave request can be rejected', function () {
-    $leaveRequest = \App\Models\LeaveRequest::create([
+    $leaveRequest = LeaveRequest::create([
         'employee_id' => $this->employee->id,
         'leave_type_id' => $this->leaveType->id,
         'start_date' => now()->addDays(1)->format('Y-m-d'),
         'end_date' => now()->addDays(1)->format('Y-m-d'),
         'reason' => 'Test',
-        'status' => 'pending_manager'
+        'status' => 'pending_manager',
     ]);
 
     actingAs($this->admin)
@@ -152,13 +154,13 @@ test('leave request can be rejected', function () {
 });
 
 test('leave request can only be updated if pending', function () {
-    $leaveRequest = \App\Models\LeaveRequest::create([
+    $leaveRequest = LeaveRequest::create([
         'employee_id' => $this->employee->id,
         'leave_type_id' => $this->leaveType->id,
         'start_date' => now()->addDays(1)->format('Y-m-d'),
         'end_date' => now()->addDays(1)->format('Y-m-d'),
         'reason' => 'Test',
-        'status' => 'approved'
+        'status' => 'approved',
     ]);
 
     $this->employee->user->givePermissionTo('leave-request.edit');

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Shift;
 use App\Models\Department;
+use App\Models\Shift;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

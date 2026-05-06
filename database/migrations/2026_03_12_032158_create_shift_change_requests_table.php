@@ -19,18 +19,17 @@ return new class extends Migration
             $table->foreignId('requester_shift_id')->constrained('shifts')->cascadeOnDelete();
             $table->foreignId('target_shift_id')->nullable()->constrained('shifts')->nullOnDelete();
             $table->text('reason')->nullable();
-            
+
             $table->enum('status', ['pending_target', 'pending_hrd', 'approved', 'rejected'])->default('pending_target');
-            
+
             $table->foreignId('target_approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('target_approved_at')->nullable();
-            
+
             $table->foreignId('hrd_approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('hrd_approved_at')->nullable();
-            
+
             $table->text('notes')->nullable();
 
-            
             $table->timestamps();
             $table->softDeletes();
         });

@@ -4,8 +4,8 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Employee extends Model
@@ -13,7 +13,7 @@ class Employee extends Model
     use HasFactory, SoftDeletes;
 
     public const MONTHLY_LEAVE_LIMIT = 5;
-    
+
     protected $fillable = [
         'user_id',
         'full_name',
@@ -80,7 +80,7 @@ class Employee extends Model
             ->whereIn('status', ['approved', 'pending'])
             ->where(function ($q) use ($year) {
                 $q->whereYear('start_date', $year)
-                  ->orWhereYear('end_date', $year);
+                    ->orWhereYear('end_date', $year);
             })->where('leave_type_id', 1)
             ->get(['start_date', 'end_date']);
 

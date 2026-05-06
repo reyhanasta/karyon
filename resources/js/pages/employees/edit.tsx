@@ -27,10 +27,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
 
 import { cn } from '@/lib/utils';
-import { usePermissions } from '@/hooks/use-permissions';
 
 export default function Edit({
     employee,

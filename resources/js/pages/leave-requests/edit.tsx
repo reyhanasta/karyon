@@ -36,11 +36,11 @@ type LeaveRequestData = {
 
 export default function Edit({
     leaveRequest,
-    employees,
+
     leaveTypes,
 }: {
     leaveRequest: LeaveRequestData;
-    employees: Employee[];
+
     leaveTypes: LeaveType[];
 }) {
     const { data, setData, post, processing, errors } = useInertiaForm({

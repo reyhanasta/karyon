@@ -10,6 +10,7 @@ use App\Models\LeaveRequest;
 use App\Models\LeaveType;
 use App\Models\User;
 use App\Notifications\LeaveRequestNotification;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,7 +19,6 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class LeaveRequestController extends Controller
 {
@@ -89,7 +89,7 @@ class LeaveRequestController extends Controller
     {
         $user = Auth::user();
         $canCreateAny = $user->can('leave-request.create.any');
-        $leaveTypes = LeaveType::active()->orderBy('name','asc')->get();
+        $leaveTypes = LeaveType::active()->orderBy('name', 'asc')->get();
 
         if ($canCreateAny) {
             if ($user->hasRole(['super-admin', 'hr-admin'])) {
@@ -102,10 +102,9 @@ class LeaveRequestController extends Controller
                 $employees = Employee::whereIn('department_id', $managedDeptIds)
                     ->where('id', '!=', $user->employee->id ?? 0)
                     ->select('id', 'full_name')
-                    ->orderBy('full_name','asc')
+                    ->orderBy('full_name', 'asc')
                     ->get();
             }
-
 
             return Inertia::render('leave-requests/create', [
                 'employees' => $employees,
@@ -116,7 +115,7 @@ class LeaveRequestController extends Controller
 
         // Regular employee creating for self
         $employee = $user->employee;
-        if (!$employee) {
+        if (! $employee) {
             return redirect()->back()->with('error', 'You must be registered as an employee to request leave.');
         }
 
@@ -128,14 +127,14 @@ class LeaveRequestController extends Controller
         $typeUsage = $this->getLeaveTypeUsage($employee, $currentYear);
 
         return Inertia::render('leave-requests/create', [
-            'leaveQuota'       => $employee->leave_quota,
-            'monthlyLimit'     => Employee::MONTHLY_LEAVE_LIMIT,
-            'monthlyUsage'     => $monthlyUsage,
-            'currentMonth'     => $currentMonth,
+            'leaveQuota' => $employee->leave_quota,
+            'monthlyLimit' => Employee::MONTHLY_LEAVE_LIMIT,
+            'monthlyUsage' => $monthlyUsage,
+            'currentMonth' => $currentMonth,
             'monthlyRemaining' => Employee::MONTHLY_LEAVE_LIMIT - ($monthlyUsage[$currentMonth] ?? 0),
-            'leaveTypes'       => $leaveTypes,
-            'typeUsage'        => $typeUsage,
-            'canCreateAny'     => false,
+            'leaveTypes' => $leaveTypes,
+            'typeUsage' => $typeUsage,
+            'canCreateAny' => false,
         ]);
     }
 
@@ -145,8 +144,8 @@ class LeaveRequestController extends Controller
         $validated = $request->validated();
 
         // Determine which employee this request is for
-        if ($user->can('leave-request.create.any') && !empty($validated['employee_id'])) {
-            if (!$user->hasRole(['super-admin', 'hr-admin'])) {
+        if ($user->can('leave-request.create.any') && ! empty($validated['employee_id'])) {
+            if (! $user->hasRole(['super-admin', 'hr-admin'])) {
                 $managedDeptIds = $user->managedDepartments()->pluck('departments.id')->toArray();
                 $employee = Employee::whereIn('department_id', $managedDeptIds)
                     ->where('id', '!=', $user->employee->id ?? 0)
@@ -156,7 +155,7 @@ class LeaveRequestController extends Controller
             }
         } else {
             $employee = $user->employee;
-            if (!$employee) {
+            if (! $employee) {
                 return redirect()->back()->with('error', 'You must be registered as an employee to request leave.');
             }
         }
@@ -173,7 +172,7 @@ class LeaveRequestController extends Controller
 
             if ($requestedDays > $remainingForType) {
                 return back()->withErrors([
-                    'end_date' => "Kuota {$leaveType->name} tidak cukup. Diajukan {$requestedDays} hari, sisa {$remainingForType} hari."
+                    'end_date' => "Kuota {$leaveType->name} tidak cukup. Diajukan {$requestedDays} hari, sisa {$remainingForType} hari.",
                 ]);
             }
         }
@@ -183,7 +182,7 @@ class LeaveRequestController extends Controller
             // Also check global leave_quota on employee
             if ($employee->leave_quota < $requestedDays) {
                 return back()->withErrors([
-                    'end_date' => "Kuota cuti tahunan tidak cukup. Diajukan {$requestedDays} hari, sisa {$employee->leave_quota} hari."
+                    'end_date' => "Kuota cuti tahunan tidak cukup. Diajukan {$requestedDays} hari, sisa {$employee->leave_quota} hari.",
                 ]);
             }
 
@@ -196,9 +195,10 @@ class LeaveRequestController extends Controller
                 $remaining = Employee::MONTHLY_LEAVE_LIMIT - $alreadyUsed;
 
                 if ($days > $remaining) {
-                    $monthLabel = Carbon::parse($month . '-01')->translatedFormat('F Y');
+                    $monthLabel = Carbon::parse($month.'-01')->translatedFormat('F Y');
+
                     return back()->withErrors([
-                        'end_date' => "Batas bulanan terlampaui untuk {$monthLabel}. Sudah {$alreadyUsed} hari digunakan/pending dan mengajukan {$days} hari lagi (maks " . Employee::MONTHLY_LEAVE_LIMIT . " per bulan)."
+                        'end_date' => "Batas bulanan terlampaui untuk {$monthLabel}. Sudah {$alreadyUsed} hari digunakan/pending dan mengajukan {$days} hari lagi (maks ".Employee::MONTHLY_LEAVE_LIMIT.' per bulan).',
                     ]);
                 }
             }
@@ -231,17 +231,17 @@ class LeaveRequestController extends Controller
         $leaveRequest = null;
         DB::transaction(function () use ($employee, $hrdApprovedAt, $hrdApprovedBy, $managerApprovedAt, $managerApprovedBy, $validated, $leaveType, $attachmentPath, $initialStatus, &$leaveRequest) {
             $leaveRequest = LeaveRequest::create([
-                'employee_id'   => $employee->id,
+                'employee_id' => $employee->id,
                 'leave_type_id' => $leaveType->id,
-                'start_date'    => $validated['start_date'],
-                'end_date'      => $validated['end_date'],
-                'reason'        => $validated['reason'],
+                'start_date' => $validated['start_date'],
+                'end_date' => $validated['end_date'],
+                'reason' => $validated['reason'],
                 'attachment_path' => $attachmentPath,
-                'status'        => $initialStatus,
-                'manager_approved_by'    => $managerApprovedBy,
+                'status' => $initialStatus,
+                'manager_approved_by' => $managerApprovedBy,
                 'manager_approved_at' => $managerApprovedAt,
-                'hrd_approved_by'     => $hrdApprovedBy,
-                'hrd_approved_at'   => $hrdApprovedAt,
+                'hrd_approved_by' => $hrdApprovedBy,
+                'hrd_approved_at' => $hrdApprovedAt,
             ]);
         });
 
@@ -262,15 +262,21 @@ class LeaveRequestController extends Controller
     public function show(LeaveRequest $leaveRequest)
     {
         $this->authorize('view', $leaveRequest); // Or handle authorization similarly to index/edit
-        
+
         $leaveRequest->load(['employee.position', 'employee.department', 'leaveType', 'approver.employee', 'hrdApprover.employee', 'managerApprover.employee', 'directorApprover.employee']);
 
         $user = Auth::user();
         $canApprove = false;
-        
-        if ($leaveRequest->status === 'pending_manager' && $user->can('leave-request.approve.manager')) $canApprove = true;
-        if ($leaveRequest->status === 'pending_hrd' && $user->can('leave-request.approve.hrd')) $canApprove = true;
-        if ($leaveRequest->status === 'pending_director' && $user->can('leave-request.approve.director')) $canApprove = true;
+
+        if ($leaveRequest->status === 'pending_manager' && $user->can('leave-request.approve.manager')) {
+            $canApprove = true;
+        }
+        if ($leaveRequest->status === 'pending_hrd' && $user->can('leave-request.approve.hrd')) {
+            $canApprove = true;
+        }
+        if ($leaveRequest->status === 'pending_director' && $user->can('leave-request.approve.director')) {
+            $canApprove = true;
+        }
 
         // Bypass: HRD can approve at any pending status
         if (str_starts_with($leaveRequest->status, 'pending_') && $user->can('leave-request.approve.hrd')) {
@@ -302,7 +308,7 @@ class LeaveRequestController extends Controller
 
     public function update(UpdateLeaveRequest $request, LeaveRequest $leaveRequest)
     {
-        if (!str_starts_with($leaveRequest->status, 'pending')) {
+        if (! str_starts_with($leaveRequest->status, 'pending')) {
             return back()->with('error', 'Only pending requests can be edited.');
         }
 
@@ -322,7 +328,7 @@ class LeaveRequestController extends Controller
 
             if ($requestedDays > $remainingForType) {
                 return back()->withErrors([
-                    'end_date' => "Kuota {$leaveType->name} tidak cukup. Diajukan {$requestedDays} hari, sisa {$remainingForType} hari."
+                    'end_date' => "Kuota {$leaveType->name} tidak cukup. Diajukan {$requestedDays} hari, sisa {$remainingForType} hari.",
                 ]);
             }
         }
@@ -332,7 +338,7 @@ class LeaveRequestController extends Controller
             $currentQuota = $employee->leave_quota;
             if ($currentQuota < $requestedDays) {
                 return back()->withErrors([
-                    'end_date' => "Kuota cuti tahunan tidak cukup. Diajukan {$requestedDays} hari, sisa {$currentQuota} hari."
+                    'end_date' => "Kuota cuti tahunan tidak cukup. Diajukan {$requestedDays} hari, sisa {$currentQuota} hari.",
                 ]);
             }
         }
@@ -350,9 +356,9 @@ class LeaveRequestController extends Controller
         DB::transaction(function () use ($leaveRequest, $validated, $leaveType, $attachmentPath) {
             $leaveRequest->update([
                 'leave_type_id' => $leaveType->id,
-                'start_date'    => $validated['start_date'],
-                'end_date'      => $validated['end_date'],
-                'reason'        => $validated['reason'],
+                'start_date' => $validated['start_date'],
+                'end_date' => $validated['end_date'],
+                'reason' => $validated['reason'],
                 'attachment_path' => $attachmentPath,
             ]);
         });
@@ -365,10 +371,10 @@ class LeaveRequestController extends Controller
         $this->authorize('updateStatus', $leaveRequest);
 
         $validated = $request->validate([
-            'status' => 'required|in:approved,rejected'
+            'status' => 'required|in:approved,rejected',
         ]);
 
-        if (!str_starts_with($leaveRequest->status, 'pending')) {
+        if (! str_starts_with($leaveRequest->status, 'pending')) {
             return back()->with('error', 'This request has already been processed completely.');
         }
 
@@ -391,7 +397,9 @@ class LeaveRequestController extends Controller
                 return back()->with('error', 'You do not have permission at this stage.');
             }
         } elseif ($leaveRequest->status === 'pending_hrd') {
-            if (!$user->can('leave-request.approve.hrd')) return back()->with('error', 'You do not have permission at this stage.');
+            if (! $user->can('leave-request.approve.hrd')) {
+                return back()->with('error', 'You do not have permission at this stage.');
+            }
             $nextStatus = 'pending_director';
             $rolesToFill = ['hrd'];
             $rolesToNotify = ['director'];
@@ -408,9 +416,15 @@ class LeaveRequestController extends Controller
         if ($validated['status'] === 'rejected') {
             $nextStatus = 'rejected';
             // On rejection, we still mark who rejected it in the CURRENT stage
-            if ($leaveRequest->status === 'pending_manager') $rolesToFill = ['manager'];
-            if ($leaveRequest->status === 'pending_hrd') $rolesToFill = ['hrd'];
-            if ($leaveRequest->status === 'pending_director') $rolesToFill = ['director'];
+            if ($leaveRequest->status === 'pending_manager') {
+                $rolesToFill = ['manager'];
+            }
+            if ($leaveRequest->status === 'pending_hrd') {
+                $rolesToFill = ['hrd'];
+            }
+            if ($leaveRequest->status === 'pending_director') {
+                $rolesToFill = ['director'];
+            }
         }
 
         DB::transaction(function () use ($leaveRequest, $nextStatus, $rolesToFill) {
@@ -430,7 +444,7 @@ class LeaveRequestController extends Controller
             if ($nextStatus === 'approved' || $nextStatus === 'rejected') {
                 $updateData['approved_by'] = Auth::id(); // keeping legacy column for final state
             }
-            
+
             $leaveRequest->update($updateData);
 
             // If fully approved and it's Cuti Tahunan, deduct quota
@@ -461,7 +475,7 @@ class LeaveRequestController extends Controller
         }
 
         // Notify next approver in chain
-        if (!empty($rolesToNotify)) {
+        if (! empty($rolesToNotify)) {
             $nextApprovers = User::permission("leave-request.approve.{$rolesToNotify[0]}")->get();
             Notification::send($nextApprovers, new LeaveRequestNotification($leaveRequest, $leaveRequest->employee, 'submitted'));
         }
@@ -480,7 +494,7 @@ class LeaveRequestController extends Controller
             ->whereIn('status', ['approved', 'pending_hrd', 'pending_manager', 'pending_director'])
             ->where(function ($q) use ($year) {
                 $q->whereYear('start_date', $year)
-                  ->orWhereYear('end_date', $year);
+                    ->orWhereYear('end_date', $year);
             });
 
         if ($excludeId) {
@@ -518,8 +532,9 @@ class LeaveRequestController extends Controller
 
     public function exportExcel(Request $request)
     {
-        $filename = 'leave_requests_' . now()->format('Y-m-d') . '.xlsx';
+        $filename = 'leave_requests_'.now()->format('Y-m-d').'.xlsx';
         $filters = $request->only(['status', 'search', 'date_from', 'date_to', 'leave_type_id']);
+
         return Excel::download(new LeaveRequestExport($filters), $filename);
     }
 
@@ -534,8 +549,10 @@ class LeaveRequestController extends Controller
         )->latest()->get();
 
         $pdf = Pdf::loadView('exports.leave-requests', compact('requests'));
-        return $pdf->download('leave_requests_' . now()->format('Y-m-d') . '.pdf');
+
+        return $pdf->download('leave_requests_'.now()->format('Y-m-d').'.pdf');
     }
+
     public function cancel(LeaveRequest $leaveRequest)
     {
         $user = Auth::user();
@@ -543,7 +560,7 @@ class LeaveRequestController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (!str_starts_with($leaveRequest->status, 'pending')) {
+        if (! str_starts_with($leaveRequest->status, 'pending')) {
             return back()->with('error', 'Only pending requests can be canceled.');
         }
 

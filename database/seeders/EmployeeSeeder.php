@@ -23,17 +23,18 @@ class EmployeeSeeder extends Seeder
 
         if ($departments->isEmpty() || $positions->isEmpty()) {
             $this->command->error('Departments or Positions are empty. Please run DepartmentSeeder and PositionSeeder first.');
+
             return;
         }
 
         foreach ($roles as $role) {
             $roleName = $role->name;
-            $email = str_replace('-', '', $roleName) . '@karyaone.com';
-            $nip = '12345' . str_pad($role->id, 3, '0', STR_PAD_LEFT);
+            $email = str_replace('-', '', $roleName).'@karyaone.com';
+            $nip = '12345'.str_pad($role->id, 3, '0', STR_PAD_LEFT);
 
             $user = User::where('email', $email)->orWhere('nip', $nip)->first();
-            
-            if (!$user) {
+
+            if (! $user) {
                 $user = User::create([
                     'nip' => $nip,
                     'email' => $email,
@@ -44,10 +45,10 @@ class EmployeeSeeder extends Seeder
             }
 
             // Create Employee if not exists
-            if (!$user->employee) {
+            if (! $user->employee) {
                 Employee::create([
                     'user_id' => $user->id,
-                    'full_name' => ucwords(str_replace('-', ' ', $roleName)) . ' User',
+                    'full_name' => ucwords(str_replace('-', ' ', $roleName)).' User',
                     'position_id' => $this->getPositionByRole($roleName, $positions),
                     'department_id' => $this->getDepartmentByRole($roleName, $departments),
                     'employee_status' => 'tetap',
@@ -61,8 +62,9 @@ class EmployeeSeeder extends Seeder
         $medisDept = $departments->where('name', 'Pelayanan Medis')->first();
         $farmasiDept = $departments->where('name', 'Farmasi & Keuangan')->first();
 
-        if (!$medisDept || !$farmasiDept) {
+        if (! $medisDept || ! $farmasiDept) {
             $this->command->error('Required departments (Pelayanan Medis, Farmasi & Keuangan) not found.');
+
             return;
         }
 
@@ -74,7 +76,7 @@ class EmployeeSeeder extends Seeder
                 'dept' => $medisDept->id,
                 'pos' => $positions->where('name', 'Perawat')->first()?->id,
                 'email' => 'karu.medis@karyaone.com',
-                'nip' => 'K001'
+                'nip' => 'K001',
             ],
             [
                 'name' => 'Employee Medis 1',
@@ -82,7 +84,7 @@ class EmployeeSeeder extends Seeder
                 'dept' => $medisDept->id,
                 'pos' => $positions->where('name', 'Bidan')->first()?->id,
                 'email' => 'emp.medis1@karyaone.com',
-                'nip' => 'E001'
+                'nip' => 'E001',
             ],
             [
                 'name' => 'Employee Medis 2',
@@ -90,7 +92,7 @@ class EmployeeSeeder extends Seeder
                 'dept' => $medisDept->id,
                 'pos' => $positions->where('name', 'Bidan')->first()?->id,
                 'email' => 'emp.medis2@karyaone.com',
-                'nip' => 'E002'
+                'nip' => 'E002',
             ],
             [
                 'name' => 'Employee Medis 3',
@@ -98,7 +100,7 @@ class EmployeeSeeder extends Seeder
                 'dept' => $medisDept->id,
                 'pos' => $positions->where('name', 'Rekam Medis')->first()?->id,
                 'email' => 'emp.medis3@karyaone.com',
-                'nip' => 'E003'
+                'nip' => 'E003',
             ],
             // Department: Farmasi & Keuangan
             [
@@ -107,7 +109,7 @@ class EmployeeSeeder extends Seeder
                 'dept' => $farmasiDept->id,
                 'pos' => $positions->where('name', 'Apoteker')->first()?->id,
                 'email' => 'karu.farmasi@karyaone.com',
-                'nip' => 'K002'
+                'nip' => 'K002',
             ],
             [
                 'name' => 'Employee Farmasi 1',
@@ -115,7 +117,7 @@ class EmployeeSeeder extends Seeder
                 'dept' => $farmasiDept->id,
                 'pos' => $positions->where('name', 'Asisten Apoteker')->first()?->id,
                 'email' => 'emp.farmasi1@karyaone.com',
-                'nip' => 'E004'
+                'nip' => 'E004',
             ],
             [
                 'name' => 'Employee Asisten Apoteker 2',
@@ -123,7 +125,7 @@ class EmployeeSeeder extends Seeder
                 'dept' => $farmasiDept->id,
                 'pos' => $positions->where('name', 'Asisten Apoteker')->first()?->id,
                 'email' => 'emp.farmasi2@karyaone.com',
-                'nip' => 'E005'
+                'nip' => 'E005',
             ],
             [
                 'name' => 'Employee Apoteker 3',
@@ -131,7 +133,7 @@ class EmployeeSeeder extends Seeder
                 'dept' => $farmasiDept->id,
                 'pos' => $positions->where('name', 'Apoteker')->first()?->id,
                 'email' => 'emp.farmasi3@karyaone.com',
-                'nip' => 'E006'
+                'nip' => 'E006',
             ],
         ];
 

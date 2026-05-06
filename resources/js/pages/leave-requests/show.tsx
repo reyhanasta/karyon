@@ -9,14 +9,13 @@ import {
     Paperclip,
     XCircle,
     Edit,
-    Trash2,
     X,
 } from 'lucide-react';
 import { useState } from 'react';
 import { ApprovalHistory } from '@/components/approval-history';
+import { ConfirmationModal } from '@/components/confirmation-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ConfirmationModal } from '@/components/confirmation-modal';
 import AppLayout from '@/layouts/app-layout';
 
 type LeaveRequestData = {

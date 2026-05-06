@@ -4,21 +4,21 @@ namespace App\Exports;
 
 use App\Models\Employee;
 use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Cell\Cell;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class EmployeeExport extends DefaultValueBinder implements FromCollection, WithHeadings, WithMapping, WithStyles, ShouldAutoSize, WithColumnFormatting, WithCustomValueBinder
+class EmployeeExport extends DefaultValueBinder implements FromCollection, ShouldAutoSize, WithColumnFormatting, WithCustomValueBinder, WithHeadings, WithMapping, WithStyles
 {
     public function collection()
     {
@@ -42,7 +42,7 @@ class EmployeeExport extends DefaultValueBinder implements FromCollection, WithH
     }
 
     /**
-     * @param Employee $employee
+     * @param  Employee  $employee
      */
     public function map($employee): array
     {
@@ -68,6 +68,7 @@ class EmployeeExport extends DefaultValueBinder implements FromCollection, WithH
     {
         if ($cell->getColumn() === 'A') {
             $cell->setValueExplicit($value, DataType::TYPE_STRING);
+
             return true;
         }
 
@@ -86,7 +87,7 @@ class EmployeeExport extends DefaultValueBinder implements FromCollection, WithH
         // Get the highest row and column
         $highestRow = $sheet->getHighestRow();
         $highestColumn = $sheet->getHighestColumn();
-        $cellRange = 'A1:' . $highestColumn . $highestRow;
+        $cellRange = 'A1:'.$highestColumn.$highestRow;
 
         // Apply borders
         $sheet->getStyle($cellRange)->applyFromArray([
@@ -98,7 +99,7 @@ class EmployeeExport extends DefaultValueBinder implements FromCollection, WithH
         ]);
 
         // Specific style for Header (Row 1)
-        $sheet->getStyle('A1:' . $highestColumn . '1')->applyFromArray([
+        $sheet->getStyle('A1:'.$highestColumn.'1')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'color' => ['argb' => 'FFFFFFFF'],
@@ -107,7 +108,7 @@ class EmployeeExport extends DefaultValueBinder implements FromCollection, WithH
                 'fillType' => Fill::FILL_SOLID,
                 'startColor' => [
                     'argb' => 'FF4F46E5', // Indigo-600
-                ]
+                ],
             ],
         ]);
 

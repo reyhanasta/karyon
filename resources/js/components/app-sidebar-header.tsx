@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { LogOut, User, Users } from 'lucide-react';
+import { LogOut, User } from 'lucide-react';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { NotificationBell } from '@/components/notification-bell';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -13,8 +13,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useInitials } from '@/hooks/use-initials';
+import { logout, myProfile } from '@/routes';
 import type { BreadcrumbItem as BreadcrumbItemType } from '@/types';
-import { dashboard, logout, myProfile } from '@/routes';
 
 export function AppSidebarHeader({
     breadcrumbs = [],

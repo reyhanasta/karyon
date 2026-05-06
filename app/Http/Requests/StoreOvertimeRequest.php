@@ -14,9 +14,9 @@ class StoreOvertimeRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'date'        => 'required|date|before_or_equal:today',
-            'start_time'  => 'required',
-            'end_time'    => 'required',
+            'date' => 'required|date|before_or_equal:today',
+            'start_time' => 'required',
+            'end_time' => 'required',
             'description' => 'required|string|max:500',
         ];
 
@@ -30,8 +30,8 @@ class StoreOvertimeRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'date.before_or_equal'  => 'Tanggal lembur harus hari ini atau sebelumnya.',
-            'end_time.after'        => 'Waktu selesai harus setelah waktu mulai.',
+            'date.before_or_equal' => 'Tanggal lembur harus hari ini atau sebelumnya.',
+            'end_time.after' => 'Waktu selesai harus setelah waktu mulai.',
         ];
     }
 
@@ -39,9 +39,9 @@ class StoreOvertimeRequest extends FormRequest
     {
         return [
             'employee_id' => 'karyawan',
-            'date'        => 'tanggal',
-            'start_time'  => 'waktu mulai',
-            'end_time'    => 'waktu selesai',
+            'date' => 'tanggal',
+            'start_time' => 'waktu mulai',
+            'end_time' => 'waktu selesai',
             'description' => 'keterangan/alasan',
         ];
     }

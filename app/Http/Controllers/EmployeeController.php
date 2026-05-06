@@ -7,13 +7,17 @@ use App\Http\Requests\StoreEmployeeRequest;
 use App\Http\Requests\UpdateEmployeeRequest;
 use App\Imports\EmployeeImport;
 use App\Models\Department;
+use App\Models\DocumentType;
 use App\Models\Employee;
+use App\Models\LeaveRequest;
 use App\Models\Position;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Permission\Models\Role;
@@ -24,8 +28,8 @@ class EmployeeController extends Controller
     {
         // Ambil data employee milik user yang sedang login
         $employee = $request->user()->employee;
-        
-        if (!$employee) {
+
+        if (! $employee) {
             abort(404, 'Data Karyawan tidak ditemukan untuk user ini.');
         }
 
@@ -36,9 +40,10 @@ class EmployeeController extends Controller
     public function editMyProfile(Request $request)
     {
         $employee = $request->user()->employee;
-        if (!$employee) {
+        if (! $employee) {
             abort(404, 'Data Karyawan tidak ditemukan.');
         }
+
         return $this->edit($employee);
     }
 
@@ -47,19 +52,19 @@ class EmployeeController extends Controller
         $user = $request->user();
         $employee = $user->employee;
 
-        if (!$employee) {
+        if (! $employee) {
             abort(404, 'Data Karyawan tidak ditemukan.');
         }
 
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
-            'email' => ['required', 'email', \Illuminate\Validation\Rule::unique('users')->ignore($user->id)],
+            'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
             'password' => 'nullable|string|min:8',
             'employee_sip' => 'nullable|string|max:255',
         ]);
 
         DB::transaction(function () use ($user, $employee, $validated) {
-            if (!empty($validated['password'])) {
+            if (! empty($validated['password'])) {
                 $user->update(['password' => Hash::make($validated['password'])]);
             }
             $user->update(['email' => $validated['email']]);
@@ -81,9 +86,9 @@ class EmployeeController extends Controller
 
         $employees = Employee::with(['user.roles', 'position', 'department'])
             ->when($search, function ($q) use ($search) {
-                $q->where(function($q3) use ($search) {
+                $q->where(function ($q3) use ($search) {
                     $q3->where('full_name', 'like', "%{$search}%")
-                      ->orWhereHas('user', fn ($q2) => $q2->where('nip', 'like', "%{$search}%"));
+                        ->orWhereHas('user', fn ($q2) => $q2->where('nip', 'like', "%{$search}%"));
                 });
             })
             ->when($departmentId, function ($q) use ($departmentId) {
@@ -122,12 +127,13 @@ class EmployeeController extends Controller
     public function create()
     {
         $user = auth()->user();
-        $roles = $user->hasRole('super-admin') 
-            ? Role::all() 
+        $roles = $user->hasRole('super-admin')
+            ? Role::all()
             : Role::whereIn('name', ['employee', 'director', 'karu'])->get();
-            
+
         $positions = Position::all();
         $departments = Department::all();
+
         return Inertia::render('employees/create', [
             'roles' => $roles,
             'positions' => $positions,
@@ -166,30 +172,30 @@ class EmployeeController extends Controller
     public function show(Employee $employee)
     {
         $employee->load([
-            'user.roles', 
-            'position', 
+            'user.roles',
+            'position',
             'department',
             'documents.documentType',
-            'documents.uploader'
+            'documents.uploader',
         ]);
-        
+
         $currentYear = now()->year;
         $monthlyUsage = $employee->getMonthlyLeaveUsage($currentYear);
         $usedThisMonth = $monthlyUsage[now()->format('Y-m')] ?? 0;
-        
+
         // In this system, $employee->leave_quota represents the current REMAINING quota
         $remainingQuota = $employee->leave_quota ?? 0;
         $monthlyQuota = 5 - $usedThisMonth;
 
         $totalQuota = 12; // Default system total quota
-        
+
         // Calculate total days used this year based on all the monthly usages
         // $totalUsedThisYear = array_sum($monthlyUsage);
         $totalUsedThisYear = $totalQuota - $remainingQuota;
 
         $documentTypes = collect();
         if ($employee->position_id) {
-            $documentTypes = \App\Models\DocumentType::where('is_active', true)
+            $documentTypes = DocumentType::where('is_active', true)
                 ->whereHas('positions', function ($query) use ($employee) {
                     $query->where('positions.id', $employee->position_id);
                 })
@@ -200,24 +206,24 @@ class EmployeeController extends Controller
         }
 
         // Fetch last 2 leave histories
-        $leaveHistories = \App\Models\LeaveRequest::with('leaveType')
+        $leaveHistories = LeaveRequest::with('leaveType')
             ->where('employee_id', $employee->id)
             ->whereIn('status', ['approved', 'completed']) // Only show valid/finished leaves
             ->orderBy('start_date', 'desc')
             ->take(2)
             ->get()
             ->map(function ($leave) {
-                $start = \Carbon\Carbon::parse($leave->start_date);
-                $end = \Carbon\Carbon::parse($leave->end_date);
+                $start = Carbon::parse($leave->start_date);
+                $end = Carbon::parse($leave->end_date);
                 $diffDays = $start->diffInDays($end) + 1;
 
                 // Format string: "21 Jun 2024" or "5-7 Mei 2024"
                 $dateString = $start->translatedFormat('d M Y');
                 if ($start->notEqualTo($end)) {
                     if ($start->month === $end->month) {
-                        $dateString = $start->format('j') . '-' . $end->translatedFormat('j M Y');
+                        $dateString = $start->format('j').'-'.$end->translatedFormat('j M Y');
                     } else {
-                        $dateString = $start->translatedFormat('j M') . ' - ' . $end->translatedFormat('j M Y');
+                        $dateString = $start->translatedFormat('j M').' - '.$end->translatedFormat('j M Y');
                     }
                 }
 
@@ -226,7 +232,7 @@ class EmployeeController extends Controller
                     'type_name' => $leave->leaveType ? $leave->leaveType->name : 'Cuti',
                     'date_string' => $dateString,
                     'days' => $diffDays,
-                    'reason' => $leave->reason
+                    'reason' => $leave->reason,
                 ];
             });
 
@@ -241,22 +247,22 @@ class EmployeeController extends Controller
                 'usedThisMonth' => $usedThisMonth,
                 'monthlyQuota' => $monthlyQuota,
                 'monthlyLimit' => Employee::MONTHLY_LEAVE_LIMIT,
-            ]
+            ],
         ]);
     }
 
     public function edit(Employee $employee)
     {
         $employee->load('user.roles');
-        
+
         $user = auth()->user();
-        $roles = $user->hasRole('super-admin') 
-            ? Role::all() 
+        $roles = $user->hasRole('super-admin')
+            ? Role::all()
             : Role::whereIn('name', ['employee', 'director', 'karu'])->get();
-            
+
         $positions = Position::all();
         $departments = Department::all();
-        
+
         return Inertia::render('employees/edit', [
             'employee' => $employee,
             'roles' => $roles,
@@ -271,10 +277,10 @@ class EmployeeController extends Controller
         $validated = $request->validated();
 
         DB::transaction(function () use ($user, $employee, $validated) {
-            if (!empty($validated['password'])) {
+            if (! empty($validated['password'])) {
                 $user->update(['password' => Hash::make($validated['password'])]);
             }
-            
+
             $user->update([
                 'nip' => $validated['nip'],
                 'email' => $validated['email'],
@@ -310,13 +316,13 @@ class EmployeeController extends Controller
     public function export(Request $request)
     {
         $format = $request->input('format', 'xlsx');
-        $filename = 'employees_' . now()->format('Y-m-d');
+        $filename = 'employees_'.now()->format('Y-m-d');
 
         if ($format === 'csv') {
-            return Excel::download(new EmployeeExport, $filename . '.csv', \Maatwebsite\Excel\Excel::CSV);
+            return Excel::download(new EmployeeExport, $filename.'.csv', \Maatwebsite\Excel\Excel::CSV);
         }
 
-        return Excel::download(new EmployeeExport, $filename . '.xlsx');
+        return Excel::download(new EmployeeExport, $filename.'.xlsx');
     }
 
     public function import(Request $request)
@@ -334,12 +340,12 @@ class EmployeeController extends Controller
         $errors = $import->getErrors();
 
         if ($imported === 0 && count($errors) > 0) {
-            return back()->with('error', 'Import failed. ' . implode(' | ', array_slice($errors, 0, 5)));
+            return back()->with('error', 'Import failed. '.implode(' | ', array_slice($errors, 0, 5)));
         }
 
         $message = "{$imported} employee(s) imported successfully.";
         if (count($errors) > 0) {
-            $message .= ' ' . count($errors) . ' row(s) skipped.';
+            $message .= ' '.count($errors).' row(s) skipped.';
         }
 
         return back()->with('success', $message);

@@ -15,9 +15,9 @@ class UpdateOvertimeRequest extends FormRequest
     {
         return [
             'employee_id' => 'required|exists:employees,id',
-            'date'        => 'required|date|before_or_equal:today',
-            'start_time'  => 'required',
-            'end_time'    => 'required|after:start_time',
+            'date' => 'required|date|before_or_equal:today',
+            'start_time' => 'required',
+            'end_time' => 'required|after:start_time',
             'description' => 'required|string|max:500',
         ];
     }
@@ -26,7 +26,7 @@ class UpdateOvertimeRequest extends FormRequest
     {
         return [
             'date.before_or_equal' => 'Tanggal lembur harus hari ini atau sebelumnya.',
-            'end_time.after'       => 'Waktu selesai harus setelah waktu mulai.',
+            'end_time.after' => 'Waktu selesai harus setelah waktu mulai.',
         ];
     }
 
@@ -34,9 +34,9 @@ class UpdateOvertimeRequest extends FormRequest
     {
         return [
             'employee_id' => 'karyawan',
-            'date'        => 'tanggal',
-            'start_time'  => 'waktu mulai',
-            'end_time'    => 'waktu selesai',
+            'date' => 'tanggal',
+            'start_time' => 'waktu mulai',
+            'end_time' => 'waktu selesai',
             'description' => 'keterangan/alasan',
         ];
     }

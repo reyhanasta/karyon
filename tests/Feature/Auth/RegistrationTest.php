@@ -13,7 +13,7 @@ test('registration screen can be rendered', function () {
 test('new users can register', function () {
     // Create the required role for registration
     Role::create(['name' => 'employee']);
-    
+
     $department = Department::factory()->create();
     $position = Position::factory()->create(['name' => 'Staff IT']);
 
@@ -28,11 +28,11 @@ test('new users can register', function () {
 
     $this->assertAuthenticated();
     $response->assertRedirect(route('dashboard', absolute: false));
-    
+
     $this->assertDatabaseHas('users', [
         'email' => 'test@example.com',
     ]);
-    
+
     $this->assertDatabaseHas('employees', [
         'full_name' => 'Test User',
         'department_id' => $department->id,

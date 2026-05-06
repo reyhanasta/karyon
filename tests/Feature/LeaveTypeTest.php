@@ -1,11 +1,11 @@
 <?php
 
-use App\Models\User;
-use App\Models\LeaveType;
-use App\Models\LeaveRequest;
-use App\Models\Employee;
 use App\Models\Department;
+use App\Models\Employee;
+use App\Models\LeaveRequest;
+use App\Models\LeaveType;
 use App\Models\Position;
+use App\Models\User;
 use Spatie\Permission\Models\Permission;
 
 beforeEach(function () {
@@ -24,14 +24,14 @@ test('guests cannot access leave types', function () {
 
 test('unauthorized users cannot access leave types', function () {
     $this->actingAs($this->unauthorizedUser)
-         ->get(route('leave-types.index'))
-         ->assertForbidden();
+        ->get(route('leave-types.index'))
+        ->assertForbidden();
 });
 
 test('authorized users can visit the leave types page', function () {
     $this->actingAs($this->user)
-         ->get(route('leave-types.index'))
-         ->assertOk();
+        ->get(route('leave-types.index'))
+        ->assertOk();
 });
 
 test('can create leave type', function () {
@@ -113,7 +113,7 @@ test('cannot delete an in-use leave type', function () {
 
     $department = Department::firstOrCreate(['name' => 'IT']);
     $position = Position::firstOrCreate(['name' => 'Staff']);
-    
+
     $employeeUser = User::factory()->create();
     $employee = Employee::create([
         'user_id' => $employeeUser->id,
@@ -123,14 +123,14 @@ test('cannot delete an in-use leave type', function () {
         'join_date' => now()->toDateString(),
         'leave_quota' => 12,
     ]);
-    
+
     LeaveRequest::create([
         'employee_id' => $employee->id,
         'leave_type_id' => $leaveType->id,
         'start_date' => now()->toDateString(),
         'end_date' => now()->addDays(2)->toDateString(),
         'reason' => 'test use',
-        'status' => 'pending'
+        'status' => 'pending',
     ]);
 
     $response = $this->actingAs($this->user)->delete(route('leave-types.destroy', $leaveType));

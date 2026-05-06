@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\LeaveType;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreLeaveRequest extends FormRequest
@@ -14,13 +15,13 @@ class StoreLeaveRequest extends FormRequest
     public function rules(): array
     {
         $canCreateAny = $this->user()->can('leave-request.create.any');
-        $leaveType = \App\Models\LeaveType::find($this->input('leave_type_id'));
+        $leaveType = LeaveType::find($this->input('leave_type_id'));
 
         $rules = [
             'leave_type_id' => 'required|exists:leave_types,id',
-            'start_date'    => $canCreateAny ? 'required|date' : 'required|date|after_or_equal:today',
-            'end_date'      => 'required|date|after_or_equal:start_date',
-            'reason'        => 'required|string|max:500',
+            'start_date' => $canCreateAny ? 'required|date' : 'required|date|after_or_equal:today',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'reason' => 'required|string|max:500',
         ];
 
         if ($leaveType && $leaveType->requires_attachment) {
@@ -39,23 +40,23 @@ class StoreLeaveRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'leave_type_id.required'    => 'Jenis cuti wajib dipilih.',
+            'leave_type_id.required' => 'Jenis cuti wajib dipilih.',
             'start_date.after_or_equal' => 'Tanggal mulai harus hari ini atau setelahnya.',
-            'end_date.after_or_equal'   => 'Tanggal selesai harus sama atau setelah tanggal mulai.',
-            'attachment.mimes'          => 'Lampiran harus berupa file JPG, PNG, atau PDF.',
-            'attachment.max'            => 'Ukuran lampiran maksimal 2MB.',
+            'end_date.after_or_equal' => 'Tanggal selesai harus sama atau setelah tanggal mulai.',
+            'attachment.mimes' => 'Lampiran harus berupa file JPG, PNG, atau PDF.',
+            'attachment.max' => 'Ukuran lampiran maksimal 2MB.',
         ];
     }
 
     public function attributes(): array
     {
         return [
-            'employee_id'   => 'karyawan',
+            'employee_id' => 'karyawan',
             'leave_type_id' => 'jenis cuti',
-            'start_date'    => 'tanggal mulai',
-            'end_date'      => 'tanggal selesai',
-            'reason'        => 'alasan',
-            'attachment'    => 'lampiran',
+            'start_date' => 'tanggal mulai',
+            'end_date' => 'tanggal selesai',
+            'reason' => 'alasan',
+            'attachment' => 'lampiran',
         ];
     }
 }

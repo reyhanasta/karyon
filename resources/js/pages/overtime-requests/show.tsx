@@ -8,16 +8,15 @@ import {
     Hourglass,
     XCircle,
     Edit,
-    Trash2,
     X,
 } from 'lucide-react';
 import { useState } from 'react';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import { ApprovalHistory } from '@/components/approval-history';
+import { ConfirmationModal } from '@/components/confirmation-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ConfirmationModal } from '@/components/confirmation-modal';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 
 type OvertimeRequestData = {

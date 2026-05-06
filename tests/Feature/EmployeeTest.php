@@ -1,13 +1,13 @@
 <?php
 
-use App\Models\User;
-use App\Models\Employee;
 use App\Models\Department;
+use App\Models\Employee;
 use App\Models\Position;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
+use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Maatwebsite\Excel\Facades\Excel;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 beforeEach(function () {
     // Create necessary permissions and roles
@@ -17,7 +17,7 @@ beforeEach(function () {
         'employee.edit',
         'employee.delete',
     ];
-    
+
     foreach ($permissions as $perm) {
         Permission::firstOrCreate(['name' => $perm]);
     }
@@ -44,26 +44,26 @@ test('unauthenticated users are redirected', function () {
 
 test('unauthorized users get forbidden on index', function () {
     $this->actingAs($this->unauthorizedUser)
-         ->get(route('employees.index'))
-         ->assertForbidden();
+        ->get(route('employees.index'))
+        ->assertForbidden();
 });
 
 test('authorized users can view employees index', function () {
     $this->actingAs($this->hrUser)
-         ->get(route('employees.index'))
-         ->assertOk();
+        ->get(route('employees.index'))
+        ->assertOk();
 });
 
 test('can view create employee page', function () {
     $this->actingAs($this->hrUser)
-         ->get(route('employees.create'))
-         ->assertOk();
+        ->get(route('employees.create'))
+        ->assertOk();
 });
 
 test('unauthorized users cannot store employee', function () {
     $this->actingAs($this->unauthorizedUser)
-         ->post(route('employees.store'), [])
-         ->assertForbidden();
+        ->post(route('employees.store'), [])
+        ->assertForbidden();
 });
 
 test('can store an employee', function () {
@@ -82,7 +82,7 @@ test('can store an employee', function () {
     ]);
 
     $response->assertRedirect(route('employees.index'));
-    
+
     $this->assertDatabaseHas('users', [
         'email' => 'new@employee.com',
         'nip' => '12345678',
@@ -109,8 +109,8 @@ test('can view employee details', function () {
     ]);
 
     $this->actingAs($this->hrUser)
-         ->get(route('employees.show', $employee))
-         ->assertOk();
+        ->get(route('employees.show', $employee))
+        ->assertOk();
 });
 
 test('can view edit employee page', function () {
@@ -126,14 +126,14 @@ test('can view edit employee page', function () {
     ]);
 
     $this->actingAs($this->hrUser)
-         ->get(route('employees.edit', $employee))
-         ->assertOk();
+        ->get(route('employees.edit', $employee))
+        ->assertOk();
 });
 
 test('can update an employee', function () {
     $employeeUser = User::factory()->create([
         'email' => 'old@email.com',
-        'nip' => 'old-nip'
+        'nip' => 'old-nip',
     ]);
     $employeeUser->assignRole('employee');
 
@@ -162,7 +162,7 @@ test('can update an employee', function () {
     ]);
 
     $response->assertRedirect(route('employees.index'));
-    
+
     $this->assertDatabaseHas('users', [
         'id' => $employeeUser->id,
         'email' => 'updated@email.com',
@@ -192,8 +192,8 @@ test('unauthorized users cannot delete employee', function () {
     ]);
 
     $this->actingAs($this->unauthorizedUser)
-         ->delete(route('employees.destroy', $employee))
-         ->assertForbidden();
+        ->delete(route('employees.destroy', $employee))
+        ->assertForbidden();
 });
 
 test('can delete an employee', function () {
@@ -209,10 +209,10 @@ test('can delete an employee', function () {
     ]);
 
     $response = $this->actingAs($this->hrUser)
-         ->delete(route('employees.destroy', $employee));
+        ->delete(route('employees.destroy', $employee));
 
     $response->assertRedirect(route('employees.index'));
-    
+
     // Check soft delete
     $this->assertSoftDeleted('employees', [
         'id' => $employee->id,
@@ -223,9 +223,9 @@ test('can export employees', function () {
     Excel::fake();
 
     $response = $this->actingAs($this->hrUser)->get(route('employees.export'));
-    
+
     $response->assertOk();
-    Excel::assertDownloaded('employees_' . now()->format('Y-m-d') . '.xlsx');
+    Excel::assertDownloaded('employees_'.now()->format('Y-m-d').'.xlsx');
 });
 
 test('can import employees', function () {

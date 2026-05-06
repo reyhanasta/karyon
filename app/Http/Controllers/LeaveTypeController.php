@@ -37,7 +37,7 @@ class LeaveTypeController extends Controller
     public function update(Request $request, LeaveType $leaveType)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:100|unique:leave_types,name,' . $leaveType->id,
+            'name' => 'required|string|max:100|unique:leave_types,name,'.$leaveType->id,
             'max_days_per_year' => 'nullable|integer|min:1',
             'is_paid' => 'boolean',
             'requires_attachment' => 'boolean',

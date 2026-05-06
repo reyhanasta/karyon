@@ -2,12 +2,12 @@
 
 namespace App\Notifications;
 
-use App\Models\LeaveRequest;
 use App\Models\Employee;
+use App\Models\LeaveRequest;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Notification;
 
 class LeaveRequestNotification extends Notification implements ShouldQueue
 {
@@ -32,8 +32,8 @@ class LeaveRequestNotification extends Notification implements ShouldQueue
             'submitted' => "{$this->employee->full_name} mengajukan {$typeName} ({$this->leaveRequest->start_date} s/d {$this->leaveRequest->end_date})",
             'pending_manager' => "Pengajuan {$typeName} Anda ({$this->leaveRequest->start_date} s/d {$this->leaveRequest->end_date}) telah disetujui HRD, menunggu Kepala Ruangan",
             'pending_director' => "Pengajuan {$typeName} Anda ({$this->leaveRequest->start_date} s/d {$this->leaveRequest->end_date}) telah disetujui Kepala Ruangan, menunggu Direktur",
-            'approved'  => "Pengajuan {$typeName} Anda ({$this->leaveRequest->start_date} s/d {$this->leaveRequest->end_date}) telah disetujui",
-            'rejected'  => "Pengajuan {$typeName} Anda ({$this->leaveRequest->start_date} s/d {$this->leaveRequest->end_date}) telah ditolak",
+            'approved' => "Pengajuan {$typeName} Anda ({$this->leaveRequest->start_date} s/d {$this->leaveRequest->end_date}) telah disetujui",
+            'rejected' => "Pengajuan {$typeName} Anda ({$this->leaveRequest->start_date} s/d {$this->leaveRequest->end_date}) telah ditolak",
         ];
 
         return [
@@ -44,7 +44,7 @@ class LeaveRequestNotification extends Notification implements ShouldQueue
             'employee_name' => $this->employee->full_name,
             'leave_type' => $typeName,
             'message' => $messages[$this->action] ?? '',
-            'url' => '/leave-requests/' . $this->leaveRequest->id,
+            'url' => '/leave-requests/'.$this->leaveRequest->id,
         ];
     }
 

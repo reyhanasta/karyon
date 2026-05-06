@@ -7,7 +7,7 @@ import {
     UserRound,
     Users,
 } from 'lucide-react';
-import type { FormEventHandler, SubmitEventHandler } from 'react';
+import type { SubmitEventHandler } from 'react';
 import { EmployeeCombobox } from '@/components/employee-combobox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -43,7 +43,7 @@ type TypeUsage = Record<
 >;
 
 export default function Create({
-    leaveQuota,
+    
     monthlyLimit,
     monthlyRemaining,
     employees,
@@ -51,7 +51,7 @@ export default function Create({
     typeUsage,
     canCreateAny,
 }: {
-    leaveQuota?: number;
+    
     monthlyLimit?: number;
     monthlyUsage?: Record<string, number>;
     currentMonth?: string;

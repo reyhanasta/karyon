@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Department;
 use App\Models\Position;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Inertia\Inertia;
-
-use App\Models\Department;
 use Illuminate\Validation\Rule;
+use Inertia\Inertia;
 
 class PositionController extends Controller
 {

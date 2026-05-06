@@ -7,36 +7,37 @@ use App\Models\Shift;
 use App\Models\ShiftChangeRequest;
 use App\Models\User;
 use Database\Seeders\RoleAndPermissionSeeder;
+
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\seed;
 
 beforeEach(function () {
     seed(RoleAndPermissionSeeder::class);
     $this->admin = User::where('email', 'admin@admin.com')->first();
-    
+
     // Setup basic org structure
     $this->department = Department::create(['name' => 'Medis']);
     $this->position = Position::create(['name' => 'Dokter']);
     $this->shift = Shift::create([
-        'name' => 'Pagi', 
-        'start_time' => '07:00', 
-        'end_time' => '14:00', 
+        'name' => 'Pagi',
+        'start_time' => '07:00',
+        'end_time' => '14:00',
         'department_id' => $this->department->id,
-        'is_active' => true
+        'is_active' => true,
     ]);
 
     // Setup employees
     $this->employeeA = Employee::factory()->create([
         'department_id' => $this->department->id,
         'position_id' => $this->position->id,
-        'full_name' => 'Employee Alpha'
+        'full_name' => 'Employee Alpha',
     ]);
     $this->employeeA->user->assignRole('employee');
 
     $this->employeeB = Employee::factory()->create([
         'department_id' => $this->department->id,
         'position_id' => $this->position->id,
-        'full_name' => 'Employee Beta'
+        'full_name' => 'Employee Beta',
     ]);
     $this->employeeB->user->assignRole('employee');
 
@@ -59,7 +60,7 @@ test('employee can submit a shift change request to a colleague', function () {
             'request_date' => now()->addDay()->format('Y-m-d'),
             'requester_shift_id' => $this->shift->id,
             'target_id' => $this->employeeB->id,
-            'reason' => 'Ada keperluan keluarga'
+            'reason' => 'Ada keperluan keluarga',
         ])
         ->assertRedirect()
         ->assertSessionHas('success');
@@ -67,7 +68,7 @@ test('employee can submit a shift change request to a colleague', function () {
     $this->assertDatabaseHas('shift_change_requests', [
         'requester_id' => $this->employeeA->id,
         'target_id' => $this->employeeB->id,
-        'status' => 'pending_manager'
+        'status' => 'pending_manager',
     ]);
 });
 
@@ -78,7 +79,7 @@ test('admin can submit a shift change request on behalf of an employee', functio
             'request_date' => now()->addDay()->format('Y-m-d'),
             'requester_shift_id' => $this->shift->id,
             'target_id' => $this->employeeB->id,
-            'reason' => 'Created by admin'
+            'reason' => 'Created by admin',
         ])
         ->assertRedirect()
         ->assertSessionHas('success');
@@ -86,7 +87,7 @@ test('admin can submit a shift change request on behalf of an employee', functio
     $this->assertDatabaseHas('shift_change_requests', [
         'requester_id' => $this->employeeA->id,
         'target_id' => $this->employeeB->id,
-        'status' => 'pending_hrd'
+        'status' => 'pending_hrd',
     ]);
 });
 
@@ -97,7 +98,7 @@ test('karu can approve a shift change request', function () {
         'request_date' => now()->addDay()->format('Y-m-d'),
         'requester_shift_id' => $this->shift->id,
         'status' => 'pending_manager',
-        'reason' => 'Test'
+        'reason' => 'Test',
     ]);
 
     actingAs($this->karu)
@@ -117,7 +118,7 @@ test('hr admin can approve a manager-approved shift change request', function ()
         'status' => 'pending_hrd',
         'manager_approved_by' => $this->karu->id,
         'manager_approved_at' => now(),
-        'reason' => 'Test'
+        'reason' => 'Test',
     ]);
 
     actingAs($this->admin)
@@ -135,7 +136,7 @@ test('duplicate shift change request is prevented', function () {
         'request_date' => now()->addDay()->format('Y-m-d'),
         'requester_shift_id' => $this->shift->id,
         'status' => 'pending_manager',
-        'reason' => 'Existing'
+        'reason' => 'Existing',
     ]);
 
     actingAs($this->employeeA->user)
@@ -143,7 +144,7 @@ test('duplicate shift change request is prevented', function () {
             'request_date' => now()->addDay()->format('Y-m-d'),
             'requester_shift_id' => $this->shift->id,
             'target_id' => $this->employeeB->id,
-            'reason' => 'Duplicate'
+            'reason' => 'Duplicate',
         ])
         ->assertSessionHas('error');
 });
@@ -155,12 +156,12 @@ test('shift change request can be rejected', function () {
         'request_date' => now()->addDay()->format('Y-m-d'),
         'requester_shift_id' => $this->shift->id,
         'status' => 'pending_manager',
-        'reason' => 'Test'
+        'reason' => 'Test',
     ]);
 
     actingAs($this->karu)
         ->post(route('shift-change-requests.reject', $request), [
-            'notes' => 'Not allowed'
+            'notes' => 'Not allowed',
         ])
         ->assertRedirect();
 
@@ -175,7 +176,7 @@ test('unauthorized user cannot view shift change request', function () {
         'request_date' => now()->addDay()->format('Y-m-d'),
         'requester_shift_id' => $this->shift->id,
         'status' => 'pending_manager',
-        'reason' => 'Secret'
+        'reason' => 'Secret',
     ]);
 
     $otherUser = User::factory()->create();

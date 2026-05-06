@@ -22,17 +22,17 @@ class CreateNewUser implements CreatesNewUsers
     public function create(array $input): User
     {
         Validator::make($input, [
-            'full_name'     => ['required', 'string', 'max:255'],
-            'email'         => $this->emailRules(),
-            'password'      => $this->passwordRules(),
+            'full_name' => ['required', 'string', 'max:255'],
+            'email' => $this->emailRules(),
+            'password' => $this->passwordRules(),
             'department_id' => ['required', 'exists:departments,id'],
-            'position_id'   => ['required', 'exists:positions,id'],
+            'position_id' => ['required', 'exists:positions,id'],
         ])->validate();
 
         return DB::transaction(function () use ($input) {
             $user = User::create([
-                'nip'      => null,
-                'email'    => $input['email'],
+                'nip' => null,
+                'email' => $input['email'],
                 'password' => $input['password'],
             ]);
 
@@ -41,12 +41,12 @@ class CreateNewUser implements CreatesNewUsers
 
             // Create associated employee record
             Employee::create([
-                'user_id'       => $user->id,
-                'full_name'     => $input['full_name'],
+                'user_id' => $user->id,
+                'full_name' => $input['full_name'],
                 'department_id' => $input['department_id'],
-                'position_id'   => $input['position_id'],
-                'join_date'     => now()->toDateString(),
-                'leave_quota'   => 12,
+                'position_id' => $input['position_id'],
+                'join_date' => now()->toDateString(),
+                'leave_quota' => 12,
             ]);
 
             return $user;

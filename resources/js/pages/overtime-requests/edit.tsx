@@ -3,13 +3,6 @@ import type { FormEventHandler } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 
@@ -28,10 +21,10 @@ type OvertimeRequestData = {
 
 export default function Edit({
     overtimeRequest,
-    employees,
+    
 }: {
     overtimeRequest: OvertimeRequestData;
-    employees: Employee[];
+    
 }) {
     const { data, setData, put, processing, errors } = useInertiaForm({
         employee_id: String(overtimeRequest.employee_id),

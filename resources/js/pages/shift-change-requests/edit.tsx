@@ -1,14 +1,4 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import {
-    CalendarDays,
-    CheckCircle,
-    Clock,
-    HelpCircle,
-    Info,
-    User2,
-    UserRound,
-    Users,
-} from 'lucide-react';
 import { useMemo } from 'react';
 import { EmployeeCombobox } from '@/components/employee-combobox';
 import { Button } from '@/components/ui/button';
@@ -21,7 +11,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 
@@ -58,14 +47,14 @@ export default function Edit({
     request,
     shifts,
     employees = [],
-    canCreateAny = false,
+    
 }: {
     request: ShiftChangeRequest;
     shifts: Shift[];
     employees?: Employee[];
-    canCreateAny?: boolean;
+    
 }) {
-    const { data, setData, put, processing, errors, clearErrors } = useForm({
+    const { data, setData, put, processing, errors } = useForm({
         requester_id: String(request.requester_id),
         request_date: request.request_date,
         requester_shift_id: String(request.requester_shift_id),

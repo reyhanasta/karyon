@@ -2,7 +2,8 @@
 
 namespace App\Exports;
 
-use App\Models\ShiftChangeRequest;
+use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -17,8 +18,8 @@ class ShiftChangeRequestsExport implements FromCollection, WithHeadings, WithMap
     }
 
     /**
-    * @return \Illuminate\Support\Collection
-    */
+     * @return Collection
+     */
     public function collection()
     {
         return $this->collection;
@@ -40,15 +41,15 @@ class ShiftChangeRequestsExport implements FromCollection, WithHeadings, WithMap
 
     public function map($request): array
     {
-        $shiftInfo = $request->requesterShift 
-            ? "{$request->requesterShift->name} (" . substr($request->requesterShift->start_time, 0, 5) . "-" . substr($request->requesterShift->end_time, 0, 5) . ")"
+        $shiftInfo = $request->requesterShift
+            ? "{$request->requesterShift->name} (".substr($request->requesterShift->start_time, 0, 5).'-'.substr($request->requesterShift->end_time, 0, 5).')'
             : '-';
 
         return [
             $request->id,
             $request->requester->full_name ?? '-',
             $request->target->full_name ?? '-',
-            \Carbon\Carbon::parse($request->request_date)->format('d-m-Y'),
+            Carbon::parse($request->request_date)->format('d-m-Y'),
             $shiftInfo,
             $request->reason,
             str_replace('_', ' ', ucfirst($request->status)),
