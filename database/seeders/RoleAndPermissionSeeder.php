@@ -35,7 +35,7 @@ class RoleAndPermissionSeeder extends Seeder
             'leave-type.view', 'leave-type.create', 'leave-type.edit', 'leave-type.delete',
             // Overtime request management
             'overtime-request.view', 'overtime-request.create', 'overtime-request.create.any', 'overtime-request.edit', 'overtime-request.delete',
-            'overtime-request.approve.hrd', 'overtime-request.approve.manager','overtime-request.export',
+            'overtime-request.approve.hrd', 'overtime-request.approve.manager', 'overtime-request.export',
         ];
 
         foreach ($permissions as $perm) {
@@ -81,7 +81,7 @@ class RoleAndPermissionSeeder extends Seeder
             'employee.view', 'department.view', 'position.view','leave-type.view','shift.view',
             'shift-change-request.view', 'shift-change-request.approve.manager', 'shift-change-request.export',
             'leave-request.view', 'leave-request.approve.hrd', 'leave-request.approve.manager', 'leave-request.approve.director', 'leave-request.create', 'leave-request.edit', 'leave-request.export', 
-            'overtime-request.view', 'overtime-request.approve.hrd', 'overtime-request.approve.manager', 'overtime-request.create','overtime-request.export',
+            'overtime-request.view', 'overtime-request.approve.hrd', 'overtime-request.approve.manager', 'overtime-request.create', 'overtime-request.export',
             'employee-profile.edit'
         ]);
 

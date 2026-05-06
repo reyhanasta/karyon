@@ -352,7 +352,6 @@ export default function Index({
                                                             <Button
                                                                 variant="outline"
                                                                 size="sm"
-                                                                className="border-mauve-700"
                                                             >
                                                                 <Pencil className="mr-1 h-3 w-3" />{' '}
                                                                 Edit

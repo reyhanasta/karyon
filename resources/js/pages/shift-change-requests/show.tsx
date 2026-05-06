@@ -78,15 +78,14 @@ export default function Show({
         if (!confirmAction) return;
 
         let url = '';
-        let data = {};
+        let data: any = {};
 
-        if (confirmAction.type === 'approve_hrd') {
-            url = `/shift-change-requests/${request.id}/approve-hrd`;
-        } else if (confirmAction.type === 'approve_manager') {
-            url = `/shift-change-requests/${request.id}/approve-manager`;
+        if (confirmAction.type === 'approve_hrd' || confirmAction.type === 'approve_manager') {
+            url = `/shift-change-requests/${request.id}/status`;
+            data = { status: 'approved' };
         } else if (confirmAction.type === 'reject') {
-            url = `/shift-change-requests/${request.id}/reject`;
-            data = { notes: confirmAction.notes };
+            url = `/shift-change-requests/${request.id}/status`;
+            data = { status: 'rejected', notes: confirmAction.notes };
             if (!confirmAction.notes) {
                 alert('Alasan penolakan wajib diisi.');
                 return;

@@ -5,6 +5,7 @@ import {
     Clock,
     HelpCircle,
     Info,
+    User,
     User2,
     UserRound,
     Users,
@@ -190,8 +191,15 @@ export default function Create({
                                         shifts={myShifts}
                                         targetEmployees={targetEmployees}
                                         getInitials={getInitials}
-                                        selectedShift={myShifts.find(s => String(s.id) === data.requester_shift_id)}
-                                        selectedTarget={targetEmployees.find(e => String(e.id) === data.target_id)}
+                                        selectedShift={myShifts.find(
+                                            (s) =>
+                                                String(s.id) ===
+                                                data.requester_shift_id,
+                                        )}
+                                        selectedTarget={targetEmployees.find(
+                                            (e) =>
+                                                String(e.id) === data.target_id,
+                                        )}
                                     />
                                     <div className="flex justify-end gap-2 pt-4">
                                         <Link href="/shift-change-requests">
@@ -302,7 +310,8 @@ export default function Create({
                                                     berdasarkan departemen{' '}
                                                     <strong>
                                                         {
-                                                            selectedRequesterObj?.department
+                                                            selectedRequesterObj
+                                                                ?.department
                                                                 ?.name
                                                         }
                                                     </strong>{' '}
@@ -310,8 +319,8 @@ export default function Create({
                                                     difilter berdasarkan jabatan{' '}
                                                     <strong>
                                                         {
-                                                            selectedRequesterObj?.position
-                                                                ?.name
+                                                            selectedRequesterObj
+                                                                ?.position?.name
                                                         }
                                                     </strong>
                                                     .
@@ -347,8 +356,7 @@ export default function Create({
                                         <Button
                                             type="submit"
                                             disabled={
-                                                processing ||
-                                                !data.requester_id
+                                                processing || !data.requester_id
                                             }
                                         >
                                             Kirim Pengajuan
@@ -366,8 +374,14 @@ export default function Create({
                                 shifts={myShifts}
                                 targetEmployees={targetEmployees}
                                 getInitials={getInitials}
-                                selectedShift={myShifts.find(s => String(s.id) === data.requester_shift_id)}
-                                selectedTarget={targetEmployees.find(e => String(e.id) === data.target_id)}
+                                selectedShift={myShifts.find(
+                                    (s) =>
+                                        String(s.id) ===
+                                        data.requester_shift_id,
+                                )}
+                                selectedTarget={targetEmployees.find(
+                                    (e) => String(e.id) === data.target_id,
+                                )}
                             />
                             <div className="flex justify-end gap-2 pt-4">
                                 <Link href="/shift-change-requests">
@@ -408,56 +422,67 @@ function ShiftChangeFormFields({
 }) {
     return (
         <>
-            {/* Tanggal */}
-            <div className="space-y-2">
-                <Label htmlFor="request_date" required>
-                    Tanggal Penggantian
-                </Label>
-                <Input
-                    id="request_date"
-                    type="date"
-                    value={data.request_date}
-                    onChange={(e) => setData('request_date', e.target.value)}
-                    required
-                />
-                {errors.request_date && (
-                    <p className="text-sm font-medium text-destructive">
-                        {errors.request_date}
-                    </p>
-                )}
-            </div>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                {/* Tanggal */}
+                <div className="space-y-2">
+                    <Label htmlFor="request_date" required>
+                        Tanggal Penggantian
+                    </Label>
+                    <Input
+                        id="request_date"
+                        type="date"
+                        value={data.request_date}
+                        onChange={(e) =>
+                            setData('request_date', e.target.value)
+                        }
+                        required
+                    />
+                    {errors.request_date && (
+                        <p className="text-sm font-medium text-destructive">
+                            {errors.request_date}
+                        </p>
+                    )}
+                </div>
 
-            {/* Shift yang Ditinggalkan */}
-            <div className="space-y-2">
-                <Label htmlFor="requester_shift_id" required>
-                    Shift yang Perlu Digantikan
-                </Label>
-                <Select
-                    value={data.requester_shift_id}
-                    onValueChange={(val) => setData('requester_shift_id', val)}
-                >
-                    <SelectTrigger>
-                        <SelectValue placeholder="Pilih shift yang ditinggalkan..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {shifts.map((s) => (
-                            <SelectItem key={s.id} value={String(s.id)}>
-                                {s.name} ({s.start_time.slice(0, 5)} –{' '}
-                                {s.end_time.slice(0, 5)})
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-                {errors.requester_shift_id && (
-                    <p className="text-sm font-medium text-destructive">
-                        {errors.requester_shift_id}
-                    </p>
-                )}
+                {/* Shift yang Ditinggalkan */}
+                <div className="flex w-full flex-col space-y-2">
+                    <Label htmlFor="requester_shift_id" required>
+                        Shift yang Perlu Digantikan
+                    </Label>
+                    <Select
+                        value={data.requester_shift_id}
+                        onValueChange={(val) =>
+                            setData('requester_shift_id', val)
+                        }
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder="Pilih shift yang ditinggalkan..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {shifts.map((s) => (
+                                <SelectItem key={s.id} value={String(s.id)}>
+                                    {s.name} ({s.start_time.slice(0, 5)} –{' '}
+                                    {s.end_time.slice(0, 5)})
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    {errors.requester_shift_id && (
+                        <p className="text-sm font-medium text-destructive">
+                            {errors.requester_shift_id}
+                        </p>
+                    )}
+                </div>
             </div>
 
             {/* Pilih Pengganti */}
             <div className="space-y-2">
-                <Label htmlFor="target_id" required>
+                <Label
+                    htmlFor="target_id"
+                    className="flex flex-row items-center gap-2"
+                    required
+                >
+                    <User2 className="h-4 w-4" />
                     Karyawan Pengganti
                 </Label>
                 <div className="group relative">

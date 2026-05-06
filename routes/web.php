@@ -108,6 +108,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('shift-change-requests.approve-hrd');
     Route::post('shift-change-requests/{shift_change_request}/approve-manager', [App\Http\Controllers\ShiftChangeRequestController::class, 'approveManager'])
         ->name('shift-change-requests.approve-manager');
+    Route::post('shift-change-requests/{shift_change_request}/status', [App\Http\Controllers\ShiftChangeRequestController::class, 'updateStatus'])
+        ->name('shift-change-requests.status')
+        ->middleware('permission:shift-change-request.approve.hrd|shift-change-request.approve.manager');
     Route::post('shift-change-requests/{shift_change_request}/reject', [App\Http\Controllers\ShiftChangeRequestController::class, 'reject'])
         ->name('shift-change-requests.reject');
     Route::get('shift-change-requests/export/excel', [App\Http\Controllers\ShiftChangeRequestController::class, 'exportExcel'])

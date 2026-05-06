@@ -374,19 +374,18 @@ class LeaveRequestController extends Controller
 
         $user = Auth::user();
         $nextStatus = null;
-        $approveColumn = null;
-        $approveAtColumn = null;
+        $rolesToFill = [];
         $rolesToNotify = [];
 
         if ($leaveRequest->status === 'pending_manager') {
             if ($user->can('leave-request.approve.hrd')) {
-                $nextStatus = 'approved';
-                $approveColumn = 'hrd_approved_by';
-                $approveAtColumn = 'hrd_approved_at';
+                // Bypass: HRD approves on behalf of Manager and HRD
+                $nextStatus = 'pending_director';
+                $rolesToFill = ['manager', 'hrd'];
+                $rolesToNotify = ['director'];
             } elseif ($user->can('leave-request.approve.manager')) {
                 $nextStatus = 'pending_hrd';
-                $approveColumn = 'manager_approved_by';
-                $approveAtColumn = 'manager_approved_at';
+                $rolesToFill = ['manager'];
                 $rolesToNotify = ['hrd'];
             } else {
                 return back()->with('error', 'You do not have permission at this stage.');
@@ -394,14 +393,12 @@ class LeaveRequestController extends Controller
         } elseif ($leaveRequest->status === 'pending_hrd') {
             if (!$user->can('leave-request.approve.hrd')) return back()->with('error', 'You do not have permission at this stage.');
             $nextStatus = 'pending_director';
-            $approveColumn = 'hrd_approved_by';
-            $approveAtColumn = 'hrd_approved_at';
+            $rolesToFill = ['hrd'];
             $rolesToNotify = ['director'];
         } elseif ($leaveRequest->status === 'pending_director') {
-            if ($user->can('leave-request.approve.hrd') || $user->can('leave-request.approve.director')) {
+            if ($user->can('leave-request.approve.director') || $user->can('leave-request.approve.hrd')) {
                 $nextStatus = 'approved';
-                $approveColumn = $user->can('leave-request.approve.director') ? 'director_approved_by' : 'hrd_approved_by';
-                $approveAtColumn = $user->can('leave-request.approve.director') ? 'director_approved_at' : 'hrd_approved_at';
+                $rolesToFill = ['director'];
             } else {
                 return back()->with('error', 'You do not have permission at this stage.');
             }
@@ -410,14 +407,25 @@ class LeaveRequestController extends Controller
         // If action was to reject, it immediately becomes rejected and halts
         if ($validated['status'] === 'rejected') {
             $nextStatus = 'rejected';
+            // On rejection, we still mark who rejected it in the CURRENT stage
+            if ($leaveRequest->status === 'pending_manager') $rolesToFill = ['manager'];
+            if ($leaveRequest->status === 'pending_hrd') $rolesToFill = ['hrd'];
+            if ($leaveRequest->status === 'pending_director') $rolesToFill = ['director'];
         }
 
-        DB::transaction(function () use ($leaveRequest, $nextStatus, $approveColumn, $approveAtColumn) {
-            $updateData = [
-                'status' => $nextStatus,
-                $approveColumn => Auth::id(),
-                $approveAtColumn => now()
-            ];
+        DB::transaction(function () use ($leaveRequest, $nextStatus, $rolesToFill) {
+            $updateData = ['status' => $nextStatus];
+
+            foreach ($rolesToFill as $role) {
+                $byColumn = "{$role}_approved_by";
+                $atColumn = "{$role}_approved_at";
+
+                // Prevent Overwrite: Only fill if empty
+                if (empty($leaveRequest->$byColumn)) {
+                    $updateData[$byColumn] = Auth::id();
+                    $updateData[$atColumn] = now();
+                }
+            }
 
             if ($nextStatus === 'approved' || $nextStatus === 'rejected') {
                 $updateData['approved_by'] = Auth::id(); // keeping legacy column for final state

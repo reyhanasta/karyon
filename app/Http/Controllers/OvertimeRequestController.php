@@ -282,19 +282,17 @@ class OvertimeRequestController extends Controller
 
         $user = Auth::user();
         $nextStatus = null;
-        $approveColumn = null;
-        $approveAtColumn = null;
+        $rolesToFill = [];
         $rolesToNotify = [];
 
         if ($overtimeRequest->status === 'pending_manager') {
             if ($user->can('overtime-request.approve.hrd')) {
+                // Bypass: HRD approves on behalf of Manager and HRD
                 $nextStatus = 'approved';
-                $approveColumn = 'hrd_approved_by';
-                $approveAtColumn = 'hrd_approved_at';
+                $rolesToFill = ['manager', 'hrd'];
             } elseif ($user->can('overtime-request.approve.manager')) {
                 $nextStatus = 'pending_hrd';
-                $approveColumn = 'manager_approved_by';
-                $approveAtColumn = 'manager_approved_at';
+                $rolesToFill = ['manager'];
                 $rolesToNotify = ['hrd'];
             } else {
                 return back()->with('error', 'You do not have permission at this stage.');
@@ -302,22 +300,29 @@ class OvertimeRequestController extends Controller
         } elseif ($overtimeRequest->status === 'pending_hrd') {
             if (!$user->can('overtime-request.approve.hrd')) return back()->with('error', 'You do not have permission at this stage.');
             $nextStatus = 'approved';
-            $approveColumn = 'hrd_approved_by';
-            $approveAtColumn = 'hrd_approved_at';
-            $rolesToNotify = [];
+            $rolesToFill = ['hrd'];
         }
 
         // If action was to reject, it immediately becomes rejected and halts
         if ($validated['status'] === 'rejected') {
             $nextStatus = 'rejected';
+            if ($overtimeRequest->status === 'pending_manager') $rolesToFill = ['manager'];
+            if ($overtimeRequest->status === 'pending_hrd') $rolesToFill = ['hrd'];
         }
 
-        DB::transaction(function () use ($overtimeRequest, $nextStatus, $approveColumn, $approveAtColumn) {
-            $updateData = [
-                'status' => $nextStatus,
-                $approveColumn => Auth::id(),
-                $approveAtColumn => now()
-            ];
+        DB::transaction(function () use ($overtimeRequest, $nextStatus, $rolesToFill) {
+            $updateData = ['status' => $nextStatus];
+
+            foreach ($rolesToFill as $role) {
+                $byColumn = "{$role}_approved_by";
+                $atColumn = "{$role}_approved_at";
+
+                // Prevent Overwrite: Only fill if empty
+                if (empty($overtimeRequest->$byColumn)) {
+                    $updateData[$byColumn] = Auth::id();
+                    $updateData[$atColumn] = now();
+                }
+            }
 
             if ($nextStatus === 'approved' || $nextStatus === 'rejected') {
                 $updateData['approved_by'] = Auth::id(); // keeping legacy column for final state

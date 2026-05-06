@@ -14,6 +14,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Exports\ShiftChangeRequestsExport;
 use App\Http\Requests\StoreShiftChangeRequest;
 use App\Http\Requests\UpdateShiftChangeRequest;
+use Illuminate\Support\Facades\DB;
 
 class ShiftChangeRequestController extends Controller
 {
@@ -246,61 +247,89 @@ class ShiftChangeRequestController extends Controller
         ]);
     }
 
+    public function updateStatus(Request $request, ShiftChangeRequest $shift_change_request)
+    {
+        // This is primarily for administrative approval (Manager, HRD, Director)
+        // target approval is still handled separately in approveTarget
+        
+        $validated = $request->validate([
+            'status' => 'required|in:approved,rejected'
+        ]);
+
+        if (!str_starts_with($shift_change_request->status, 'pending')) {
+            return back()->with('error', 'Permintaan ini sudah selesai diproses.');
+        }
+
+        $user = Auth::user();
+        $nextStatus = null;
+        $rolesToFill = [];
+        $rolesToNotify = [];
+
+        if ($shift_change_request->status === 'pending_manager') {
+            if ($user->can('shift-change-request.approve.hrd')) {
+                $nextStatus = 'approved';
+                $rolesToFill = ['manager', 'hrd'];
+            } elseif ($user->can('shift-change-request.approve.manager')) {
+                $nextStatus = 'pending_hrd';
+                $rolesToFill = ['manager'];
+                $rolesToNotify = ['hrd'];
+            } else {
+                return back()->with('error', 'Anda tidak memiliki akses di tahap ini.');
+            }
+        } elseif ($shift_change_request->status === 'pending_hrd') {
+            if (!$user->can('shift-change-request.approve.hrd')) return back()->with('error', 'Anda tidak memiliki akses di tahap ini.');
+            $nextStatus = 'approved';
+            $rolesToFill = ['hrd'];
+        }
+
+        if ($validated['status'] === 'rejected') {
+            $nextStatus = 'rejected';
+            if ($shift_change_request->status === 'pending_manager') $rolesToFill = ['manager'];
+            if ($shift_change_request->status === 'pending_hrd') $rolesToFill = ['hrd'];
+        }
+
+        DB::transaction(function () use ($shift_change_request, $nextStatus, $rolesToFill) {
+            $updateData = ['status' => $nextStatus];
+            foreach ($rolesToFill as $role) {
+                $byColumn = "{$role}_approved_by";
+                $atColumn = "{$role}_approved_at";
+                if (empty($shift_change_request->$byColumn)) {
+                    $updateData[$byColumn] = Auth::id();
+                    $updateData[$atColumn] = now();
+                }
+            }
+            $shift_change_request->update($updateData);
+        });
+
+        // Notify
+        if ($nextStatus === 'approved' || $nextStatus === 'rejected') {
+            $shift_change_request->load(['requester.user', 'target.user']);
+            if ($shift_change_request->requester->user) {
+                $shift_change_request->requester->user->notify(new ShiftChangeRequestNotification($shift_change_request, $nextStatus));
+            }
+            if ($shift_change_request->target->user) {
+                $shift_change_request->target->user->notify(new ShiftChangeRequestNotification($shift_change_request, $nextStatus));
+            }
+        } elseif (!empty($rolesToNotify)) {
+             $nextApprovers = User::permission("shift-change-request.approve.{$rolesToNotify[0]}")->get();
+             foreach ($nextApprovers as $approver) {
+                 $approver->notify(new ShiftChangeRequestNotification($shift_change_request, $nextStatus));
+             }
+        }
+
+        return back()->with('success', 'Status permintaan tukar shift berhasil diperbarui.');
+    }
+
     public function approveHrd(Request $request, ShiftChangeRequest $shift_change_request)
     {
-        if (!Auth::user()->hasPermissionTo('shift-change-request.approve.hrd')) {
-            abort(403);
-        }
-
-        $data = [
-            'status' => 'approved',
-            'hrd_approved_by' => Auth::id(),
-            'hrd_approved_at' => now(),
-        ];
-
-        $shift_change_request->update($data);
-        
-        // Notify both
-        if ($shift_change_request->requester->user) {
-            /** @var \App\Models\User $requesterUser */
-            $requesterUser = $shift_change_request->requester->user;
-            $requesterUser->notify(new ShiftChangeRequestNotification($shift_change_request, 'approved'));
-        }
-        if ($shift_change_request->target->user) {
-            /** @var \App\Models\User $targetUser */
-            $targetUser = $shift_change_request->target->user;
-            $targetUser->notify(new ShiftChangeRequestNotification($shift_change_request, 'approved'));
-        }
-
-        return back()->with('success', 'Tukar shift disetujui oleh HRD.');
+        $request->merge(['status' => 'approved']);
+        return $this->updateStatus($request, $shift_change_request);
     }
 
     public function approveManager(Request $request, ShiftChangeRequest $shift_change_request)
     {
-        $user = Auth::user();
-        if (!$user->hasPermissionTo('shift-change-request.approve.manager')) {
-            abort(403);
-        }
-
-        $requester = $shift_change_request->requester;
-        if ($requester && !$user->hasAnyRole(['karu', 'manager']) && !$user->managedDepartments()->where('departments.id', $requester->department_id)->exists()) {
-            abort(403, 'Anda bukan penanggung jawab departemen ini.');
-        }
-
-        $shift_change_request->update([
-            'status' => 'pending_hrd',
-            'manager_approved_by' => Auth::id(),
-            'manager_approved_at' => now(),
-        ]);
-
-        // Notify HRD
-        $hrAdmins = User::permission('shift-change-request.approve.hrd')->get();
-        /** @var \App\Models\User $hr */
-        foreach ($hrAdmins as $hr) {
-            $hr->notify(new ShiftChangeRequestNotification($shift_change_request, 'pending_hrd'));
-        }
-
-        return back()->with('success', 'Tukar shift disetujui oleh Kepala Ruangan, menunggu persetujuan HRD.');
+        $request->merge(['status' => 'approved']);
+        return $this->updateStatus($request, $shift_change_request);
     }
 
     public function reject(Request $request, ShiftChangeRequest $shift_change_request)
