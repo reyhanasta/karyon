@@ -12,8 +12,8 @@ class Employee extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected const MONTHLY_LEAVE_LIMIT = 5;
-
+    public const MONTHLY_LEAVE_LIMIT = 5;
+    
     protected $fillable = [
         'user_id',
         'full_name',
